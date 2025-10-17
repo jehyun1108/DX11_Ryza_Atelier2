@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\private\MainApp.cpp">
+      <Filter>00. MainApp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ModelImporter.cpp">
+      <Filter>03. ModelImporter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ModelExporter.cpp">
+      <Filter>04. ModelExporter</Filter>
+    </ClCompile>
+    <ClCompile Include="Exporter.cpp">
+      <Filter>99. Etc\Useless</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\pch.cpp">
+      <Filter>99. Etc\Useless</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ImportPanel.cpp">
+      <Filter>00. Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ImportLevel.cpp">
+      <Filter>01. Levels</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TextureLoader.cpp">
+      <Filter>05. TextureLoader</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\public\MainApp.h">
+      <Filter>00. MainApp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\pch.h">
+      <Filter>99. Etc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ModelImporter.h">
+      <Filter>03. ModelImporter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ModelExporter.h">
+      <Filter>04. ModelExporter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Importer_Defines.h">
+      <Filter>99. Etc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Importer_Struct.h">
+      <Filter>99. Etc</Filter>
+    </ClInclude>
+    <ClInclude Include="Exporter.h">
+      <Filter>99. Etc\Useless</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>99. Etc\Useless</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>99. Etc\Useless</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ImportPanel.h">
+      <Filter>00. Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ImportLevel.h">
+      <Filter>01. Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TextureLoader.h">
+      <Filter>05. TextureLoader</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Exporter.ico">
+      <Filter>99. Etc\Useless</Filter>
+    </Image>
+    <Image Include="small.ico">
+      <Filter>99. Etc\Useless</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="00. MainApp">
+      <UniqueIdentifier>{5101b082-00f0-4868-abd6-1f1b5bb6cbe2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Levels">
+      <UniqueIdentifier>{9bc54948-ebdf-47f1-97fa-f301dee7a95c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Etc">
+      <UniqueIdentifier>{27e6a62b-79b4-4d64-85a3-a7406ff793a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Etc\Useless">
+      <UniqueIdentifier>{dcc63bd1-8f3b-4fb2-ac42-4446f4642d10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Panels">
+      <UniqueIdentifier>{eaedcd36-7cab-49ce-aa8a-cc684af8a6c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. ModelImporter">
+      <UniqueIdentifier>{bf24480e-4ce3-41ea-a430-114b1b5d3ed2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. ModelExporter">
+      <UniqueIdentifier>{ea8bed1d-64de-44bd-8db0-5c19a521a1f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. TextureLoader">
+      <UniqueIdentifier>{86d516fd-189e-4247-9db0-c6a9630f7956}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Exporter.rc">
+      <Filter>99. Etc\Useless</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

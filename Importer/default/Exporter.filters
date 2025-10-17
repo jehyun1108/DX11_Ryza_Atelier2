@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="99. ShaderFiles">
+      <UniqueIdentifier>{f2ec2adf-e9c8-4577-9edc-5731dd788440}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. ShaderFiles\VS">
+      <UniqueIdentifier>{8a1694ee-02ae-450b-b674-cbcd1ac19ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. ShaderFiles\PS">
+      <UniqueIdentifier>{96f66934-ec3f-4763-83e5-912a015feee5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. ModelImporter">
+      <UniqueIdentifier>{5ea92e7e-eb53-4d57-aa5a-23038cdc5673}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. ModelExporter">
+      <UniqueIdentifier>{699120e2-4fa7-4758-8868-60a61c2b1207}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Etc">
+      <UniqueIdentifier>{8035dc65-79a7-475d-90d7-dc2aef00c023}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99. Etc\Useless">
+      <UniqueIdentifier>{535589f0-5df2-443a-80d5-192dd57798b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Obj">
+      <UniqueIdentifier>{110665ec-e928-4600-b66e-31649371c2ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. MainApp">
+      <UniqueIdentifier>{eea143f0-0fda-47f4-9110-8f3f35d45299}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Levels">
+      <UniqueIdentifier>{6526dd41-1306-4b19-b711-1e358c5bdf34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Obj\00. ImportPanel">
+      <UniqueIdentifier>{cef2de2d-9bc3-4802-b519-be56ac67ec54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Obj\01. CamObj">
+      <UniqueIdentifier>{c1121407-da2f-4bfe-9083-cc9d2fad7827}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Obj\02. PreviewObj">
+      <UniqueIdentifier>{c4c03163-e21a-404f-8135-9f6ca6914bbb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Resource.h">
+      <Filter>99. Etc\Useless</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>99. Etc\Useless</Filter>
+    </ClInclude>
+    <ClInclude Include="Exporter.h">
+      <Filter>99. Etc\Useless</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MainApp.h">
+      <Filter>00. MainApp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\pch.h">
+      <Filter>99. Etc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Importer_Defines.h">
+      <Filter>99. Etc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ImportLevel.h">
+      <Filter>01. Levels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Importer_Struct.h">
+      <Filter>99. Etc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ModelImporter.h">
+      <Filter>02. ModelImporter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ModelExporter.h">
+      <Filter>03. ModelExporter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CamObj.h">
+      <Filter>04. Obj\01. CamObj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ImportPanel.h">
+      <Filter>04. Obj\00. ImportPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\PreviewObj.h">
+      <Filter>04. Obj\02. PreviewObj</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Exporter.ico">
+      <Filter>99. Etc\Useless</Filter>
+    </Image>
+    <Image Include="small.ico">
+      <Filter>99. Etc\Useless</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\private\MainApp.cpp">
+      <Filter>00. MainApp</Filter>
+    </ClCompile>
+    <ClCompile Include="Exporter.cpp">
+      <Filter>99. Etc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\pch.cpp">
+      <Filter>99. Etc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ImportLevel.cpp">
+      <Filter>01. Levels</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ModelImporter.cpp">
+      <Filter>02. ModelImporter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ModelExporter.cpp">
+      <Filter>03. ModelExporter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CamObj.cpp">
+      <Filter>04. Obj\01. CamObj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ImportPanel.cpp">
+      <Filter>04. Obj\00. ImportPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\PreviewObj.cpp">
+      <Filter>04. Obj\02. PreviewObj</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Exporter.rc">
+      <Filter>99. Etc\Useless</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\bin\ShaderFiles\Common.hlsli">
+      <Filter>99. ShaderFiles</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\bin\ShaderFiles\VtxAnim_VS.hlsl">
+      <Filter>99. ShaderFiles\VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\VtxNorTex_VS.hlsl">
+      <Filter>99. ShaderFiles\VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\VtxTex_VS.hlsl">
+      <Filter>99. ShaderFiles\VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\VtxAnim_PS.hlsl">
+      <Filter>99. ShaderFiles\PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\VtxNorTex_PS.hlsl">
+      <Filter>99. ShaderFiles\PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\VtxTex_PS.hlsl">
+      <Filter>99. ShaderFiles\PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\WireFrame_PS.hlsl">
+      <Filter>99. ShaderFiles\PS</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{c2bc90f0-f346-43ba-a7d9-c69f4de82f81}</ProjectGuid>
+    <RootNamespace>Engine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>../bin/</OutDir>
+    <MultiProcFXC>true</MultiProcFXC>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>../bin/</OutDir>
+    <MultiProcFXC>true</MultiProcFXC>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>ENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Enginepch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>../public/;../imgui/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <DisableSpecificWarnings>4251</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <AdditionalDependencies>d3d11.lib;dxguid.lib;DirectXTKd.lib;DirectXTexd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../ThirdPartyLib/</AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent>
+      <Command>call "$(SolutionDir)UpdateLib.bat"  ^
+  "$(SolutionDir)"                 ^
+  "$(SolutionDir)Engine\Bin"        ^
+  "$(SolutionDir)Client\Bin"        ^
+  "$(SolutionDir)Importer\Bin"      ^
+  "$(SolutionDir)MapTool\Bin"        ^
+  "$(SolutionDir)EngineSDK\Inc"     ^
+  "$(SolutionDir)EngineSDK\Lib"</Command>
+    </PostBuildEvent>
+    <FxCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)../bin/ShaderFiles/</AdditionalIncludeDirectories>
+      <ShaderModel>5.0</ShaderModel>
+      <ObjectFileOutput>$(OutDir)\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>ENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Enginepch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>../public/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ExceptionHandling>false</ExceptionHandling>
+      <DisableSpecificWarnings>4251</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <AdditionalDependencies>d3d11.lib;dxguid.lib;DirectXTK.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../ThirdPartyLib/</AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent>
+      <Command>call "$(SolutionDir)UpdateLib.bat"  ^
+  "$(SolutionDir)"                 ^
+  "$(SolutionDir)Engine\Bin"        ^
+  "$(SolutionDir)Client\Bin"        ^
+  "$(SolutionDir)Importer\Bin"      ^
+  "$(SolutionDir)MapTool\Bin"        ^
+  "$(SolutionDir)EngineSDK\Inc"     ^
+  "$(SolutionDir)EngineSDK\Lib"</Command>
+    </PostBuildEvent>
+    <FxCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)../bin/ShaderFiles/</AdditionalIncludeDirectories>
+      <ShaderModel>5.0</ShaderModel>
+      <ObjectFileOutput>$(OutDir)\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\public\AnimatorSystem.h" />
+    <ClInclude Include="..\public\AnimData.h" />
+    <ClInclude Include="..\public\AssetCache.h" />
+    <ClInclude Include="..\public\AssetRegistry.h" />
+    <ClInclude Include="..\public\AssetSystem.h" />
+    <ClInclude Include="..\public\BinaryUtil.h" />
+    <ClInclude Include="..\public\CollisionData.h" />
+    <ClInclude Include="..\public\CollisionSystem.h" />
+    <ClInclude Include="..\public\GpuUtil.h" />
+    <ClInclude Include="..\public\GridData.h" />
+    <ClInclude Include="..\public\GridSystem.h" />
+    <ClInclude Include="..\public\GuiUtil.h" />
+    <ClInclude Include="..\public\GuiUtility.h" />
+    <ClInclude Include="..\public\HighlightData.h" />
+    <ClInclude Include="..\public\HighlightSystem.h" />
+    <ClInclude Include="..\public\InputLayoutUtil.h" />
+    <ClInclude Include="..\public\IReservable.h" />
+    <ClInclude Include="..\public\JsonUtil.h" />
+    <ClInclude Include="..\public\MaterialUtil.h" />
+    <ClInclude Include="..\public\MeshUtil.h" />
+    <ClInclude Include="..\public\ModelUtil.h" />
+    <ClInclude Include="..\public\PickingData.h" />
+    <ClInclude Include="..\public\PickingSystem.h" />
+    <ClInclude Include="..\public\RenderData.h" />
+    <ClInclude Include="..\public\RenderProxies.h" />
+    <ClInclude Include="..\public\RenderSystem.h" />
+    <ClInclude Include="..\public\RenderSystemData.h" />
+    <ClInclude Include="..\public\SelectionData.h" />
+    <ClInclude Include="..\public\SelectionSystem.h" />
+    <ClInclude Include="..\public\ShaderUtil.h" />
+    <ClInclude Include="..\public\Bone.h" />
+    <ClInclude Include="..\public\CameraData.h" />
+    <ClInclude Include="..\public\CameraSystem.h" />
+    <ClInclude Include="..\public\CBuffer.h" />
+    <ClInclude Include="..\public\Device.h" />
+    <ClInclude Include="..\public\DeviceOptions.h" />
+    <ClInclude Include="..\public\Engine_Colors.h" />
+    <ClInclude Include="..\public\Engine_ShaderStruct.h" />
+    <ClInclude Include="..\public\Entity.h" />
+    <ClInclude Include="..\public\EntityHandles.h" />
+    <ClInclude Include="..\public\EntityMgr.h" />
+    <ClInclude Include="..\public\EntitySpawner.h" />
+    <ClInclude Include="..\public\EntitySystem.h" />
+    <ClInclude Include="..\public\FaceData.h" />
+    <ClInclude Include="..\public\FaceSystem.h" />
+    <ClInclude Include="..\public\FpsPanel.h" />
+    <ClInclude Include="..\public\FreeCamData.h" />
+    <ClInclude Include="..\public\FreeCamSystem.h" />
+    <ClInclude Include="..\public\GameInstance.h" />
+    <ClInclude Include="..\public\Enginepch.h" />
+    <ClInclude Include="..\public\Engine_Enum.h" />
+    <ClInclude Include="..\public\Engine_Macro.h" />
+    <ClInclude Include="..\public\Engine_Struct.h" />
+    <ClInclude Include="..\public\Engine_Typedef.h" />
+    <ClInclude Include="..\public\GuiMgr.h" />
+    <ClInclude Include="..\public\GuiPanel.h" />
+    <ClInclude Include="..\public\HierachyPanel.h" />
+    <ClInclude Include="..\public\IGuiRenderable.h" />
+    <ClInclude Include="..\public\imconfig.h" />
+    <ClInclude Include="..\public\imgui.h" />
+    <ClInclude Include="..\public\ImGuiPrettyTheme.h" />
+    <ClInclude Include="..\public\imgui_impl_dx11.h" />
+    <ClInclude Include="..\public\imgui_impl_win32.h" />
+    <ClInclude Include="..\public\imgui_internal.h" />
+    <ClInclude Include="..\public\imstb_rectpack.h" />
+    <ClInclude Include="..\public\imstb_textedit.h" />
+    <ClInclude Include="..\public\imstb_truetype.h" />
+    <ClInclude Include="..\public\InputMgr.h" />
+    <ClInclude Include="..\public\InputUtil.h" />
+    <ClInclude Include="..\public\InspectorPanel.h" />
+    <ClInclude Include="..\public\IOwnsEntities.h" />
+    <ClInclude Include="..\public\LayerData.h" />
+    <ClInclude Include="..\public\LayerSystem.h" />
+    <ClInclude Include="..\public\LayerUtil.h" />
+    <ClInclude Include="..\public\Level.h" />
+    <ClInclude Include="..\public\LevelMgr.h" />
+    <ClInclude Include="..\public\LightData.h" />
+    <ClInclude Include="..\public\LightSystem.h" />
+    <ClInclude Include="..\public\Material.h" />
+    <ClInclude Include="..\public\Mesh.h" />
+    <ClInclude Include="..\public\ModelData.h" />
+    <ClInclude Include="..\public\ModelSystem.h" />
+    <ClInclude Include="..\public\MouthData.h" />
+    <ClInclude Include="..\public\MouthSystem.h" />
+    <ClInclude Include="..\public\Skeleton.h" />
+    <ClInclude Include="..\public\ComponentPool.h" />
+    <ClInclude Include="..\public\Model.h" />
+    <ClInclude Include="..\public\PathMgr.h" />
+    <ClInclude Include="..\public\Renderer.h" />
+    <ClInclude Include="..\public\RenderScene.h" />
+    <ClInclude Include="..\public\Shader.h" />
+    <ClInclude Include="..\public\Singleton.h" />
+    <ClInclude Include="..\public\SocketData.h" />
+    <ClInclude Include="..\public\SocketSystem.h" />
+    <ClInclude Include="..\public\SystemRegistry.h" />
+    <ClInclude Include="..\public\TagSystem.h" />
+    <ClInclude Include="..\public\TagUtil.h" />
+    <ClInclude Include="..\public\Texture.h" />
+    <ClInclude Include="..\public\TextureUtil.h" />
+    <ClInclude Include="..\public\TimeMgr.h" />
+    <ClInclude Include="..\public\Timer.h" />
+    <ClInclude Include="..\public\TransformData.h" />
+    <ClInclude Include="..\public\InputLayoutBuilder.h" />
+    <ClInclude Include="..\public\TransformSystem.h" />
+    <ClInclude Include="..\public\Utility.h" />
+    <ClInclude Include="..\public\WorldInstanceData.h" />
+    <ClInclude Include="..\public\WorldSerializer.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\private\AnimatorSystem.cpp" />
+    <ClCompile Include="..\private\AssetSystem.cpp" />
+    <ClCompile Include="..\private\BinaryUtil.cpp" />
+    <ClCompile Include="..\private\Bone.cpp" />
+    <ClCompile Include="..\private\CameraSystem.cpp" />
+    <ClCompile Include="..\private\CBuffer.cpp" />
+    <ClCompile Include="..\private\CollisionSystem.cpp" />
+    <ClCompile Include="..\private\Device.cpp" />
+    <ClCompile Include="..\private\EntityMgr.cpp" />
+    <ClCompile Include="..\private\EntitySpawner.cpp" />
+    <ClCompile Include="..\private\FaceSystem.cpp" />
+    <ClCompile Include="..\private\FpsPanel.cpp" />
+    <ClCompile Include="..\private\FreeCamSystem.cpp" />
+    <ClCompile Include="..\private\GameInstance.cpp" />
+    <ClCompile Include="..\private\Enginepch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\GpuUtil.cpp" />
+    <ClCompile Include="..\private\GridSystem.cpp" />
+    <ClCompile Include="..\private\GuiMgr.cpp" />
+    <ClCompile Include="..\private\GuiPanel.cpp" />
+    <ClCompile Include="..\private\GuiUtility.cpp" />
+    <ClCompile Include="..\private\HierachyPanel.cpp" />
+    <ClCompile Include="..\private\HighlightSystem.cpp" />
+    <ClCompile Include="..\private\imgui.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\ImGuizmo.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_demo.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_draw.cpp">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_impl_dx11.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_impl_win32.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_tables.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_widgets.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\private\InputLayoutBuilder.cpp" />
+    <ClCompile Include="..\private\InputMgr.cpp" />
+    <ClCompile Include="..\private\InspectorPanel.cpp" />
+    <ClCompile Include="..\private\JsonUtil.cpp" />
+    <ClCompile Include="..\private\LayerSystem.cpp" />
+    <ClCompile Include="..\private\Level.cpp" />
+    <ClCompile Include="..\private\LevelMgr.cpp" />
+    <ClCompile Include="..\private\LightSystem.cpp" />
+    <ClCompile Include="..\private\Material.cpp" />
+    <ClCompile Include="..\private\Mesh.cpp" />
+    <ClCompile Include="..\private\ModelSystem.cpp" />
+    <ClCompile Include="..\private\MouthSystem.cpp" />
+    <ClCompile Include="..\private\PickingSystem.cpp" />
+    <ClCompile Include="..\private\RenderSystem.cpp" />
+    <ClCompile Include="..\private\SelectionSystem.cpp" />
+    <ClCompile Include="..\private\Skeleton.cpp" />
+    <ClCompile Include="..\private\Model.cpp" />
+    <ClCompile Include="..\private\PathMgr.cpp" />
+    <ClCompile Include="..\private\Renderer.cpp" />
+    <ClCompile Include="..\private\Shader.cpp" />
+    <ClCompile Include="..\private\SocketSystem.cpp" />
+    <ClCompile Include="..\private\TagSystem.cpp" />
+    <ClCompile Include="..\private\Texture.cpp" />
+    <ClCompile Include="..\private\TimeMgr.cpp" />
+    <ClCompile Include="..\private\Timer.cpp" />
+    <ClCompile Include="..\private\TransformSystem.cpp" />
+    <ClCompile Include="..\private\Utility.cpp" />
+    <ClCompile Include="..\private\WorldSerializer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Engine.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\bin\ShaderFiles\PC_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PC_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTan_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTan_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNU_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNU_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PUV_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PUV_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\bin\ShaderFiles\Common.hlsli">
+      <FileType>Document</FileType>
+    </Text>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
