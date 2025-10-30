@@ -9,7 +9,7 @@ struct ENGINE_DLL AnimLayerData
 	// 재생 상태
 	const AnimClip* clip;
 	float     curTime{};
-	float     playbackSpeed = 1.f;
+	float     playbackSpeed = 1.2f;
 	ANIMTYPE  playType  = ANIMTYPE::LOOP;
 	ANIMBLEND blendType = ANIMBLEND::OVERRIDE;
 	float     blendWeight   = 1.f;

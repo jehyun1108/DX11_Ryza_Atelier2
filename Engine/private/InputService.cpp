@@ -11,39 +11,54 @@ bool InputService::KeyDown(KEY key) const
 {
 	const EntityID activeEntity = inputGate.GetActiveEntity();
 	if (!PassPolicy(InputChannel::Manual, activeEntity)) return false;
-	return DeviceKeyDown(key);
+	return GAME.KeyDown(key);
 }
 
 bool InputService::KeyPressing(KEY key) const
 {
 	const EntityID activeEntity = inputGate.GetActiveEntity();
 	if (!PassPolicy(InputChannel::Manual, activeEntity)) return false;
-	return DeviceKeyPressing(key);
+	return GAME.KeyPressing(key);
 }
 
 bool InputService::KeyReleased(KEY key) const
 {
 	const EntityID activeEntity = inputGate.GetActiveEntity();
 	if (!PassPolicy(InputChannel::Manual, activeEntity)) return false;
-	return DeviceKeyRelease(key);
+	return GAME.KeyRelease(key);
 }
 
 bool InputService::KeyDownAllowed(KEY key, InputChannel channel, EntityID target) const
 {
 	if (!PassPolicy(channel, target)) return false;
-	return DeviceKeyDown(key);
+	return GAME.KeyDown(key);
 }
 
 bool InputService::KeyPressingAllowed(KEY key, InputChannel channel, EntityID target) const
 {
 	if (!PassPolicy(channel, target)) return false;
-	return DeviceKeyPressing(key);
+	return GAME.KeyPressing(key);
 }
 
 bool InputService::KeyReleasedAllowed(KEY key, InputChannel channel, EntityID target) const
 {
 	if (!PassPolicy(channel, target)) return false;
-	return DeviceKeyRelease(key);
+	return GAME.KeyRelease(key);
+}
+
+bool InputService::KeyDownGlobal(KEY key) const
+{
+	return GAME.KeyDown(key);
+}
+
+bool InputService::KeyPressingGlobal(KEY key) const
+{
+	return GAME.KeyPressing(key);
+}
+
+bool InputService::KeyReleasedGlobal(KEY key) const
+{
+	return GAME.KeyRelease(key);
 }
 
 void InputService::Submit(const IntentWrite& write)

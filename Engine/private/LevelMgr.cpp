@@ -15,7 +15,7 @@ void LevelMgr::Render()
 void LevelMgr::ChangeLevel(_uint _levelID, unique_ptr<Level> newLevel)
 {
 	if (curLevel)
-		gameInstance.ClearResources(levelID);
+		game.ClearResources(levelID);
 
 	curLevel = move(newLevel);
 	levelID = _levelID;

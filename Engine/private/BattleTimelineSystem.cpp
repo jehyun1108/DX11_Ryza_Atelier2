@@ -1,12 +1,5 @@
 #include "Enginepch.h"
 
-static constexpr int kMaxCount = 3;
-static inline BattleTeam OppositeTeam(BattleTeam team)
-{
-	assert(team != BattleTeam::Neutral && "OppositeTeam: Neutral is not allowed");
-	return (team == BattleTeam::Ally) ? BattleTeam::Enemy : BattleTeam::Ally;
-}
-// ---------------------------------------------------------------------------------------------------------------------------
 void BattleTimelineSystem::InitSession(const BattleSessionState& sessionState, const BattleTimelineConfig& timelineConfig)
 {
 	timelineState.emplace();
@@ -36,11 +29,9 @@ void BattleTimelineSystem::InitSession(const BattleSessionState& sessionState, c
 		state.allies[i].canAction   = state.config.canAction;
 
 		state.alliesRuntime[i] = {};
-		state.alliesRuntime[i].role.control = (entity == state.leader.curLeader) ? TimelineControlType::Player : TimelineControlType::Ally;
+		state.alliesRuntime[i].role.control    = (entity == state.leader.curLeader) ? TimelineControlType::Player : TimelineControlType::Ally;
 		state.alliesRuntime[i].role.allowCombo = (state.alliesRuntime[i].role.control == TimelineControlType::Player);
-		state.alliesRuntime[i].skillCatalog.push_back(TimelineSkillInfo{ L"basic", 0 });
-		state.alliesRuntime[i].skillCatalog.push_back(TimelineSkillInfo{ L"skillA", 3 });
-
+		FillSkillCatalog(entity, state.alliesRuntime[i].skillCatalog);
 		idxByEntity[entity] = { BattleTeam::Ally, i };
 		++state.alliesUsed;
 	}
@@ -62,9 +53,7 @@ void BattleTimelineSystem::InitSession(const BattleSessionState& sessionState, c
 		state.enemiesRuntime[i] = {};
 		state.enemiesRuntime[i].role.control = TimelineControlType::Enemy;
 		state.enemiesRuntime[i].role.allowCombo = false;
-		state.enemiesRuntime[i].skillCatalog.push_back(TimelineSkillInfo{ L"basic", 0 });
-		state.enemiesRuntime[i].skillCatalog.push_back(TimelineSkillInfo{ L"skillA", 3 });
-
+		FillSkillCatalog(entity, state.enemiesRuntime[i].skillCatalog);
 		idxByEntity[entity] = { BattleTeam::Enemy, i };
 		++state.enemiesUsed;
 	}
@@ -77,7 +66,6 @@ void BattleTimelineSystem::Tick(float dt)
 	BattleTimelineState& state = *timelineState;
 
 	if (state.clockState != TimelineClockState::Running) return;
-
 	state.elapsedTime += dt;
 
 	// Allies
@@ -136,7 +124,6 @@ bool BattleTimelineSystem::EnqueuePlayerIntent(EntityID playerEntity, const Time
 	BattleTeam team{};
 	int slotIdx{};
 	if (!ResolveIdxByEntity(playerEntity, team, slotIdx)) return false;
-	assert(team == BattleTeam::Ally && "EnqueuePlayerIntent: only allies can be player-controlled");
 
 	BattleTimelineState& state = *timelineState;
 	TimelineUnitRunTime& runTime = (team == BattleTeam::Ally) ? state.alliesRuntime[slotIdx] : state.enemiesRuntime[slotIdx];
@@ -209,7 +196,7 @@ void BattleTimelineSystem::NotifyActionFinished(EntityID entity, const TimelineA
 	ApplyResolveReward(unit, run, finishedIntent, entity, team);
 	unit.motionState = TimelineMotionState::Queued;
 	unit.ATB.isFrozen = false;
-	PushEvent(BattleTimelineEventType::ActionFinished, entity, team, 0, L"execution finished");
+	PushEvent(BattleTimelineEventType::ActionFinished, entity, team, 0);
 }
 
 bool BattleTimelineSystem::SwapLeader(EntityID newLeaderEntity)
@@ -252,10 +239,7 @@ bool BattleTimelineSystem::TryGetUnitState(BattleTeam team, int slotIdx, const T
 		return true;
 	}
 	else
-	{
-		assert(false && "TryGetUnitState: Neutral is invalid here");
 		return false;
-	}
 }
 
 bool BattleTimelineSystem::TryGetUnitStateByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx, const TimelineUnitState*& outState) const
@@ -267,16 +251,10 @@ bool BattleTimelineSystem::TryGetUnitStateByEntity(EntityID entity, BattleTeam& 
 	outTeam    = it->second.first;
 	outSlotIdx = it->second.second;
 
-	const BattleTimelineState& state = *timelineState;
-	if (outTeam == BattleTeam::Ally)
-		outState = &state.allies[outSlotIdx];
-	else if (outTeam == BattleTeam::Enemy)
-		outState = &state.enemies[outSlotIdx];
-	else
-	{
-		assert(false && "TryGetUnitStateEntity: Neutral is invalid");
-		return false;
-	}
+	const BattleTimelineState& state                = *timelineState;
+	if (outTeam == BattleTeam::Ally)       outState = &state.allies[outSlotIdx];
+	else if (outTeam == BattleTeam::Enemy) outState = &state.enemies[outSlotIdx];
+	else                                   return false;
 	return true;
 }
 
@@ -310,10 +288,8 @@ void BattleTimelineSystem::SetClock(TimelineClockState newState)
 	if (state.clockState == newState) return;
 	state.clockState = newState;
 
-	if (newState == TimelineClockState::Stopped)
-		PushEvent(BattleTimelineEventType::TimelinePaused, invalidEntity, BattleTeam::Ally, 0, L"timeline paused");
-	else
-		PushEvent(BattleTimelineEventType::TimelineResumed, invalidEntity, BattleTeam::Ally, 0, L"timeline resumed");
+	PushEvent((newState == TimelineClockState::Stopped) ? BattleTimelineEventType::TimelinePaused 
+		                                                : BattleTimelineEventType::TimelineResumed, invalidEntity, BattleTeam::Ally, 0);
 }
 
 void BattleTimelineSystem::SetUnitGate(EntityID entity, TimelineUnitGate gate)
@@ -351,14 +327,13 @@ bool BattleTimelineSystem::ResolveIdxByEntity(EntityID entity, BattleTeam& outTe
 	return true;
 }
 
-void BattleTimelineSystem::PushEvent(BattleTimelineEventType type, EntityID subject, BattleTeam team, int deltaAp, const wstring& note)
+void BattleTimelineSystem::PushEvent(BattleTimelineEventType type, EntityID subject, BattleTeam team, int deltaAp)
 {
 	BattleTimelineEvent event{};
 	event.eventType     = type;
 	event.subjectEntity = subject;
 	event.subjectTeam   = team;
 	event.deltaAp       = deltaAp;
-	event.note          = note;
 	eventQueues.push_back(event);
 }
 
@@ -371,130 +346,186 @@ void BattleTimelineSystem::AdvanceGauge(TimelineUnitState& unit, float dt, Entit
 
 	const float prevValue = unit.ATB.curValue;
 	unit.ATB.curValue += unit.ATB.fillSpeed * dt;
-	if (unit.ATB.curValue > unit.ATB.maxValue) unit.ATB.curValue = unit.ATB.maxValue;
+	if (unit.ATB.curValue > unit.ATB.maxValue) 
+		unit.ATB.curValue = unit.ATB.maxValue;
 
 	if (prevValue < unit.ATB.maxValue && unit.ATB.curValue >= unit.ATB.maxValue)
-		PushEvent(BattleTimelineEventType::FullGauge, entity, team, 0, L"gauge full");
+		PushEvent(BattleTimelineEventType::FullGauge, entity, team, 0);
 }
 
-bool BattleTimelineSystem::CommitInternal(TimelineUnitState& unitState, TimelineUnitRunTime& unitRunTime, const TimelineActionIntent& intent, EntityID entity, BattleTeam team)
+bool BattleTimelineSystem::CommitInternal(TimelineUnitState& unitState, TimelineUnitRunTime& unitRunTime, TimelineActionIntent intent, EntityID entity, BattleTeam team)
 {
 	if (!unitState.canAction)                                 return false;
-	if (unitState.gateState != TimelineUnitGate::Open)        return false;
+	if (unitState.gateState    != TimelineUnitGate::Open)     return false;
 	if (unitState.motionState != TimelineMotionState::Queued) return false;
 	if (unitState.ATB.curValue < unitState.ATB.maxValue)      return false;
 
-	const int apCost = intent.apCost;
-	if (apCost > unitState.ap.curAp) return false;
+	const int resolvedCost = ResolveSkillApCost(entity, intent.specialTag);
+	intent.apCost = resolvedCost;
 
-	unitState.ap.curAp -= apCost;
-	if (unitState.ap.curAp < 0)
+	if (intent.apCost > unitState.ap.curAp) return false;
+
+	unitState.ap.curAp -= intent.apCost;
+	if (unitState.ap.curAp < 0) 
 		unitState.ap.curAp = 0;
 
-	unitState.ATB.curValue = 0.f;
-	unitState.ATB.isFrozen = true;
-
-	unitState.pendingIntent = intent;   
+	unitState.ATB.curValue  = 0.f;
+	unitState.ATB.isFrozen  = true;
+	unitState.pendingIntent = intent;
 	unitState.activeIntent  = intent;
 	unitState.motionState   = TimelineMotionState::Preparing;
 
-	PushEvent(BattleTimelineEventType::ActionCommitted, entity, team, -apCost, L"commit intent");
+	PushEvent(BattleTimelineEventType::ActionCommitted, entity, team, -intent.apCost);
+
 	unitState.motionState = TimelineMotionState::Executing;
 	return true;
 }
 
-bool BattleTimelineSystem::BuildAiIntent(const TimelineUnitState& unitState, const TimelineUnitRunTime& unitRuntime, TimelineActionIntent& outIntent)
+bool BattleTimelineSystem::BuildAiIntent(TimelineUnitState& unitState,TimelineUnitRunTime& unitRuntime, TimelineActionIntent& outIntent)
 {
-	assert(unitState.ATB.curValue >= unitState.ATB.maxValue);
-
-	BattleTeam opponent = OppositeTeam(unitState.team);
-	EntityID targetEntity = invalidEntity;
-	if (timelineState)
-	{
-		const BattleTimelineState& state = *timelineState;
-		if (opponent == BattleTeam::Ally)
-		{
-			if (state.alliesUsed > 0)
-				targetEntity = state.allies[0].entity;
-		}
-		else
-		{
-			if (state.enemiesUsed > 0)
-				targetEntity = state.enemies[0].entity;
-		}
-	}
+	const EntityID targetEntity = ResolveOpponentTargetEntity(unitState.team);
 	if (targetEntity == invalidEntity) return false;
 
-	const TimelineUnitPolicy& policy = unitRuntime.policy;
-
-	vector<const TimelineSkillInfo*> afforable;
-	afforable.reserve(unitRuntime.skillCatalog.size());
-	for (const auto& skill : unitRuntime.skillCatalog)
+	vector<const TimelineSkillInfo*> affordable;
+	affordable.reserve(unitRuntime.skillCatalog.size());
+	for (const TimelineSkillInfo& info : unitRuntime.skillCatalog)
 	{
-		if (skill.apCost <= unitState.ap.curAp)
-			afforable.push_back(&skill);
+		if (info.apCost <= unitState.ap.curAp)
+			affordable.push_back(&info);
 	}
 
-	const TimelineSkillInfo* chosen{};
-	if (policy.aiPreferSkillAtMaxAp && unitState.ap.curAp >= unitState.ap.maxAp)
+	const TimelineUnitPolicy& policy = unitRuntime.policy;
+	const bool preferCostlyNow = (policy.aiPreferSkillAtMaxAp && unitState.ap.curAp >= unitState.ap.maxAp);
+
+	const TimelineSkillInfo* chosen = nullptr;
+
+	if (preferCostlyNow)
 	{
 		vector<const TimelineSkillInfo*> costly;
-		for (auto* ptr : afforable)
-		{
-			if (ptr->apCost > 0)
-				costly.push_back(ptr);
-		}
+		costly.reserve(affordable.size());
+		for (const TimelineSkillInfo* p : affordable)
+			if (p->apCost > 0) costly.push_back(p);
 
 		if (!costly.empty())
-			chosen = policy.aiRandomAmongAfforable ? costly[rand() % costly.size()] : costly.front();
+		{
+			if (policy.aiRandomAmongAfforable)
+			{
+				static mt19937 rng{ random_device{}() };
+				uniform_int_distribution<int> dist(0, static_cast<int>(costly.size() - 1));
+				chosen = costly[dist(rng)];
+			}
+			else
+				chosen = costly.front();
+		}
 	}
+
 	if (!chosen)
 	{
-		for (auto* ptr : afforable)
+		for (const TimelineSkillInfo* p : affordable)
+			if (p->apCost == 0) { chosen = p; break; }
+
+		if (!chosen && !affordable.empty())
 		{
-			if (ptr->apCost == 0)
+			if (policy.aiRandomAmongAfforable)
 			{
-				chosen = ptr;
-				break;
+				static mt19937 rng{ random_device{}() };
+				uniform_int_distribution<int> dist(0, static_cast<int>(affordable.size() - 1));
+				chosen = affordable[dist(rng)];
 			}
+			else
+				chosen = affordable.front();
 		}
-		if (!chosen && !afforable.empty())
-			chosen = afforable.front();
 	}
+
 	if (!chosen) return false;
 
-	// Intent
-	outIntent              = {};
+	outIntent = {};
 	outIntent.targetEntity = targetEntity;
+	outIntent.battleCmd    = (chosen->apCost == 0) ? BattleCommand::AttackBasic : BattleCommand::Skill; 
+	outIntent.specialTag   = chosen->tag;  
 	outIntent.apCost       = chosen->apCost;
-	if (chosen->apCost == 0)
-	{
-		outIntent.battleCmd = BattleCommand::AttackBasic;
-		outIntent.skillKey = L"basic";
-	}
-	else
-	{
-		outIntent.battleCmd = BattleCommand::Skill;
-		outIntent.skillKey = chosen->skillKey;
-	}
 	return true;
 }
 
-void BattleTimelineSystem::ApplyApDelta(TimelineUnitState& unit, EntityID entity, BattleTeam team, int deltaAp, const wstring& note)
+void BattleTimelineSystem::ApplyApDelta(TimelineUnitState& unit, EntityID entity, BattleTeam team, int deltaAp)
 {
 	const int before = unit.ap.curAp;
-	unit.ap.curAp += deltaAp;
-	if (unit.ap.curAp < 0) unit.ap.curAp = 0;
+	unit.ap.curAp   += deltaAp;
+	if (unit.ap.curAp < 0) 
+		unit.ap.curAp = 0;
 	if (unit.ap.curAp > unit.ap.maxAp)
 		unit.ap.curAp = unit.ap.maxAp;
 
 	const int applied = unit.ap.curAp - before;
-	if (applied != 0)
-		PushEvent(BattleTimelineEventType::ApChanged, entity, team, applied, note);
+	if (applied != 0) 
+		PushEvent(BattleTimelineEventType::ApChanged, entity, team, applied);
 }
 
 void BattleTimelineSystem::ApplyResolveReward(TimelineUnitState& unitState, const TimelineUnitRunTime& unitRuntime, const TimelineActionIntent& resolvedIntent, EntityID entity, BattleTeam team)
 {
-	const int deltaAp =(resolvedIntent.battleCmd == BattleCommand::AttackBasic) ? unitRuntime.policy.apGainBasicAttack : unitRuntime.policy.apGainSkillAttack;
-	ApplyApDelta(unitState, entity, team, deltaAp, (resolvedIntent.battleCmd == BattleCommand::AttackBasic) ? L"reward basic" : L"reward skill");
+	const bool isBasic = (resolvedIntent.specialTag.has_value() &&
+		resolvedIntent.specialTag.value() == SpecialAnimTag::BasicAttack);
+
+	const int  deltaAp = isBasic ? unitRuntime.policy.apGainBasicAttack
+		: unitRuntime.policy.apGainSkillAttack;
+
+	ApplyApDelta(unitState, entity, team, deltaAp);
+}
+
+int BattleTimelineSystem::ResolveSkillApCost(EntityID entity, const optional<SpecialAnimTag>& specialTag) const
+{
+	if (!specialTag.has_value()) return 0;
+
+	auto& actionReg = registry.Get<ActionAnimRegistry>();
+	auto& dataSys   = registry.Get<CharacterDataSystem>();
+
+	const CharacterID ch = dataSys.GetCharacterID(entity);
+	const ActionAnimSpec* spec = actionReg.TryGet(ch);
+	if (!spec) return 0;
+
+	auto it = spec->apCostByTag.find(specialTag.value());
+	return (it == spec->apCostByTag.end()) ? 0 : it->second;
+}
+
+void BattleTimelineSystem::FillSkillCatalog(EntityID entity, vector<TimelineSkillInfo>& outCatalog) const
+{
+	outCatalog.clear();
+
+	auto* actionReg = registry.TryGet<ActionAnimRegistry>();
+	auto* dataSys = registry.TryGet<CharacterDataSystem>();
+	if (!actionReg || !dataSys) return;
+
+	const CharacterID characterId = dataSys->GetCharacterID(entity);
+	const ActionAnimSpec*    spec = actionReg->TryGet(characterId);
+	if (!spec) return;
+
+	auto shouldExpose = [](SpecialAnimTag tag)
+		{
+			if (tag == SpecialAnimTag::Intro) return false; 
+			return true;
+		};
+
+	for (const auto& pair : spec->specials)
+	{
+		const SpecialAnimTag tag = pair.first;
+		if (!shouldExpose(tag)) continue;
+
+		int apCost = 0;
+		if (auto it = spec->apCostByTag.find(tag); it != spec->apCostByTag.end())
+			apCost = it->second;
+
+		outCatalog.push_back(TimelineSkillInfo{ tag, apCost });
+	}
+}
+
+EntityID BattleTimelineSystem::ResolveOpponentTargetEntity(BattleTeam myTeam) const
+{
+	if (!timelineState.has_value()) return invalidEntity;
+	const BattleTimelineState& state = *timelineState;
+
+	const BattleTeam opponentTeam = OppositeTeam(myTeam);
+	if (opponentTeam == BattleTeam::Ally)
+		return (state.alliesUsed > 0) ? state.allies[0].entity : invalidEntity;
+	else
+		return (state.enemiesUsed > 0) ? state.enemies[0].entity : invalidEntity;
 }

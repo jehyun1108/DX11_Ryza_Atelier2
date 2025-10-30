@@ -8,7 +8,7 @@ class ENGINE_DLL AnimatorSystem : public EntitySystem<AnimData>, public IGuiRend
 {
 public:
 	explicit AnimatorSystem(SystemRegistry& registry) : EntitySystem(registry) {}
-	Handle Create(EntityID owner, Skeleton* skeleton, const ClipTable* clips, Handle transform, const vector<string>& baseMaskBones = {});
+	Handle   Create(EntityID owner, Skeleton* skeleton, const ClipTable* clips, Handle transform, const vector<string>& baseMaskBones = {});
 
 	void Update(float dt, TransformSystem& transformSys);
 

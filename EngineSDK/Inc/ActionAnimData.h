@@ -2,12 +2,20 @@
 
 NS_BEGIN(Engine)
 
+enum class SpecialAnimTag
+{
+	Intro, Ultimate, BasicAttack, SkillA, SkillB, SkillC, SkillD,
+};
+
 struct AnimStageSpec
 {
 	AnimKey     clipKey;
 	ActionStage stage;
-	float       fadeDur = 0.f;
+	float       fadeDur    = 0.f;
 	bool        rootMotion = false;
+
+	float minOverlapDur = 0.1f;
+	float endNormalized = 1.f;
 };
 
 struct AnimChainSpec
@@ -15,22 +23,10 @@ struct AnimChainSpec
 	vector<AnimStageSpec> stages;
 };
 
-struct ComboSpec
-{
-	vector<AnimChainSpec> chainByOrder;
-};
-
-struct SkillSpec
-{
-	AnimChainSpec chain;
-	int apCost = 0;
-};
-
 struct ActionAnimSpec
 {
-	ComboSpec basicAttackCombo;
-	unordered_map<wstring, SkillSpec> skillByKey;
-	optional<AnimChainSpec> introChain;
+	unordered_map<SpecialAnimTag, AnimChainSpec> specials;
+	unordered_map<SpecialAnimTag, int>           apCostByTag;
 };
 
 NS_END

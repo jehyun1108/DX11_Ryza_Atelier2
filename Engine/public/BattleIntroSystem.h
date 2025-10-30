@@ -13,9 +13,12 @@ public:
 
 private:
 	const wstring& ResolveClip(const AnimProfile& profile, AnimKey key) const;
-	bool IsFinished(const BattleIntroState& state) const;
+	bool IsCurClipFinished(const BattleIntroState& state) const;
+	
 	void PlayKey(BattleIntroState& state, AnimKey key, ANIMTYPE type, float fadeDur);
 	void NextStage(BattleIntroState& state, AnimKey nextKey, BattleIntroStage nextStage, ANIMTYPE type, float fadeDur);
+
+	bool TryPlayNextIntroChain(BattleIntroState& state);
 
 	bool    TryQueryTargetPos(EntityID entity, _float3& outTargetWorld) const; // Session -> Target
 	_float3 QueryCenterWorldOrDefault() const;                                 // Session -> Center

@@ -16,7 +16,7 @@ public:
 private:
 	_uint             levelID{};
 	unique_ptr<Level> curLevel{};
-	GameInstance&     gameInstance = GameInstance::GetInstance();
+	GameInstance&     game = GameInstance::GetInstance();
 };
 
 NS_END

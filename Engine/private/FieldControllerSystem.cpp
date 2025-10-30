@@ -21,20 +21,19 @@ void FieldControllerSystem::Update(EntityID leader, float dt)
 
 void FieldControllerSystem::SubmitFieldMoveIntent(EntityID leader, FieldControllerState& state, float dt)
 {
-    auto& game         = GameInstance::GetInstance();
     auto& tfSys        = registry.Get<TransformSystem>();
     auto& moveSys      = registry.Get<MoveStateSystem>();
-    auto& inputService = registry.Get<InputService>();
+    auto& input        = registry.Get<InputService>();
 
     const MoveState* moveState = moveSys.GetByOwner(leader);
     if (!moveState) return;
 
     float localRight = 0.f;
     float localForward = 0.f;
-    if (game.KeyPressing(KEY::D)) localRight   += 1.f;
-    if (game.KeyPressing(KEY::A)) localRight   -= 1.f;
-    if (game.KeyPressing(KEY::W)) localForward += 1.f;
-    if (game.KeyPressing(KEY::S)) localForward -= 1.f;
+    if (input.KeyPressing(KEY::D)) localRight   += 1.f;
+    if (input.KeyPressing(KEY::A)) localRight   -= 1.f;
+    if (input.KeyPressing(KEY::W)) localForward += 1.f;
+    if (input.KeyPressing(KEY::S)) localForward -= 1.f;
 
     const PlanarBasisXZ basis = tfSys.GetPlanarBasisXZ(state.camTf);
 
@@ -46,20 +45,20 @@ void FieldControllerSystem::SubmitFieldMoveIntent(EntityID leader, FieldControll
     if (moveDir.x != 0.f || moveDir.y != 0.f)
         moveDir = Utility::Normalize(moveDir);
 
-    const bool runHeld    = game.KeyPressing(KEY::LSHIFT) || game.KeyPressing(KEY::RSHIFT);
+    const bool runHeld    = input.KeyPressing(KEY::LSHIFT) || input.KeyPressing(KEY::RSHIFT);
     
-    const bool jumpHeld   = game.KeyPressing(KEY::SPACE);
+    const bool jumpHeld   = input.KeyPressing(KEY::SPACE);
     const bool jumpEdge   = (jumpHeld && !state.prevJumpDown);
     state.prevJumpDown = jumpHeld;
     if (jumpEdge)
-        inputService.PushJumpEdge(leader, InputChannel::Manual);
+        input.PushJumpEdge(leader, InputChannel::Manual);
 
-    const bool attackHeld = game.KeyPressing(KEY::LBUTTON);
+    const bool attackHeld = input.KeyPressing(KEY::LBUTTON);
     const bool attackEdge = (attackHeld && !state.prevAttackDown);
     state.prevAttackDown = attackHeld;
 
     if (attackEdge)
-        inputService.PushAttackEdge(leader, InputChannel::Manual);
+        input.PushAttackEdge(leader, InputChannel::Manual);
 
     MoveIntent intent{};
     intent.moveDir       = moveDir;
@@ -71,5 +70,5 @@ void FieldControllerSystem::SubmitFieldMoveIntent(EntityID leader, FieldControll
     write.channel = InputChannel::Manual;
     write.intent  = intent;
 
-    inputService.Submit(write);
+    input.Submit(write);
 }

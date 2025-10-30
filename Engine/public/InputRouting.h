@@ -18,13 +18,10 @@ struct InputOwnerShip
 
 struct InputRoutingConfig
 {
-	// Context에 따라 허용할 입력 종류(매핑)는 컨트롤러가 처리하고, Router는 "채널 기록 허용/차단만 담당"
 	InputContext context = InputContext::Field;
-	// Switching 직후 Manual 잠시 차단
 	float blockManualTime = 0.2f;
 };
 
-// Controller 가 제출하는 단위
 struct IntentWrite
 {
 	EntityID     target{};
@@ -34,8 +31,6 @@ struct IntentWrite
 
 struct IntentSnapShot
 {
-	// map 자체를 복사하지 않도록 포인터로 뷰를 제공
-	// Collector 가 Clear를 호출하기전까지 (같은 프레임내)
 	const unordered_map<EntityID, IntentWrite>* script = {};
 	const unordered_map<EntityID, IntentWrite>* manual = {};
 	const unordered_map<EntityID, IntentWrite>* ai     = {};

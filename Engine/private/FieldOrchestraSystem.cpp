@@ -13,12 +13,12 @@ void FieldOrchestraSystem::Update(float dt)
 	auto& fieldCtrlSys = registry.Get<FieldControllerSystem>();
 	auto& sessionSys   = registry.Get<BattleSessionSystem>();
 	auto& fieldAnimSys = registry.Get<FieldAnimSystem>();
+	auto& input        = registry.Get<InputService>();
 
 	fieldCtrlSys.Update(1, dt);
 	fieldAnimSys.Update(dt);
 
-	auto& game = GameInstance::GetInstance();
-	const bool isDown = game.KeyPressing(KEY::NUM1);
+	const bool isDown = input.KeyPressing(KEY::NUM1);
 	const bool isEdge = (isDown && !prevBattleKeyDown);
 	prevBattleKeyDown = isDown;
 

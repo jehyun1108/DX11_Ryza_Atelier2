@@ -8,6 +8,7 @@ class TimeMgr;
 class Renderer;
 class AssetSystem;
 struct RenderScene;
+class InputService;
 
 class ENGINE_DLL GameInstance final : public Singleton<GameInstance>
 {
@@ -152,6 +153,7 @@ private:
 	BattleIntroSystem      battleIntroSys;
 	BattleSessionSystem    battleSessionSys;
 	BattleTimelineSystem   battleTimelineSys;
+	BattleExecutionSystem  battleExecSys;
 };
 
 NS_END

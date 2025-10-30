@@ -33,22 +33,22 @@ struct TimelineGauge
 {
 	float curValue  = 0.f;
 	float maxValue  = 0.f;
-	float fillSpeed = 1.f;
+	float fillSpeed = 1000.f;
 	bool  isFrozen  = false;
 };
 
 struct TimelineSkillInfo
 {
-	wstring skillKey;
-	int     apCost = 0;
+	SpecialAnimTag tag = SpecialAnimTag::BasicAttack;
+	int apCost = 0;
 };
 
 struct TimelineActionIntent
 {
-	BattleCommand battleCmd    = BattleCommand::None;
-	EntityID      targetEntity = invalidEntity;
-	int           apCost       = 0;
-	wstring       skillKey;
+	BattleCommand battleCmd       = BattleCommand::None;
+	EntityID      targetEntity    = invalidEntity;
+	int           apCost          = 0;
+	optional<SpecialAnimTag> specialTag;
 };
 
 // Player 전용
@@ -62,7 +62,6 @@ struct TimelineUnitPolicy
 {
 	int apGainBasicAttack = 1;
 	int apGainSkillAttack = 1;
-
 	bool aiPreferSkillAtMaxAp   = true;
 	bool aiRandomAmongAfforable = true; // 가능한 후보중랜덤
 };
@@ -95,7 +94,7 @@ struct TimelineUnitRunTime
 struct BattleTimelineConfig
 {
 	float gaugeMaxValue = 100.f;
-	float gaugeFillSpeed = 1.f;
+	float gaugeFillSpeed = 100.f;
 	bool  canAction = true;
 };
 

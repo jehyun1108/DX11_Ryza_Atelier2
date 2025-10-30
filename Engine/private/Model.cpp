@@ -291,7 +291,7 @@ void Model::FinalSetUp()
         if (!mesh) continue;
 
         const VertexLayoutID layout = mesh->GetLayoutID();
-        const wchar_t* shaderKey = (layout == VertexLayoutID::PNUTanSkin) ? L"PNUTanSKin_TS" : L"PNUTan";
+        const wchar_t* shaderKey = (layout == VertexLayoutID::PNUTanSkin) ? L"PNUTanSKin" : L"PNUTan";
 
         auto mtrl = part.material ? part.material->Clone() : make_shared<Material>();
         mtrl->SetShaderKey(shaderKey);

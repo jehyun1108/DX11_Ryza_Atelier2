@@ -149,15 +149,15 @@ HRESULT Device::ReadyDepthTargets(_uint winX, _uint winY)
 
 	ComPtr<ID3D11Texture2D> depthTex;
 	D3D11_TEXTURE2D_DESC texDesc{};
-	texDesc.Width  = winX;
-	texDesc.Height = winY;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R24G8_TYPELESS; // Typeless
-	texDesc.SampleDesc.Count = 1;
+	texDesc.Width              = winX;
+	texDesc.Height             = winY;
+	texDesc.MipLevels          = 1;
+	texDesc.ArraySize          = 1;
+	texDesc.Format             = DXGI_FORMAT_R24G8_TYPELESS; // Typeless
+	texDesc.SampleDesc.Count   = 1;
 	texDesc.SampleDesc.Quality = 0;
-	texDesc.Usage = D3D11_USAGE_DEFAULT;
-	texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | (opts.createDepthSRV ? D3D11_BIND_SHADER_RESOURCE : 0);
+	texDesc.Usage              = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags          = D3D11_BIND_DEPTH_STENCIL | (opts.createDepthSRV ? D3D11_BIND_SHADER_RESOURCE : 0);
 	HR(device->CreateTexture2D(&texDesc, nullptr, depthTex.GetAddressOf()));
 
 	// 2) DSV = D24_UNORM_S8_UINT
@@ -172,10 +172,10 @@ HRESULT Device::ReadyDepthTargets(_uint winX, _uint winY)
 	if (opts.createDepthSRV)
 	{
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Format                    = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = 1;
+		srvDesc.Texture2D.MipLevels       = 1;
 		HR(device->CreateShaderResourceView(depthTex.Get(), &srvDesc, depthSRV.GetAddressOf()));
 	}
 	return S_OK;
@@ -207,8 +207,8 @@ void Device::ApplyFrameLimiter()
 {
 	if (opts.vsyncMode != VSyncMode::Off || opts.frameLimiterHz == 0) return;
 
-	const auto now = high_resolution_clock::now();
-	const double targetMs = 1000.0 / static_cast<double>(opts.frameLimiterHz);
+	const auto now         = high_resolution_clock::now();
+	const double targetMs  = 1000.0 / static_cast<double>(opts.frameLimiterHz);
 	const double elapsedMs = duration<double, milli>(now - lastPresentTime).count();
 
 	if (elapsedMs < targetMs)

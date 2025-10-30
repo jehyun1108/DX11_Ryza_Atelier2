@@ -10,11 +10,11 @@ public:
 	void   DestroySlot(Handle handle);
 	bool   Validate(Handle handle) const;
 
-	T*       Get(Handle handle);
-	const T* Get(Handle handle) const;
+	T*       Get(Handle handle)         { return Validate(handle) ? &data[handle.idx] : nullptr; }
+	const T* Get(Handle handle) const   { return Validate(handle) ? &data[handle.idx] : nullptr; }
 
 	void  Reserve(size_t n);
-	_uint GetOwner(Handle handle) const;
+	_uint GetOwner(Handle handle) const { return Validate(handle) ? owners[handle.idx] : 0; }
 
 	void DestroyOwned(_uint owner);
 
@@ -37,7 +37,7 @@ private:
 	vector<_uint> owners;
 	vector<_uint> freeList;
 
-	vector<_uint> aliveIndices; // Dense: 실제 살아있는 idx
+	vector<_uint> aliveIndices;  // Dense: 실제 살아있는 idx
 	vector<_uint> sparseIndices; // Sparse: idx -> aliveIndices 의 Idx 매핑
 };
 
@@ -86,19 +86,13 @@ inline void ComponentPool<T>::DestroySlot(Handle handle)
 template<typename T>
 inline bool ComponentPool<T>::Validate(Handle handle) const
 {
-	if (!handle.IsValid()) return false;
-	if (handle.idx >= data.size()) return false;
-	if (handle.idx >= generations.size()) return false;
-	if (handle.idx >= owners.size()) return false;
+	if (!handle.IsValid())                            return false;
+	if (handle.idx >= data.size())                    return false;
+	if (handle.idx >= generations.size())             return false;
+	if (handle.idx >= owners.size())                  return false;
 	if (generations[handle.idx] != handle.generation) return false;
-	if (owners[handle.idx] == 0) return false; 
+	if (owners[handle.idx] == 0)                      return false; 
 	return true;
-}
-
-template<typename T>
-inline _uint ComponentPool<T>::GetOwner(Handle handle) const
-{
-	return Validate(handle) ? owners[handle.idx] : 0;
 }
 
 template<typename T>
@@ -125,18 +119,6 @@ inline void ComponentPool<T>::Reserve(size_t n)
 	freeList.reserve(n);
 	aliveIndices.reserve(n);
 	sparseIndices.reserve(n);
-}
-
-template<typename T>
-inline T* ComponentPool<T>::Get(Handle handle)
-{
-	return Validate(handle) ? &data[handle.idx] : nullptr;
-}
-
-template<typename T>
-inline const T* ComponentPool<T>::Get(Handle handle) const
-{
-	return Validate(handle) ? &data[handle.idx] : nullptr;
 }
 
 template<typename T>

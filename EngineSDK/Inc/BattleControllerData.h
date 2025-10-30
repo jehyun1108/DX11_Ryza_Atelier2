@@ -18,11 +18,6 @@ enum class PrimaryCommand
 	None, BasicAttack, Defend, Escape
 };
 
-enum class BasicComboStage
-{
-	A, B, C
-};
-
 struct PrimaryCommandBindings
 {
 	KEY basicAttackKey   = KEY::LBUTTON;
@@ -33,9 +28,9 @@ struct PrimaryCommandBindings
 
 struct QuickSkillBindings
 {
-	KEY     key    = KEY::W;
-	wstring skillKey;
-	int     apCost = 0;
+	KEY key    = KEY::W;
+	SpecialAnimTag tag = SpecialAnimTag::SkillA;
+	int apCost = 0;
 };
 
 struct ControllerConfig
@@ -43,12 +38,11 @@ struct ControllerConfig
 	SubmitPolicy                 submitPolicy = SubmitPolicy::AutoCommitIfReady;
 	PrimaryCommandBindings       primary{};
 	array<QuickSkillBindings, 4> quickSkills = { {
-		{ KEY::W, L"skillA", 0 },
-		{ KEY::A, L"skillB", 0 },
-		{ KEY::S, L"skillC", 0 },
-		{ KEY::D, L"skillD", 0 },
+		{ KEY::W, SpecialAnimTag::SkillA, 0 },
+		{ KEY::A, SpecialAnimTag::SkillB, 0 },
+		{ KEY::S, SpecialAnimTag::SkillC, 0 },
+		{ KEY::D, SpecialAnimTag::SkillD, 0 },
 		} };
-	
 	int   preBufferCapacity   = 1;
 }; 
 
@@ -60,13 +54,11 @@ struct BufferedIntent
 
 struct TurnConstraints
 {
-	unordered_set<wstring> usedSkillKeysThisTurn;
-	BasicComboStage nextBasicStage = BasicComboStage::A;
-	float timeSinceLastBasic = 0.f;
+	unordered_set<SpecialAnimTag> usedTagsThisTurn;
+
 	void ResetForThisTurn()
 	{
-		usedSkillKeysThisTurn.clear();
-		nextBasicStage = BasicComboStage::A;
+		usedTagsThisTurn.clear();
 	}
 };
 

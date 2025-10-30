@@ -92,9 +92,9 @@ void AnimatorSystem::Play(Handle handle, _uint layerIdx, const wstring& clipName
     const AnimClip* clip = FindClip(*anim, clipName);
     if (!clip) return;
 
-    auto& layer = anim->layers[layerIdx];
-    layer.clip = clip;
-    layer.curTime = 0.f;
+    auto& layer    = anim->layers[layerIdx];
+    layer.clip     = clip;
+    layer.curTime  = 0.f;
     layer.playType = type;
     layer.isPaused = false;
     layer.fadeTime = 0.f;

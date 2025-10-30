@@ -9,10 +9,10 @@ public:
 	void Update(const _fmat& parentMat);
 
 public:
-	bool isAnimated = false;
+	bool   isAnimated = false;
 	string name{};
-	_uint idx;
-	Bone* parent;
+	_uint  idx;
+	Bone*  parent;
 	vector<Bone*> children{};
 
 	_float4x4 invBindPose{};

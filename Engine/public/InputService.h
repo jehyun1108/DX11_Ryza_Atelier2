@@ -16,6 +16,9 @@ public:
 	bool KeyPressingAllowed(KEY key, InputChannel channel, EntityID target) const;
 	bool KeyReleasedAllowed(KEY key, InputChannel channel, EntityID target) const;
 
+	bool KeyDownGlobal(KEY key) const;
+	bool KeyPressingGlobal(KEY key) const;
+	bool KeyReleasedGlobal(KEY key) const;
 	// --------------------------------------------------------------------------
 	void Submit(const IntentWrite& write);
 
@@ -38,12 +41,7 @@ public:
 private:
 	bool PassPolicy(InputChannel channel, EntityID target) const { return inputGate.Allow(channel, target); }
 
-	bool DeviceKeyDown(KEY key)     const { return game.KeyDown(key); }
-	bool DeviceKeyPressing(KEY key) const { return game.KeyPressing(key); }
-	bool DeviceKeyRelease(KEY key)  const { return game.KeyRelease(key); }
-
 private:
-	GameInstance& game = GameInstance::GetInstance();
 	InputGate       inputGate;
 	IntentCollector intentCollector;
 	unordered_map<EntityID, bool> jumpEdgeByEntity;

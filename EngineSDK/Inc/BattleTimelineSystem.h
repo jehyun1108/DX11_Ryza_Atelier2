@@ -29,6 +29,7 @@ public:
 	bool TryGetUnitStateByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx, const TimelineUnitState*& outState) const;
 	bool IsGaugeFull(EntityID entity) const;
 	bool IsUnitReadyToAct(EntityID entity) const;
+	int  ResolveSkillApCost(EntityID entity, const optional<SpecialAnimTag>& specialTag) const;
 
 	//  Setting
 	void SetClock(TimelineClockState newState);
@@ -37,17 +38,23 @@ public:
 
 	// EventQueue
 	const vector<BattleTimelineEvent>& PeekEvents() const { return eventQueues; }
-	void ClearEvents() { eventQueues.clear(); }
+	void                              ClearEvents()       { eventQueues.clear(); }
 
 private:
+	static constexpr int kMaxCount = 3;
+	static BattleTeam OppositeTeam(BattleTeam team) { return (team == BattleTeam::Ally) ? BattleTeam::Enemy : BattleTeam::Ally;}
+	
 	bool ResolveIdxByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx);
-	void PushEvent(BattleTimelineEventType type, EntityID subject, BattleTeam team, int deltaAp = 0, const wstring& note = L"");
+	void PushEvent(BattleTimelineEventType type, EntityID subject, BattleTeam team, int deltaAp = 0);
 
 	void AdvanceGauge(TimelineUnitState& unit, float dt, EntityID entity, BattleTeam team);
-	bool CommitInternal(TimelineUnitState& unitState, TimelineUnitRunTime& unitRunTime, const TimelineActionIntent& intent, EntityID entity, BattleTeam team);
-	bool BuildAiIntent(const TimelineUnitState& unitState, const TimelineUnitRunTime& unitRuntime, TimelineActionIntent& outIntent);
-	void ApplyApDelta(TimelineUnitState& unit, EntityID entity, BattleTeam team, int deltaAp, const wstring& note);
+	bool CommitInternal(TimelineUnitState& unitState, TimelineUnitRunTime& unitRunTime, TimelineActionIntent intent, EntityID entity, BattleTeam team);
+	bool BuildAiIntent(TimelineUnitState& unitState,TimelineUnitRunTime& unitRuntime, TimelineActionIntent& outIntent);
+	void ApplyApDelta(TimelineUnitState& unit, EntityID entity, BattleTeam team, int deltaAp);
 	void ApplyResolveReward(TimelineUnitState& unitState, const TimelineUnitRunTime& unitRuntime, const TimelineActionIntent& resolvedIntent, EntityID entity, BattleTeam team);
+
+	void     FillSkillCatalog(EntityID entity, vector<TimelineSkillInfo>& outCatalog) const;
+	EntityID ResolveOpponentTargetEntity(BattleTeam myTeam) const;
 
 private:
 	SystemRegistry& registry;

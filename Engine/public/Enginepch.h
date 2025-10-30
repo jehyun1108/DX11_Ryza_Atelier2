@@ -158,6 +158,7 @@ using Microsoft::WRL::ComPtr;
 #include "InputGate.h"
 #include "IntentCollector.h"
 #include "IntentMerger.h"
+#include "InputService.h"
 
 #include "FieldControllerSystem.h"
 #include "BattleSessionSystem.h"
@@ -187,7 +188,6 @@ using Microsoft::WRL::ComPtr;
 #include "InputMgr.h"
 #include "PathMgr.h"
 #include "GameInstance.h"
-#include "InputService.h"
 #include "GuiPanel.h"
 
 // ---- EngineComponent ----------------

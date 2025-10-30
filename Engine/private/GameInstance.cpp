@@ -5,7 +5,7 @@ bool GameInstance::inited = false;
 HWND g_hWnd;
 
 GameInstance::GameInstance(PassKey)
-	:entityMgr(registry), tfSys(registry), animatorSys(registry), camSys(registry), lightSys(registry), freeCamSys(registry), faceSys(registry), mouthSys(registry), socketSys(registry), modelSys(registry), layerSys(registry), gridSys(registry), pickingSys(registry), selectionSys(registry), collisionSys(registry), renderSys(registry), moveStateSys(registry), moveProfileSys(registry), moveIntentSys(registry), meshColliderSys(registry), skySys(registry), fieldAnimSys(registry), facingSys(registry),  orbitCamSys(registry), fieldCtrlSys(registry), battleIntroSys(registry), animDataSys(registry), jumpSys(registry), battleSessionSys(registry), fieldSys(registry), battleSys(registry), battleCtrlSys(registry) ,charaDataSys(registry), battleTimelineSys(registry) {
+	:entityMgr(registry), tfSys(registry), animatorSys(registry), camSys(registry), lightSys(registry), freeCamSys(registry), faceSys(registry), mouthSys(registry), socketSys(registry), modelSys(registry), layerSys(registry), gridSys(registry), pickingSys(registry), selectionSys(registry), collisionSys(registry), renderSys(registry), moveStateSys(registry), moveProfileSys(registry), moveIntentSys(registry), meshColliderSys(registry), skySys(registry), fieldAnimSys(registry), facingSys(registry),  orbitCamSys(registry), fieldCtrlSys(registry), battleIntroSys(registry), animDataSys(registry), jumpSys(registry), battleSessionSys(registry), fieldSys(registry), battleSys(registry), battleCtrlSys(registry) ,charaDataSys(registry), battleTimelineSys(registry), battleExecSys(registry) {
 }
 GameInstance::~GameInstance() = default;
 HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
@@ -55,6 +55,7 @@ HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
 	registry.Register(charaDataSys);
 	registry.Register(battleCtrlSys);
 	registry.Register(battleTimelineSys);
+	registry.Register(battleExecSys);
 	
 	animDataSys.RegisterDefaultClips();
 	animRegistry.RegisterDefaultAnim();

@@ -74,7 +74,6 @@ struct BattleEvent
 	EntityID   subjectEntity = 0;
 	BattleTeam subjectTeam = BattleTeam::Neutral;
 
-	wstring note{};
 	int     frameIdx = -1;
 
 	// Payload

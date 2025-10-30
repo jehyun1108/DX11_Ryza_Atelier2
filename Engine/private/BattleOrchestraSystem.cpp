@@ -92,6 +92,22 @@ void BattleOrchestraSystem::WireSubscriptions()
 {
 	listenerIds.clear();
 
+	// Gauge Full -> Controller Turn
+	BattleEventListenerId idGaugeFull = eventBus.Subscribe(BattleBusEventType::TimelineFullGauge, [this](const BattleEvent& event) 
+		{
+			auto& controller = registry.Get<BattleControllerSystem>();
+			controller.OnGaugeBecameFull();
+		});
+	listenerIds.push_back(idGaugeFull);
+
+	// Action Finished -> Controller
+	BattleEventListenerId idActionFinished = eventBus.Subscribe(BattleBusEventType::TimelineActionFinished, [this](const BattleEvent& event)
+		{
+			auto& controller = registry.Get<BattleControllerSystem>();
+			controller.OnActionExecutionFinished(TimelineActionIntent{});
+		});
+	listenerIds.push_back(idActionFinished);
+
 	// TimelineCommitted -> Execution BeginAction
 	BattleEventListenerId idCommited = eventBus.Subscribe(BattleBusEventType::TimelineActionCommitted, [this](const BattleEvent& event) 
 		{
@@ -143,20 +159,17 @@ void BattleOrchestraSystem::PumpSessionEventsToBus()
 		{
 		case BattleSessionEventType::IntroReady:
 			busEvent.eventType = BattleBusEventType::IntroReady;
-			busEvent.note = L"session intro ready";
 			eventBus.Publish(busEvent);
 			break;
 
 		case BattleSessionEventType::SessionBegan:
 			busEvent.eventType = BattleBusEventType::SessionBegan;
-			busEvent.note = L"session began";
 			eventBus.Publish(busEvent);
 			break;
 
 		case BattleSessionEventType::SessionActivated:
 		{
 			busEvent.eventType = BattleBusEventType::SessionActivated;
-			busEvent.note    = L"session active";
 			EventPayload_SessionPhase phase{};
 			phase.newPhase   = BattlePhase::Active;
 			busEvent.payload = phase;
@@ -166,13 +179,11 @@ void BattleOrchestraSystem::PumpSessionEventsToBus()
 
 		case BattleSessionEventType::SessionResultDecided:
 			busEvent.eventType = BattleBusEventType::SessionResultDecided;
-			busEvent.note = L"result decided";
 			eventBus.Publish(busEvent);
 			break;
 
 		case BattleSessionEventType::SessionEnded:
 			busEvent.eventType = BattleBusEventType::SessionEnded;
-			busEvent.note = L"session ended";
 			eventBus.Publish(busEvent);
 			break;
 
@@ -191,7 +202,6 @@ void BattleOrchestraSystem::PumpTimelineEventsToBus()
 		BattleEvent busEvent{};
 		busEvent.subjectEntity = timelineEvent.subjectEntity;
 		busEvent.subjectTeam   = timelineEvent.subjectTeam;
-		busEvent.note          = timelineEvent.note;
 
 		switch (timelineEvent.eventType)
 		{

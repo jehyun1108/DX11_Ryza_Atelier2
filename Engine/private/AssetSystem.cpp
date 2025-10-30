@@ -208,43 +208,43 @@ void AssetSystem::Init()
 	{
 		ShaderMeta meta{};
 		meta.shaderTypes = SHADER::VS | SHADER::PS;
-		meta.layout = InputLayoutBuilder::MakePNUTan();
-		meta.vsCsoPath = L"../bin/Shaders/PNUTan_VS.cso";
-		meta.psCsoPath = L"../bin/Shaders/PNUTan_PS.cso";
+		meta.layout      = InputLayoutBuilder::MakePNUTan();
+		meta.vsCsoPath   = L"../bin/Shaders/PNUTan_VS.cso";
+		meta.psCsoPath   = L"../bin/Shaders/PNUTan_PS.cso";
 		RegisterShader(L"PNUTan", meta);
 	}
 	{
 		ShaderMeta meta{};
 		meta.shaderTypes = SHADER::VS | SHADER::PS;
-		meta.layout = InputLayoutBuilder::MakePNUTanSkin();
-		meta.vsCsoPath = L"../bin/Shaders/PNUTanSkin_VS.cso";
-		meta.psCsoPath = L"../bin/Shaders/PNUTanSkin_PS.cso";
+		meta.layout      = InputLayoutBuilder::MakePNUTanSkin();
+		meta.vsCsoPath   = L"../bin/Shaders/PNUTanSkin_VS.cso";
+		meta.psCsoPath   = L"../bin/Shaders/PNUTanSkin_PS.cso";
 		RegisterShader(L"PNUTanSkin", meta);
 	}
 	{
 		ShaderMeta meta{};
 		meta.shaderTypes = SHADER::VS | SHADER::HS | SHADER::DS | SHADER::PS;
-		meta.layout = InputLayoutBuilder::MakePNUTanSkin();
-		meta.vsCsoPath = L"../bin/Shaders/PNUTanSkin_VS_TS.cso";
-		meta.hsCsoPath = L"../bin/Shaders/PNUTanSkin_HS.cso";
-		meta.dsCsoPath = L"../bin/Shaders/PNUTanSkin_DS.cso";
-		meta.psCsoPath = L"../bin/Shaders/PNUTanSkin_PS.cso";
+		meta.layout      = InputLayoutBuilder::MakePNUTanSkin();
+		meta.vsCsoPath   = L"../bin/Shaders/PNUTanSkin_VS_TS.cso";
+		meta.hsCsoPath   = L"../bin/Shaders/PNUTanSkin_HS.cso";
+		meta.dsCsoPath   = L"../bin/Shaders/PNUTanSkin_DS.cso";
+		meta.psCsoPath   = L"../bin/Shaders/PNUTanSkin_PS.cso";
 		RegisterShader(L"PNUTanSkin_TS", meta);
 	}
 	{
 		ShaderMeta meta{};
 		meta.shaderTypes = SHADER::VS | SHADER::PS;
-		meta.layout = InputLayoutBuilder::MakePC();
-		meta.vsCsoPath = L"../bin/Shaders/PC_VS.cso";
-		meta.psCsoPath = L"../bin/Shaders/PC_PS.cso";
+		meta.layout      = InputLayoutBuilder::MakePC();
+		meta.vsCsoPath   = L"../bin/Shaders/PC_VS.cso";
+		meta.psCsoPath   = L"../bin/Shaders/PC_PS.cso";
 		RegisterShader(L"PC", meta);
 	}
 	{
 		ShaderMeta meta{};
 		meta.shaderTypes = SHADER::VS | SHADER::PS;
-		meta.layout = InputLayoutBuilder::MakePNUTan();
-		meta.vsCsoPath = L"../bin/Shaders/Skybox_VS.cso";
-		meta.psCsoPath = L"../bin/Shaders/Skybox_PS.cso";
+		meta.layout      = InputLayoutBuilder::MakePNUTan();
+		meta.vsCsoPath   = L"../bin/Shaders/Skybox_VS.cso";
+		meta.psCsoPath   = L"../bin/Shaders/Skybox_PS.cso";
 		RegisterShader(L"Skybox", meta);
 	}
 	

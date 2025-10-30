@@ -14,10 +14,10 @@ public:
 	void Tick(EntityID entity, float dt, ExecutionUnitRunTime& runtime);
 
 private:
-	const AnimChainSpec* ResolveActiveChain(const ActionAnimSpec& spec, const TimelineActionIntent& intent) const;
-	bool   PlayStage(EntityID entity, ExecutionUnitRunTime& runtime, const AnimChainSpec& chain);
-	bool   IsCurStageFinished(EntityID entity, const ExecutionUnitRunTime& runtime) const;
-	Handle ResolveAnimHandle(EntityID entity) const;
+	const  AnimChainSpec* ResolveActiveChain(const ActionAnimSpec& spec, const TimelineActionIntent& intent) const;
+	bool                  PlayStage(EntityID entity, ExecutionUnitRunTime& runtime, const AnimChainSpec& chain);
+	bool                  IsCurStageFinished(EntityID entity, const ExecutionUnitRunTime& runtime, const AnimChainSpec& chain) const;
+	Handle                ResolveAnimHandle(EntityID entity) const;
 
 private:
 	SystemRegistry& registry;

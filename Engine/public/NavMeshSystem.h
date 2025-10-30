@@ -22,9 +22,6 @@ public:
 	void Update(float dt);
 
 	void RenderGui(EntityID id) override;
-
-private:
-
 };
 
 NS_END

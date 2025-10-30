@@ -2,18 +2,18 @@
 
 void BattleControllerSystem::Update(EntityID leaderEntity, float dt)
 {
+	auto& input = registry.Get<InputService>();
+
 	runtime.leaderEntity = leaderEntity;
 	if (leaderEntity == invalidEntity) return;
 
-	auto& input = GameInstance::GetInstance();
-
 	const bool isDefendPressed = input.KeyPressing(config.primary.defendKey);
-	if (isDefendPressed && !runtime.isDefendingHold) HandleDefendHoldBegin();
-	if (!isDefendPressed && runtime.isDefendingHold) HandleDefendHoldEnd();
+	if ( isDefendPressed && !runtime.isDefendingHold) HandleDefendHoldBegin();
+	if (!isDefendPressed &&  runtime.isDefendingHold) HandleDefendHoldEnd();
 
-	if (input.KeyDown(config.primary.basicAttackKey))       HandlePrimaryKeyDown(config.primary.basicAttackKey);
-	if (input.KeyDown(config.primary.escapeKey))            HandlePrimaryKeyDown(config.primary.escapeKey);
-	if (input.KeyDown(config.primary.openSkillMenuKey))     HandlePrimaryKeyDown(config.primary.openSkillMenuKey);
+	if (input.KeyDown(config.primary.basicAttackKey))   HandlePrimaryKeyDown(config.primary.basicAttackKey);
+	if (input.KeyDown(config.primary.escapeKey))        HandlePrimaryKeyDown(config.primary.escapeKey);
+	if (input.KeyDown(config.primary.openSkillMenuKey)) HandlePrimaryKeyDown(config.primary.openSkillMenuKey);
 
 	for (const auto& slot : config.quickSkills)
 	{
@@ -26,7 +26,6 @@ void BattleControllerSystem::OnGaugeBecameFull()
 {
 	runtime.turn.ResetForThisTurn();
 	ResetTurnVisuals();
-	ResetCombo();
 	ClearBuffer();
 }
 
@@ -41,74 +40,63 @@ void BattleControllerSystem::OnActionExecutionFinished(const TimelineActionInten
 		SubmitAccordingToPolicy(bufferedIntent);
 	}
 	else
-	{
-		ResetCombo();
 		ResetTurnVisuals();
-	}
 }
 
 void BattleControllerSystem::HandlePrimaryKeyDown(KEY pressedKey)
 {
+	if (runtime.isExecuting && HasBuffered()) return;
+	if (!IsGaugeFull(runtime.leaderEntity)) return;
+
 	if (pressedKey == config.primary.basicAttackKey)
 	{
-		if (!IsGaugeFull(runtime.leaderEntity)) return;
-
 		TimelineActionIntent intent{};
 		if (!BuildIntent_Basic(runtime.leaderEntity, intent)) return;
 
-		if (runtime.isExecuting)
-			PushToBuffer(intent);
-		else
-			SubmitAccordingToPolicy(intent);
-		
-		AdvanceBasicComboOnFire();
+		if (runtime.isExecuting)  PushToBuffer(intent);
+		else                      SubmitAccordingToPolicy(intent);
 		return;
 	}
-
 	if (pressedKey == config.primary.escapeKey)
 	{
 		TryEscape();
 		return;
 	}
-
 	if (pressedKey == config.primary.openSkillMenuKey)
 	{
 		EnterSelectingSkill();
 		return;
 	}
 }
+
 void BattleControllerSystem::HandleSkillSlotKeyDown(KEY pressedKey)
 {
+	if (runtime.isExecuting && HasBuffered()) return;
+
 	const QuickSkillBindings* chosenSlot = nullptr;
 	for (const auto& slot : config.quickSkills)
 	{
-		if (slot.key == pressedKey)
-		{
-			chosenSlot = &slot;
-			break;
-		}
+		if (slot.key == pressedKey) { chosenSlot = &slot; break; }
 	}
-
-	if (!chosenSlot) return;
-
-	if (!IsGaugeFull(runtime.leaderEntity)) return;
-	if (!IsSkillAvailableThisTurn(chosenSlot->skillKey)) return;
+	if (!chosenSlot)                                     return;
+	if (!IsGaugeFull(runtime.leaderEntity))              return;
+	if (!IsSkillAvailableThisTurn(chosenSlot->tag)) return;
 
 	TimelineActionIntent intent{};
-	if (!BuildIntent_Skill(runtime.leaderEntity, chosenSlot->skillKey, chosenSlot->apCost, intent)) return;
+	if (!BuildIntent_Skill(runtime.leaderEntity, chosenSlot->tag, intent)) return;
 
 	if (runtime.isExecuting)
 	{
 		PushToBuffer(intent);
-		MarkSkillSlotQueuedByKey(chosenSlot->skillKey);
-		MarkSkillUsedThisTurn(chosenSlot->skillKey);
+		MarkSkillSlotQueuedByKey(chosenSlot->tag);
+		MarkSkillUsedThisTurn(chosenSlot->tag);
 	}
 	else
 	{
 		if (SubmitAccordingToPolicy(intent))
 		{
-			MarkSkillSlotQueuedByKey(chosenSlot->skillKey);
-			MarkSkillUsedThisTurn(chosenSlot->skillKey);
+			MarkSkillSlotQueuedByKey(chosenSlot->tag);
+			MarkSkillUsedThisTurn(chosenSlot->tag);
 		}
 	}
 	
@@ -128,10 +116,10 @@ void BattleControllerSystem::TryEscape()
 void BattleControllerSystem::StartSwapLeader(EntityID newLeaderEntity)
 {
 	TimelineActionIntent intent{};
-	intent.battleCmd = BattleCommand::SwapLeader;
+	intent.battleCmd    = BattleCommand::SwapLeader;
 	intent.targetEntity = newLeaderEntity;
-	intent.apCost = 0;
-	intent.skillKey = L"";
+	intent.apCost       = 0;
+	//intent.skillKey     = L"";
 
 	if (runtime.isExecuting) PushToBuffer(intent);
 	else                     SubmitAccordingToPolicy(intent);
@@ -155,29 +143,32 @@ bool BattleControllerSystem::BuildIntent_Basic(EntityID leaderEntity, TimelineAc
 {
 	if (leaderEntity == invalidEntity) return false;
 
-	EntityID target{};
-	if (!ResolveSingleTarget(leaderEntity, target)) return false;
+	EntityID resolvedTarget{};
+	if (!ResolveSingleTarget(leaderEntity, resolvedTarget)) return false;
 
 	outIntent              = {};
 	outIntent.battleCmd    = BattleCommand::AttackBasic;
-	outIntent.targetEntity = target;
+	outIntent.targetEntity = resolvedTarget;
 	outIntent.apCost       = 0;
-	outIntent.skillKey     = L"basic";
+	outIntent.specialTag   = SpecialAnimTag::BasicAttack;
 	return true;
 }
 
-bool BattleControllerSystem::BuildIntent_Skill(EntityID leaderEntity, const wstring& skillKey, int apCost, TimelineActionIntent& outIntent)
+bool BattleControllerSystem::BuildIntent_Skill(EntityID leaderEntity, SpecialAnimTag specialTag, TimelineActionIntent& outIntent)
 {
 	if (leaderEntity == invalidEntity) return false;
 
-	EntityID target{};
-	if (!ResolveSingleTarget(leaderEntity, target)) return false;
+	EntityID resolvedTarget{};
+	if (!ResolveSingleTarget(leaderEntity, resolvedTarget)) return false;
+
+	auto& timelineSys = registry.Get<BattleTimelineSystem>();
+	const int resolvedApCost = timelineSys.ResolveSkillApCost(leaderEntity, specialTag);
 
 	outIntent              = {};
-	outIntent.battleCmd    = BattleCommand::Skill;
-	outIntent.targetEntity = target;
-	outIntent.apCost       = apCost;
-	outIntent.skillKey     = skillKey;
+	outIntent.battleCmd    = BattleCommand::Skill;   
+	outIntent.targetEntity = resolvedTarget;
+	outIntent.apCost       = resolvedApCost;
+	outIntent.specialTag   = specialTag;            
 	return true;
 }
 
@@ -189,7 +180,7 @@ bool BattleControllerSystem::BuildIntent_Defend(EntityID leaderEntity, TimelineA
 	outIntent.battleCmd    = BattleCommand::Defend;
 	outIntent.targetEntity = leaderEntity;
 	outIntent.apCost       = 0;
-	outIntent.skillKey     = L"";
+	//outIntent.skillKey     = L"";
 	return true;
 }
 
@@ -201,7 +192,7 @@ bool BattleControllerSystem::BuildIntent_Escape(EntityID leaderEntity, TimelineA
 	outIntent.battleCmd    = BattleCommand::Escape;
 	outIntent.targetEntity = leaderEntity;
 	outIntent.apCost       = 0;
-	outIntent.skillKey     = L"";
+	//outIntent.skillKey     = L"";
 	return true;
 }
 
@@ -264,29 +255,19 @@ void BattleControllerSystem::PushToBuffer(const TimelineActionIntent& intent)
 	}
 }
 
-void BattleControllerSystem::AdvanceBasicComboOnFire()
+int BattleControllerSystem::FindQuickSlotIdxByKey(SpecialAnimTag tag) const
 {
-	switch (runtime.turn.nextBasicStage)
+	for (int idx = 0; idx < static_cast<int>(config.quickSkills.size()); ++idx)
 	{
-	case BasicComboStage::A: runtime.turn.nextBasicStage = BasicComboStage::B; break;
-	case BasicComboStage::B: runtime.turn.nextBasicStage = BasicComboStage::C; break;
-	case BasicComboStage::C:                                                   break;
-	}
-}
-
-int BattleControllerSystem::FindQuickSlotIdxByKey(const wstring& skillKey) const
-{
-	for (int i = 0; i < static_cast<int>(config.quickSkills.size()); ++i)
-	{
-		if (config.quickSkills[static_cast<size_t>(i)].skillKey == skillKey)
-			return i;
+		if (config.quickSkills[static_cast<size_t>(idx)].tag == tag)
+			return idx;
 	}
 	return -1;
 }
 
-void BattleControllerSystem::MarkSkillSlotQueuedByKey(const wstring& skillKey)
+void BattleControllerSystem::MarkSkillSlotQueuedByKey(SpecialAnimTag tag)
 {
-	const int slotIdx = FindQuickSlotIdxByKey(skillKey);
-	if (slotIdx >= 0 && slotIdx < static_cast<int>(runtime.queuedSkillSlotFlags.size()))
-		runtime.queuedSkillSlotFlags[static_cast<size_t>(slotIdx)] = true;
+	const int idx = FindQuickSlotIdxByKey(tag);
+	if (idx >= 0 && idx < static_cast<int>(runtime.queuedSkillSlotFlags.size()))
+		runtime.queuedSkillSlotFlags[static_cast<size_t>(idx)] = true;
 }
