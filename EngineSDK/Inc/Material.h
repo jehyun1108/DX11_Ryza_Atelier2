@@ -1,20 +1,19 @@
 #pragma once
 
-#include "MaterialUtil.h"
-
 NS_BEGIN(Engine)
 
 class ENGINE_DLL Material final
 {
 public:
 	Material();
-	explicit Material(const MaterialDesc& desc) { SetDesc(desc); }
+	explicit Material(const MaterialMeta& meta) { SetMeta(meta); }
+	shared_ptr<Material> Clone() const;
 
-	void SetDesc(const MaterialDesc& desc);
-	const MaterialDesc& GetDesc() const { return desc; }
+	void SetMeta(const MaterialMeta& meta);
+	const MaterialMeta& GetMeta() const { return meta; }
 
-	void SetShaderKey(const wstring& key);
-	const wstring& GetShaderKey() const;
+	void SetShaderKey(const wstring& key) { meta.shaderKey = key; }
+	const wstring& GetShaderKey() const   { return meta.shaderKey; }
 
 	void SetTextureKey(TEXSLOT slot, const wstring& key, SHADER stage = SHADER::PS);
 	void SetSampler(TEXSLOT slot, SAMPLER sampler);
@@ -23,11 +22,11 @@ public:
 	void Bind(ID3D11DeviceContext* context);
 	void UnBind(ID3D11DeviceContext* context);
 
-	MaterialBlend GetBlend() const     { return desc.blend; }
-	void SetBlend(MaterialBlend blend) { desc.blend = blend; }
+	MaterialBlend GetBlend() const     { return meta.blend; }
+	void SetBlend(MaterialBlend blend) { meta.blend = blend; }
 
-	bool IsTransparent() const { return desc.blend != MaterialBlend::Opaque; }
-	shared_ptr<Material> Clone() const;
+	bool IsTransparent()  const { return meta.blend != MaterialBlend::Opaque; }
+	bool HasTesellation() const { return shader ? shader->hasTessellation() : false; }
 
 private:
 	void ComputeBeginEnd(_uint mask, _uint& begin, _uint& end);
@@ -35,7 +34,7 @@ private:
 
 private:
 	GameInstance& game = GameInstance::GetInstance();
-	MaterialDesc desc{};
+	MaterialMeta meta{};
 	
 	shared_ptr<Shader> shader;
 	array<shared_ptr<Texture>, NUM_TEXSLOTS> textures;
@@ -45,12 +44,9 @@ private:
 	array<bool, NUM_TEXSLOTS> dirtyTexture{};
 	array<bool, NUM_TEXSLOTS> dirtySampler{};
 
-	_uint usedMaskVS = 0;
-	_uint usedMaskPS = 0;
-	_uint prevUsedMaskVS = 0;
-	_uint prevUsedMaskPS = 0;
-	_uint dirtyMaskVS = 0;
-	_uint dirtyMaskPS = 0;
+	array<_uint, NUM_SHADERSTAGES> usedMasks;
+	array<_uint, NUM_SHADERSTAGES> prevUsedMasks;
+	array<_uint, NUM_SHADERSTAGES> dirtyMasks;
 };
 
 NS_END

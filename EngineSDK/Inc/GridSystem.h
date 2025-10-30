@@ -46,6 +46,8 @@ public:
 	void      CellBounds(Handle handle, const GridCoord& cell, _float3& outMin, _float3& outMax) const;
 	bool      RayCastToPlane(Handle handle, const _vec& rayOrigin, const _vec& rayDir, _float3& outHit) const;
 	bool      PickCell(Handle handle, const _vec& rayOrigin, const _vec& rayDir, GridCoord& outCell, _float3& outHit) const;
+	
+	bool      ComputeCellBoundsFromPoint(Handle handle, const _float3& worldPoint, _float3& outMin, _float3& outMax) const;
 
 	void      RenderGui(EntityID id) override;
 

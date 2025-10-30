@@ -52,6 +52,33 @@ EntitySpawner& EntitySpawner::WithThirdCam(Handle targetTf, _fvec offset)
 	return *this;
 }
 
+EntitySpawner& EntitySpawner::WithThirdCam(Handle targetTf, _fvec offset, OffsetSpace offsetSpace, FollowPolicy followPolicy, float softDamping)
+{
+	if (!handles.cam.IsValid()) return *this;
+
+	auto& camSys = registry.Get<CameraSystem>();
+	camSys.SetTarget(handles.cam, targetTf, offset);
+	camSys.SetFollowOffsetSpace(handles.cam, offsetSpace);
+	camSys.SetFollowPolicy(handles.cam, followPolicy, softDamping);
+	return *this;
+}
+
+EntitySpawner& EntitySpawner::WithOrbitCam(Handle targetTf, float initYaw, float initPitch, float initDist)
+{
+	if (!handles.cam.IsValid()) return *this;
+
+	auto& orbitSys = registry.Get<OrbitCamSystem>();
+	handles.orbitCam = orbitSys.Create(handles.entity, handles.cam, targetTf);
+
+	if (auto data = orbitSys.Get(handles.orbitCam))
+	{
+		data->orbitYaw = initYaw;
+		data->orbitPitch = clamp(initPitch, data->minPitch, data->maxPitch);
+		data->orbitDist = initDist;
+	}
+	return *this;
+}
+
 EntitySpawner& EntitySpawner::WithFreeCam(float moveSpeed, float sensitivity)
 {
 	auto& freeCamSys = registry.Get<FreeCamSystem>();
@@ -93,6 +120,9 @@ EntitySpawner& EntitySpawner::WithLayer(_uint mask)
 EntitySpawner& EntitySpawner::WithModel(const wstring& modelKey)
 {
 	auto& modelSys = registry.Get<ModelSystem>();
+	auto& tfSys = registry.Get<TransformSystem>();
+
+	TransformData* tf = tfSys.Get(handles.tf);
 	handles.model = modelSys.Create(handles.entity, handles.tf, modelKey);
 
 	if (auto model = modelSys.Get(handles.model))
@@ -140,6 +170,7 @@ EntitySpawner& EntitySpawner::WithMouth(const wstring& clip, _uint layer, float 
 
 EntitySpawner& EntitySpawner::WithSocket(EntityID parentID, const string& boneName, const _float3& offsetPos, const _float3& offsetRot)
 {
+	auto& tfSys     = registry.Get<TransformSystem>();
 	auto& socketSys = registry.Get<SocketSystem>();
 	auto& animSys   = registry.Get<AnimatorSystem>();
 	auto& modelSys  = registry.Get<ModelSystem>();
@@ -149,6 +180,13 @@ EntitySpawner& EntitySpawner::WithSocket(EntityID parentID, const string& boneNa
 		{
 			if (!parentAnim.IsValid())
 				parentAnim = handle;
+		});
+
+	Handle parentTf{};
+	tfSys.ForEachOwned(parentID, [&](Handle handle, TransformData&)
+		{
+			if (!parentTf.IsValid())
+				parentTf = handle;
 		});
 
 	if (!parentAnim.IsValid())
@@ -162,7 +200,7 @@ EntitySpawner& EntitySpawner::WithSocket(EntityID parentID, const string& boneNa
 	assert(parentAnim.IsValid() && "WithSocket: parent entity has no Animator");
 	if (!parentAnim.IsValid()) return *this;
 
-	handles.socket = socketSys.Create(handles.entity, handles.tf, parentAnim, boneName, offsetPos, offsetRot);
+	handles.socket = socketSys.Create(handles.entity, handles.tf, parentAnim, parentTf, boneName, offsetPos, offsetRot);
 	return *this;
 }
 
@@ -202,47 +240,18 @@ EntitySpawner& EntitySpawner::WithGrid(float cellSize, int countX, int countZ, _
 	return WithGrid(param);
 }
 
-EntitySpawner& EntitySpawner::WithPicking(const BoundingBox& localBox, _uint layerMask, bool enabled)
+EntitySpawner& EntitySpawner::WithSelectable(_uint layerMask, bool enabled)
 {
-	auto& pickSys = registry.Get<PickingSystem>();
-
-	handles.picking = pickSys.Create(handles.entity, handles.tf, localBox, layerMask, enabled);
+	auto& selectSys = registry.Get<SelectionSystem>();
+	selectSys.Create(handles.entity, true, layerMask);
 	return *this;
 }
 
-EntitySpawner& EntitySpawner::WithPickingFromModel(_uint layerMask, bool enabled)
+EntitySpawner& EntitySpawner::WithPickable(_uint layerMask, bool enabled)
 {
-	BoundingBox local{};
-	bool haveAABB = false;
-
-	if (handles.model.IsValid())
-	{
-		auto modelSys = registry.Get<ModelSystem>();
-		if (auto* comp = modelSys.Get(handles.model))
-		{
-			if (comp->model)
-			{
-				local = comp->model->GetBoundingBox();
-
-				const _float3 extent = local.Extents;
-
-				if (extent.x > 0.f || extent.y > 0.f || extent.z > 0.f)
-					haveAABB = true;
-
-				if (haveAABB)
-				{
-					const float eps = 1e-4f;
-					local.Extents.x = (local.Extents.x < eps) ? eps : local.Extents.x;
-					local.Extents.y = (local.Extents.y < eps) ? eps : local.Extents.y;
-					local.Extents.z = (local.Extents.z < eps) ? eps : local.Extents.z;
-				}
-			}
-		}
-	}
-	if (!haveAABB)
-		local = BoundingBox(_float3{}, _float3{ 0.5f, 0.5f, 0.5f });
-
-	return WithPicking(local, layerMask, enabled);
+	auto& pickSys = registry.Get<PickingSystem>();
+	handles.picking = pickSys.Create(handles.entity, handles.tf, layerMask, enabled);
+	return *this;
 }
 
 EntitySpawner& EntitySpawner::WithColliderAABB(const BoundingBox& localBox, _uint layerMask, bool enabled)
@@ -359,6 +368,105 @@ EntitySpawner& EntitySpawner::WithColliderPerPartAABB(_uint layerMask, bool enab
 		}
 	}
 	return *this;
+}
+
+EntitySpawner& EntitySpawner::WithMeshCollider(_uint layerMask, bool enabled)
+{
+	if (!handles.model.IsValid()) return *this;
+
+	auto& modelSys = registry.Get<ModelSystem>();
+	Handle hModel{};
+	const ModelData* model = modelSys.GetByOwner(handles.entity, &hModel);
+	if (!model || !model->model) return *this;
+
+	auto& mcSys = registry.Get<MeshColliderSystem>();
+	mcSys.Create(handles.entity, model->transform, *model->model, layerMask, enabled);
+	return *this;
+}
+
+EntitySpawner& EntitySpawner::WithPlayerMovement(const MoveProfile& preset)
+{
+	auto& profileSys   = registry.Get<MoveProfileSystem>();
+	auto& stateSys     = registry.Get<MoveStateSystem>();
+	auto& intentSys    = registry.Get<MoveIntentSystem>();
+	auto& faceSys  = registry.Get<FacingSystem>();
+	auto& fieldAnimSys = registry.Get<FieldAnimSystem>();
+	auto& fieldCtrlSys = registry.Get<FieldControllerSystem>();
+	auto& jumpSys      = registry.Get<JumpSystem>();
+		
+	profileSys.Create(handles.entity, preset);
+	stateSys.Create(handles.entity, handles.tf);
+	intentSys.Create(handles.entity);
+	fieldAnimSys.Create(handles.entity, handles.animator);
+	jumpSys.Create(handles.entity);
+
+	Handle faceHandle = faceSys.Create(handles.entity);
+
+	FacingParams facing{};
+	facing.forwardOffsetRad = 0.f;
+
+	handles.faceAnim = faceHandle;
+
+	return *this;
+}
+
+EntitySpawner& EntitySpawner::WithSkybox(const wstring& modelKey, SkyTextureType type, bool attachToCam, float uniformScale, float baseYawRad, float rotSpeed, bool setActive)
+{
+	vector<SkySubmesh> submeshes = BuildSkysubmeshes(modelKey);
+	if (submeshes.empty()) return *this;
+
+	return WithSkybox(submeshes, type, attachToCam, uniformScale, baseYawRad, rotSpeed, setActive);
+}
+
+EntitySpawner& EntitySpawner::WithSkybox(const vector<SkySubmesh>& submeshList, SkyTextureType type, bool attachToCam, float uniformScale, float baseyawRad, float rotSpeed, bool setActive)
+{
+	if (submeshList.empty()) return *this;
+	auto& skySys = registry.Get<SkyboxSystem>();
+
+	Handle skyHandle = skySys.Create(handles.entity, handles.tf, submeshList, type, attachToCam, uniformScale, baseyawRad, rotSpeed);
+	handles.skybox = skyHandle;
+
+	if (setActive)
+		skySys.SetActive(skyHandle, true);
+	return *this;
+}
+
+vector<SkySubmesh> EntitySpawner::BuildSkysubmeshes(const wstring& modelKey)
+{
+	vector<SkySubmesh> out{};
+	auto model = assets.GetModel(modelKey);
+	if (!model) return out;
+
+	_uint submeshIdx = 0;
+
+	for (const auto& part : model->GetParts())
+	{
+		if (!part.mesh || !part.material) continue;
+
+		shared_ptr<Material> material = part.material->Clone();
+		MaterialMeta meta = material->GetMeta();
+		meta.shaderKey = L"Skybox";
+		
+		material->SetMeta(meta);
+		material->Resolve(assets.GetShaderCache(), assets.GetTextureCache());
+
+		SkySubmesh subMesh{};
+		subMesh.mesh     = part.mesh;
+		subMesh.material = material;
+		
+		const SkyRule rule    = Utility::GetSkyRuleByIdx(submeshIdx);
+		subMesh.queue         = rule.queue;
+		subMesh.cull          = rule.cull;
+		subMesh.transparent   = rule.transparent;
+		subMesh.premultiplied = rule.premultiplied;
+
+		if (subMesh.transparent)
+			subMesh.opacity = 0.3f;
+
+		out.emplace_back(move(subMesh));
+		++submeshIdx;
+	}
+	return out;
 }
 
 EntityHandles EntitySpawner::Build()

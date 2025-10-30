@@ -10,7 +10,6 @@ Handle CollisionSystem::CreateAABB(EntityID owner, Handle tfHandle, const Boundi
 		data->enabled    = true;
 		data->layerMask  = layer;
 		data->tf         = tfHandle;
-	
 		data->aabb.local = localBox;
 		data->aabb.world = localBox;
 	}
@@ -180,7 +179,7 @@ void CollisionSystem::ExtractColliderProxies(vector<ColliderProxy>& out) const
 {
     if (!debugEnabled) return;
 
-    const_cast<CollisionSystem*>(this)->ForEachAlive([&](_uint id, CollisionData& data)
+    const_cast<CollisionSystem*>(this)->ForEachAliveEx([&](Handle handle, EntityID owner, CollisionData& data)
         {
             if (!data.enabled) return;
 

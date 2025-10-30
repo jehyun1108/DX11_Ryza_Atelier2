@@ -363,6 +363,18 @@ bool GridSystem::PickCell(Handle handle, const _vec& rayOrigin, const _vec& rayD
 	return (outCell.x >= -halfX && outCell.x < halfX) && (outCell.z >= -halfZ && outCell.z < halfZ);
 }
 
+bool GridSystem::ComputeCellBoundsFromPoint(Handle handle, const _float3& worldPoint, _float3& outMin, _float3& outMax) const
+{
+	const GridParams& params = *TryGetParams(handle);
+	
+	const GridCoord cell = WorldToCell(handle, worldPoint);
+	if (cell.x < 0 || cell.z < 0 || cell.x >= params.cellCountX || cell.z >= params.cellCountZ)
+		return false;
+
+	CellBounds(handle, cell, outMin, outMax);
+	return true;
+}
+
 // ------------- Util --------------------
 void GridSystem::BuildLineVertices(const GridParams& params, vector<VertexColor>& out) const
 {

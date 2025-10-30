@@ -115,7 +115,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Enginepch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../public/;../imgui/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../public/;../imgui/;../ThirdPartyLib/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Precise</FloatingPointModel>
       <ExceptionHandling>Sync</ExceptionHandling>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
@@ -156,7 +156,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Enginepch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../public/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../public/;../ThirdPartyLib/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Precise</FloatingPointModel>
       <ExceptionHandling>false</ExceptionHandling>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
@@ -185,14 +185,45 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\public\ActionAnimData.h" />
+    <ClInclude Include="..\public\ActionAnimRegistry.h" />
     <ClInclude Include="..\public\AnimatorSystem.h" />
     <ClInclude Include="..\public\AnimData.h" />
+    <ClInclude Include="..\public\AnimDataSystem.h" />
     <ClInclude Include="..\public\AssetCache.h" />
     <ClInclude Include="..\public\AssetRegistry.h" />
     <ClInclude Include="..\public\AssetSystem.h" />
+    <ClInclude Include="..\public\BattleControllerData.h" />
+    <ClInclude Include="..\public\BattleControllerSystem.h" />
+    <ClInclude Include="..\public\BattleData.h" />
+    <ClInclude Include="..\public\BattleEventBus.h" />
+    <ClInclude Include="..\public\BattleEventBusData.h" />
+    <ClInclude Include="..\public\BattleExecutionData.h" />
+    <ClInclude Include="..\public\BattleExecutionSystem.h" />
+    <ClInclude Include="..\public\BattleIntroSystem.h" />
+    <ClInclude Include="..\public\BattleIntroData.h" />
+    <ClInclude Include="..\public\BattleOrchestraData.h" />
+    <ClInclude Include="..\public\BattleOrchestraSystem.h" />
+    <ClInclude Include="..\public\BattleSessionData.h" />
+    <ClInclude Include="..\public\BattleSessionSystem.h" />
+    <ClInclude Include="..\public\BattleTimelineData.h" />
+    <ClInclude Include="..\public\BattleTimelineSystem.h" />
     <ClInclude Include="..\public\BinaryUtil.h" />
+    <ClInclude Include="..\public\CBufferTypes.h" />
+    <ClInclude Include="..\public\CharaAnimData.h" />
+    <ClInclude Include="..\public\CharacterData.h" />
+    <ClInclude Include="..\public\CharacterDataSystem.h" />
     <ClInclude Include="..\public\CollisionData.h" />
     <ClInclude Include="..\public\CollisionSystem.h" />
+    <ClInclude Include="..\public\FacingBlockData.h" />
+    <ClInclude Include="..\public\FacingBlockService.h" />
+    <ClInclude Include="..\public\FacingData.h" />
+    <ClInclude Include="..\public\FacingForceService.h" />
+    <ClInclude Include="..\public\FacingSystem.h" />
+    <ClInclude Include="..\public\FieldAnimData.h" />
+    <ClInclude Include="..\public\FieldAnimSystem.h" />
+    <ClInclude Include="..\public\FieldOrchestraSystem.h" />
+    <ClInclude Include="..\public\GameModeDirectorSystem.h" />
     <ClInclude Include="..\public\GpuUtil.h" />
     <ClInclude Include="..\public\GridData.h" />
     <ClInclude Include="..\public\GridSystem.h" />
@@ -200,15 +231,36 @@
     <ClInclude Include="..\public\GuiUtility.h" />
     <ClInclude Include="..\public\HighlightData.h" />
     <ClInclude Include="..\public\HighlightSystem.h" />
+    <ClInclude Include="..\public\IModeOrchestra.h" />
     <ClInclude Include="..\public\InputLayoutUtil.h" />
+    <ClInclude Include="..\public\InputRouting.h" />
+    <ClInclude Include="..\public\InputGate.h" />
+    <ClInclude Include="..\public\InputService.h" />
+    <ClInclude Include="..\public\IntentCollector.h" />
+    <ClInclude Include="..\public\IntentMerger.h" />
     <ClInclude Include="..\public\IReservable.h" />
     <ClInclude Include="..\public\JsonUtil.h" />
+    <ClInclude Include="..\public\JumpData.h" />
+    <ClInclude Include="..\public\JumpSystem.h" />
     <ClInclude Include="..\public\MaterialUtil.h" />
+    <ClInclude Include="..\public\MeshColliderData.h" />
+    <ClInclude Include="..\public\MeshColliderSystem.h" />
     <ClInclude Include="..\public\MeshUtil.h" />
     <ClInclude Include="..\public\ModelUtil.h" />
+    <ClInclude Include="..\public\MoveIntentData.h" />
+    <ClInclude Include="..\public\MoveIntentSystem.h" />
+    <ClInclude Include="..\public\MoveStateData.h" />
+    <ClInclude Include="..\public\MoveProfileData.h" />
+    <ClInclude Include="..\public\MoveProfileSystem.h" />
+    <ClInclude Include="..\public\MoveStateSystem.h" />
+    <ClInclude Include="..\public\NavMeshData.h" />
+    <ClInclude Include="..\public\NavMeshSystem.h" />
+    <ClInclude Include="..\public\OrbitCamSystem.h" />
+    <ClInclude Include="..\public\OrbitCamData.h" />
     <ClInclude Include="..\public\PickingData.h" />
     <ClInclude Include="..\public\PickingSystem.h" />
-    <ClInclude Include="..\public\RenderData.h" />
+    <ClInclude Include="..\public\FieldControllerSystem.h" />
+    <ClInclude Include="..\public\FieldControllerData.h" />
     <ClInclude Include="..\public\RenderProxies.h" />
     <ClInclude Include="..\public\RenderSystem.h" />
     <ClInclude Include="..\public\RenderSystemData.h" />
@@ -222,7 +274,7 @@
     <ClInclude Include="..\public\Device.h" />
     <ClInclude Include="..\public\DeviceOptions.h" />
     <ClInclude Include="..\public\Engine_Colors.h" />
-    <ClInclude Include="..\public\Engine_ShaderStruct.h" />
+    <ClInclude Include="..\public\Engine_InputLayout.h" />
     <ClInclude Include="..\public\Entity.h" />
     <ClInclude Include="..\public\EntityHandles.h" />
     <ClInclude Include="..\public\EntityMgr.h" />
@@ -277,6 +329,8 @@
     <ClInclude Include="..\public\RenderScene.h" />
     <ClInclude Include="..\public\Shader.h" />
     <ClInclude Include="..\public\Singleton.h" />
+    <ClInclude Include="..\public\SkyboxData.h" />
+    <ClInclude Include="..\public\SkyboxSystem.h" />
     <ClInclude Include="..\public\SocketData.h" />
     <ClInclude Include="..\public\SocketSystem.h" />
     <ClInclude Include="..\public\SystemRegistry.h" />
@@ -289,23 +343,41 @@
     <ClInclude Include="..\public\TransformData.h" />
     <ClInclude Include="..\public\InputLayoutBuilder.h" />
     <ClInclude Include="..\public\TransformSystem.h" />
+    <ClInclude Include="..\public\UIData.h" />
+    <ClInclude Include="..\public\UISystem.h" />
     <ClInclude Include="..\public\Utility.h" />
     <ClInclude Include="..\public\WorldInstanceData.h" />
     <ClInclude Include="..\public\WorldSerializer.h" />
+    <ClInclude Include="..\public\FacingForceData.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\private\ActionAnimRegistry.cpp" />
     <ClCompile Include="..\private\AnimatorSystem.cpp" />
+    <ClCompile Include="..\private\AnimDataSystem.cpp" />
     <ClCompile Include="..\private\AssetSystem.cpp" />
+    <ClCompile Include="..\private\BattleControllerSystem.cpp" />
+    <ClCompile Include="..\private\BattleEventBus.cpp" />
+    <ClCompile Include="..\private\BattleExecutionSystem.cpp" />
+    <ClCompile Include="..\private\BattleIntroSystem.cpp" />
+    <ClCompile Include="..\private\BattleOrchestraSystem.cpp" />
+    <ClCompile Include="..\private\BattleSessionSystem.cpp" />
+    <ClCompile Include="..\private\BattleTimelineSystem.cpp" />
     <ClCompile Include="..\private\BinaryUtil.cpp" />
     <ClCompile Include="..\private\Bone.cpp" />
     <ClCompile Include="..\private\CameraSystem.cpp" />
     <ClCompile Include="..\private\CBuffer.cpp" />
+    <ClCompile Include="..\private\CharacterDataSystem.cpp" />
     <ClCompile Include="..\private\CollisionSystem.cpp" />
     <ClCompile Include="..\private\Device.cpp" />
     <ClCompile Include="..\private\EntityMgr.cpp" />
     <ClCompile Include="..\private\EntitySpawner.cpp" />
     <ClCompile Include="..\private\FaceSystem.cpp" />
+    <ClCompile Include="..\private\FacingBlockService.cpp" />
+    <ClCompile Include="..\private\FacingForceService.cpp" />
+    <ClCompile Include="..\private\FacingSystem.cpp" />
+    <ClCompile Include="..\private\FieldAnimSystem.cpp" />
+    <ClCompile Include="..\private\FieldOrchestraSystem.cpp" />
     <ClCompile Include="..\private\FpsPanel.cpp" />
     <ClCompile Include="..\private\FreeCamSystem.cpp" />
     <ClCompile Include="..\private\GameInstance.cpp" />
@@ -313,6 +385,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\private\GameModeDirectorSystem.cpp" />
     <ClCompile Include="..\private\GpuUtil.cpp" />
     <ClCompile Include="..\private\GridSystem.cpp" />
     <ClCompile Include="..\private\GuiMgr.cpp" />
@@ -361,17 +434,29 @@
     </ClCompile>
     <ClCompile Include="..\private\InputLayoutBuilder.cpp" />
     <ClCompile Include="..\private\InputMgr.cpp" />
+    <ClCompile Include="..\private\InputGate.cpp" />
+    <ClCompile Include="..\private\InputService.cpp" />
     <ClCompile Include="..\private\InspectorPanel.cpp" />
+    <ClCompile Include="..\private\IntentCollector.cpp" />
+    <ClCompile Include="..\private\IntentMerger.cpp" />
     <ClCompile Include="..\private\JsonUtil.cpp" />
+    <ClCompile Include="..\private\JumpSystem.cpp" />
     <ClCompile Include="..\private\LayerSystem.cpp" />
     <ClCompile Include="..\private\Level.cpp" />
     <ClCompile Include="..\private\LevelMgr.cpp" />
     <ClCompile Include="..\private\LightSystem.cpp" />
     <ClCompile Include="..\private\Material.cpp" />
     <ClCompile Include="..\private\Mesh.cpp" />
+    <ClCompile Include="..\private\MeshColliderSystem.cpp" />
     <ClCompile Include="..\private\ModelSystem.cpp" />
     <ClCompile Include="..\private\MouthSystem.cpp" />
+    <ClCompile Include="..\private\MoveIntentSystem.cpp" />
+    <ClCompile Include="..\private\MoveProfileSystem.cpp" />
+    <ClCompile Include="..\private\MoveStateSystem.cpp" />
+    <ClCompile Include="..\private\NavMeshSystem.cpp" />
+    <ClCompile Include="..\private\OrbitCamSystem.cpp" />
     <ClCompile Include="..\private\PickingSystem.cpp" />
+    <ClCompile Include="..\private\FieldControllerSystem.cpp" />
     <ClCompile Include="..\private\RenderSystem.cpp" />
     <ClCompile Include="..\private\SelectionSystem.cpp" />
     <ClCompile Include="..\private\Skeleton.cpp" />
@@ -379,12 +464,14 @@
     <ClCompile Include="..\private\PathMgr.cpp" />
     <ClCompile Include="..\private\Renderer.cpp" />
     <ClCompile Include="..\private\Shader.cpp" />
+    <ClCompile Include="..\private\SkyboxSystem.cpp" />
     <ClCompile Include="..\private\SocketSystem.cpp" />
     <ClCompile Include="..\private\TagSystem.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />
     <ClCompile Include="..\private\TimeMgr.cpp" />
     <ClCompile Include="..\private\Timer.cpp" />
     <ClCompile Include="..\private\TransformSystem.cpp" />
+    <ClCompile Include="..\private\UISystem.cpp" />
     <ClCompile Include="..\private\Utility.cpp" />
     <ClCompile Include="..\private\WorldSerializer.cpp" />
   </ItemGroup>
@@ -401,6 +488,38 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PC_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_DS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Domain</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Domain</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Domain</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">DS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_HS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Hull</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Hull</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">HS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">HS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_VS_TS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -465,6 +584,22 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUV_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Skybox_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Skybox_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

@@ -5,7 +5,7 @@ NS_BEGIN(Client)
 class MainApp final
 {
 public:
-	MainApp() :game(GameInstance::GetInstance()) {}
+	MainApp() = default;
 
 public:
 	static unique_ptr<MainApp> Create();
@@ -15,10 +15,7 @@ public:
 	HRESULT Render();
 
 private:
-	void StartLevel(LEVEL startID);
-
-private:
-	GameInstance& game;
+	GameInstance& game = GameInstance::GetInstance();
 
 	ID3D11Device* device{};
 	ID3D11DeviceContext* context{};

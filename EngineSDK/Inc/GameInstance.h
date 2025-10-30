@@ -6,6 +6,7 @@ class Device;
 class LevelMgr;
 class TimeMgr;
 class Renderer;
+class AssetSystem;
 struct RenderScene;
 
 class ENGINE_DLL GameInstance final : public Singleton<GameInstance>
@@ -85,39 +86,72 @@ public:
 	EntityMgr&         GetEntityMgr()         { return entityMgr; }
 	AssetSystem&       GetAssetSystem()       { return assetSys; }
 	const AssetSystem& GetAssetSystem() const { return assetSys; }
+	InputService&      GetInputService()      { return inputService; }
 
 private:
 	static bool inited;
 
 	unique_ptr<Device>      device{};
 	unique_ptr<TimeMgr>     timeMgr{};
-	unique_ptr<InputMgr>    inputMgr{};
+	unique_ptr<InputMgr>    input{};
 	unique_ptr<LevelMgr>    levelMgr{};
 	unique_ptr<Renderer>    renderer{};
 	unique_ptr<GuiMgr>      guiMgr{};
 	unique_ptr<RenderScene> renderScene{};
 
 	// -------------------------------
-	EntityMgr       entityMgr;
-	SystemRegistry  registry{};
-	TransformSystem tfSys;
-	CameraSystem    camSys;
-	LightSystem     lightSys;
-	FreeCamSystem   freeCamSys;
-	AnimatorSystem  animatorSys;
-	FaceSystem      faceSys;
-	MouthSystem     mouthSys;
-	SocketSystem    socketSys;
-	ModelSystem     modelSys;
-	LayerSystem     layerSys;
-	TagSystem       tagSys;
-	GridSystem      gridSys;
-	PickingSystem   pickingSys;
-	SelectionSystem selectionSys;
-	CollisionSystem collisionSys;
+	EntityMgr          entityMgr;
+	SystemRegistry     registry;
+	TransformSystem    tfSys;
+	CameraSystem       camSys;
+	LightSystem        lightSys;
+	FreeCamSystem      freeCamSys;
+	AnimatorSystem     animatorSys;
+	FaceSystem         faceSys;
+	MouthSystem        mouthSys;
+	SocketSystem       socketSys;
+	ModelSystem        modelSys;
+	LayerSystem        layerSys;
+	TagSystem          tagSys;
+	GridSystem         gridSys;
+	PickingSystem      pickingSys;
+	SelectionSystem    selectionSys;
+	CollisionSystem    collisionSys;
+	MeshColliderSystem meshColliderSys;
+	SkyboxSystem       skySys;
+	OrbitCamSystem     orbitCamSys;
+
+	RenderSystem      renderSys;
+	AssetSystem       assetSys;
+
+	// MoveSys
+	MoveStateSystem   moveStateSys;
+	MoveIntentSystem  moveIntentSys;
+	MoveProfileSystem moveProfileSys;
+	JumpSystem        jumpSys;
+
+	// Input
+	InputService        inputService;
+	CharacterDataSystem charaDataSys;
 	
-	RenderSystem    renderSys;
-	AssetSystem     assetSys;
+	// AnimSys
+	FacingSystem       facingSys;
+	FacingBlockService faceBlockSrv;
+	FacingForceService faceForceSrv;
+	AnimDataSystem     animDataSys;
+	ActionAnimRegistry animRegistry;
+
+	// Field
+	FieldAnimSystem       fieldAnimSys;
+	FieldControllerSystem fieldCtrlSys;
+	FieldOrchestraSystem  fieldSys;
+
+	// Battle
+	BattleOrchestraSystem  battleSys;
+	BattleControllerSystem battleCtrlSys;
+	BattleIntroSystem      battleIntroSys;
+	BattleSessionSystem    battleSessionSys;
+	BattleTimelineSystem   battleTimelineSys;
 };
 
 NS_END

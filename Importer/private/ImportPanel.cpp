@@ -7,9 +7,12 @@
 
 constexpr wchar_t worldFilter[] = L"World Files (*.dat)\0*.dat\0All Files (*.*)\0*.*\0";
 
-// -fbxmultitake : Animation Channel º°·Î »Ì°Ô 
+// -fbxmultitake -fbxascii -notex
 void ImportPanel::Draw()
 {
+	auto& pickingSys = registry.Get<PickingSystem>();
+	auto& tfSys      = registry.Get<TransformSystem>();
+
 #ifdef USE_IMGUI
 	if (ImGui::Button("Import Model", ImVec2(-1, 0)))
 	{
@@ -31,36 +34,47 @@ void ImportPanel::Draw()
 			}
 		}
 	}
-
+// --------------------------------------------------------------------------------------
 	ImGui::Separator();
 	ImGui::TextUnformatted("Batch Import (FBX -> .model)");
 
-	static bool overwriteExisting = false;
 	static bool useRecursive = true;
-
-	ImGui::Checkbox("Overwrite Existing", &overwriteExisting);
-	ImGui::SameLine();
 	ImGui::Checkbox("Recursive", &useRecursive);
 
-	if (ImGui::Button("Batch Import from ../bin/Resources/Models/Central/", ImVec2(-1, 0)))
+	filesystem::path batchRootFolder = filesystem::absolute(
+		filesystem::path("..\\bin\\Resources\\Models\\Central\\"));
+
+	if (ImGui::Button("Import New Only (Skip Existing)", ImVec2(-1, 0)))
+		ImportAll(batchRootFolder, OverWritePolicy::SkipExisting, useRecursive);
+
+	if (ImGui::Button("Reimport All (Overwrite Existing)", ImVec2(-1, 0)))
+		ImGui::OpenPopup("Confirm Reimport All");
+
+	if (ImGui::BeginPopupModal("Confirm Reimport All", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		filesystem::path rootFolder = filesystem::path("..\\bin\\Resources\\Models\\Central\\");
-		rootFolder = filesystem::absolute(rootFolder);
-
-		ImportAll(rootFolder, overwriteExisting, useRecursive);
+		ImGui::TextWrapped("This will overwrite existing .model files under:\n%s\n\nProceed?",
+			batchRootFolder.string().c_str());
+		ImGui::Separator();
+		if (ImGui::Button("Yes, Overwrite All", ImVec2(180, 0)))
+		{
+			ImportAll(batchRootFolder, OverWritePolicy::OverwriteAll, useRecursive);
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
 	}
-
+	// ------------------- NavMesh -------------------------------------------------------
+	
+	// ----------------------------------------------------------------------------------
 	ImGui::Separator();
 	ImGui::TextUnformatted("World I/O");
 	ImGui::Checkbox("Clear before Load", &clearBeforeLoad);
 
-	if (ImGui::Button("Save"))
-		Save();
-
+	if (ImGui::Button("Save")) Save();
 	ImGui::SameLine();
-
-	if (ImGui::Button("Load"))
-		Load(clearBeforeLoad);
+	if (ImGui::Button("Load")) Load(clearBeforeLoad);
 
 	if (!statusMsg.empty())
 	{
@@ -91,9 +105,8 @@ void ImportPanel::Draw()
 	if (!wantUI && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 	{
 		D3D11_VIEWPORT vp = game.GetViewport();
-	
 		const _float2 screenPos = { io.MousePos.x, io.MousePos.y };
-	
+
 		auto& camSys = registry.Get<CameraSystem>();
 		Handle cam = camSys.GetMainCamHandle();
 		if (cam.IsValid())
@@ -103,11 +116,10 @@ void ImportPanel::Draw()
 			request.screenpos = screenPos;
 			request.viewport = vp;
 			request.cam = cam;
-			request.layerMask = LayerUtil::LayerBit(LAYER::MAPOBJ);
-	
+			request.layerMask = LayerUtil::LayerBit(LAYER::TERRAIN);
+
 			PickingHit hit{};
-			auto& pickingSys = registry.Get<PickingSystem>();
-			if (pickingSys.PickFromScreen(request, hit) && hit.hit)
+			if (pickingSys.Pick(request, hit) && hit.hit)
 			{
 				if (selected)
 					*selected = hit.entity;
@@ -134,13 +146,12 @@ void ImportPanel::RefreshModels()
 #endif
 }
 
-
 void ImportPanel::SpawnEntity(const filesystem::path& modelPath)
 {
 	const wstring& logicalKey = Utility::MakeModelKey(modelPath);
 	assets.RegisterModel(logicalKey, { modelPath.wstring(), true });
 
-	EntitySpawner spawner{ registry, entities };
+	EntitySpawner spawner{ registry, entities, assets };
 
 	const size_t spawnedCount = previewEntities.size();
 	const int gridX = static_cast<int>(spawnedCount % 10);
@@ -152,8 +163,10 @@ void ImportPanel::SpawnEntity(const filesystem::path& modelPath)
 		.WithTf(TransformDesc{ .pos = spawnPos })
 		.WithLayer(LayerUtil::LayerBit(LAYER::MAPOBJ))
 		.WithModel(logicalKey)
-		.WithPickingFromModel()
 		.WithColliderFromModel(ColliderType::AABB)
+		.WithMeshCollider()
+		.WithPickable()
+		.WithSelectable()
 		.Build();
 
 	previewEntities.push_back(handles.entity);
@@ -244,7 +257,7 @@ bool ImportPanel::IsFBXFile(const filesystem::path& filePath)
 	return (ext == L".fbx");
 }
 
-void ImportPanel::ImportAll(const filesystem::path& rootFolder, bool overwriteExisting, bool useRecursive)
+void ImportPanel::ImportAll(const filesystem::path& rootFolder, OverWritePolicy overWritePolicy, bool useRecursive)
 {
 	statusMsg.clear();
 
@@ -263,11 +276,13 @@ void ImportPanel::ImportAll(const filesystem::path& rootFolder, bool overwriteEx
 		{
 			++totalFoundCount;
 
-			filesystem::path outPath = fbxPath;
-			outPath.replace_extension(L".model");
+			filesystem::path outputModelPath = fbxPath;
+			outputModelPath.replace_extension(L".model");
 
-			const bool modelExists = filesystem::exists(outPath);
-			if (modelExists && !overwriteExisting)
+			const bool modelAlreadyExists = filesystem::exists(outputModelPath);
+			const bool shouldSkip = (overWritePolicy == OverWritePolicy::SkipExisting) && modelAlreadyExists;
+
+			if (shouldSkip)
 			{
 				++skippedCount;
 				return;
@@ -282,7 +297,7 @@ void ImportPanel::ImportAll(const filesystem::path& rootFolder, bool overwriteEx
 			}
 
 			ModelExporter exporter;
-			if (exporter.Export(*importedModel, outPath))
+			if (exporter.Export(*importedModel, outputModelPath))
 				++convertedCount;
 			else
 				++failedCount;
@@ -296,7 +311,18 @@ void ImportPanel::ImportAll(const filesystem::path& rootFolder, bool overwriteEx
 				ProcessOneFbx(entry.path());
 		}
 	}
+	else
+	{
+		for (const auto& entry : filesystem::directory_iterator(rootFolder))
+		{
+			if (entry.is_regular_file() && IsFBXFile(entry.path()))
+				ProcessOneFbx(entry.path());
+		}
+	}
 
 	RefreshModels();
-	statusMsg = "Batch Import Finished.  Found: " + to_string(totalFoundCount) + ", Converted: " + to_string(convertedCount) + ", Skipped: " + to_string(skippedCount) + ", Failed: " + to_string(failedCount);
+	statusMsg = "Batch Import Finished.  Found: " + to_string(totalFoundCount)
+		+ ", Converted: " + to_string(convertedCount)
+		+ ", Skipped: " + to_string(skippedCount)
+		+ ", Failed: " + to_string(failedCount);
 }

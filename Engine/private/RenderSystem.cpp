@@ -1,5 +1,4 @@
 #include "Enginepch.h"
-#include "RenderSystem.h"
 
 static inline BoundingBox TransformAABB(const BoundingBox& local, const _float4x4& world)
 {
@@ -17,20 +16,15 @@ static inline _uint GetStableId(const T* ptr, unordered_map<const T*, _uint>& ma
 	map.emplace(ptr, id);
 	return id;
 }
-
 // ---------------------------------------------------------------------------------------------
-
 bool RenderSystem::FrustumCulling(const BoundingBox& worldAABB, const CameraProxy& cam) const
 {
-	// 1. Proj 으로 view-space frustum 생성
 	BoundingFrustum frustumViewSpace;
 	BoundingFrustum::CreateFromMatrix(frustumViewSpace, XMLoadFloat4x4(&cam.proj));
 
-	// 2. Frustum을 월드 공간으로 변환
 	BoundingFrustum frustumWorldSpace;
 	frustumViewSpace.Transform(frustumWorldSpace, XMLoadFloat4x4(&cam.invView));
 
-	// 3. 월드 AABB와 월드 Frustum 교차 판정
 	return frustumWorldSpace.Contains(worldAABB) != ContainmentType::DISJOINT;
 }
 
@@ -48,7 +42,6 @@ float RenderSystem::CalcCamDist(const _float4x4& world, const CameraProxy& cam) 
 void RenderSystem::BuildScene(RenderScene& out)
 {
 	out.Clear();
-
 	// 1. Camera SnapShot
 	{
 		auto& camSys = registry.Get<CameraSystem>();
@@ -57,7 +50,6 @@ void RenderSystem::BuildScene(RenderScene& out)
 		camSys.ExtractCameraProxy(mainCam, cam);
 		out.cam = cam;
 	}
-
 	// 2. Light SnapShot
 	{
 		auto& lightSys = registry.Get<LightSystem>();
@@ -65,7 +57,11 @@ void RenderSystem::BuildScene(RenderScene& out)
 		lightSys.ExtractLightProxies(lights);
 		out.lights = move(lights);
 	}
-
+	// 2.5 Skybox
+	{
+		auto& skySys = registry.Get<SkyboxSystem>();
+		skySys.ExtractSkyboxProxies(out.skybox);
+	}
 	// 3. ModelParts
 	vector<RenderProxy> proxies;
 	proxies.reserve(1024);
@@ -88,26 +84,29 @@ void RenderSystem::BuildScene(RenderScene& out)
 			// 각 파트 -> RenderProxy
 			for (const auto& part : model.model->GetParts())
 			{
-				if (!part.mesh || !part.material) continue;
-				if (part.mesh->GetUsage() == MESHTYPE::Driver) continue;
+				if (!part.mesh || !part.material || part.mesh->GetUsage() == MESHTYPE::Driver) continue;
 
 				RenderProxy proxy{};
-				proxy.owner    = owner;
-				proxy.mesh     = part.mesh;
-				proxy.material = part.material;
-				proxy.world    = *pWorld;
+				proxy.owner     = owner;
+				proxy.mesh      = part.mesh;
+				proxy.material  = part.material;
+				proxy.world     = *pWorld;
+				proxy.isSkinned = (part.mesh->GetLayoutID() == VertexLayoutID::PNUTanSkin);
 
-				// Skinning BoneMatrices 바인딩 정보
-				if (model.animator.IsValid() && part.mesh->GetMeshKind() == MESH::Skeletal)
+				if (proxy.isSkinned)
 				{
-					if (const auto matrices = animSys.GetFinalMatrices(model.animator))
-					{
-						if (!matrices->empty())
-							proxy.boneMatrices = BoneMatrices{ matrices->data(), (_uint)matrices->size() };
-					}
+					const vector<_float4x4>* finalMatrices{};
+					if (model.animator.IsValid())
+						finalMatrices = animSys.GetFinalMatrices(model.animator);
+
+					if (!finalMatrices || finalMatrices->empty())
+						finalMatrices = &model.model->GetBindPoseMatrices();
+
+					if (finalMatrices || !finalMatrices->empty())
+						proxy.boneMatrices = BoneMatrices{ finalMatrices->data(), static_cast<_uint>(finalMatrices->size()) };
+
 					proxy.skeleton = model.model->GetSkeleton();
 				}
-
 				// BoundingBox
 				BoundingBox worldAABB;
 				if (part.mesh->HasLocalBounds())
@@ -115,19 +114,15 @@ void RenderSystem::BuildScene(RenderScene& out)
 				else
 					worldAABB = BoundingBox({});
 
-				// Frustum Culling
 				if (!FrustumCulling(worldAABB, out.cam)) continue;
 
-				// Sorting
 				proxy.materialId = GetStableId(proxy.material.get(), materialIdMap, materialId);
 				proxy.meshId     = GetStableId(proxy.mesh.get(), meshIdMap, meshId);
 
-				// 투영 정렬용 거리
 				proxy.camDistance = CalcCamDist(proxy.world, out.cam);
 				proxies.emplace_back(move(proxy));
 			}
 		});
-
 	// 4. Select / Highlight
 	{
 		auto& collisionSys = registry.Get<CollisionSystem>();
@@ -135,7 +130,6 @@ void RenderSystem::BuildScene(RenderScene& out)
 		if (out.drawColliders)
 			collisionSys.ExtractColliderProxies(out.colliders);
 	}
-
 	// 5. Queue 분배 + 정렬
 	auto& opaqueQueue = out.queues.opaque;
 	auto& transQueue = out.queues.transparent;

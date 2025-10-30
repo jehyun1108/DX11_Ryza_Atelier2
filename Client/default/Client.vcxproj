@@ -170,7 +170,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Client_Defines.h" />
-    <ClInclude Include="..\public\GamePlay.h" />
+    <ClInclude Include="..\public\Central.h" />
     <ClInclude Include="..\public\Loader.h" />
     <ClInclude Include="..\public\Loading.h" />
     <ClInclude Include="..\public\Logo.h" />
@@ -180,7 +180,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\private\GamePlay.cpp" />
+    <ClCompile Include="..\private\Central.cpp" />
     <ClCompile Include="..\private\Loader.cpp" />
     <ClCompile Include="..\private\Loading.cpp" />
     <ClCompile Include="..\private\Logo.cpp" />

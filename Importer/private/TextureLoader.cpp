@@ -1,6 +1,22 @@
 #include "pch.h"
 #include "TextureLoader.h"
 
+static bool TryGetFirstTexturePath(const aiMaterial* pMaterial,
+    initializer_list<aiTextureType> candidates,
+    aiString& outPath,
+    aiTextureType& outChosen)
+{
+    for (aiTextureType type : candidates)
+    {
+        if (aiReturn_SUCCESS == pMaterial->GetTexture(type, 0, &outPath))
+        {
+            outChosen = type;
+            return true;
+        }
+    }
+    return false;
+}
+
 unique_ptr<MaterialData> TextureLoader::LoadMaterial(const aiMaterial* pMaterial, const aiScene* pScene, const filesystem::path& fbxPath)
 {
     DumpAllMaterials(pMaterial, pScene, fbxPath);
@@ -8,14 +24,37 @@ unique_ptr<MaterialData> TextureLoader::LoadMaterial(const aiMaterial* pMaterial
 	auto material = make_unique<MaterialData>();
 	material->name = pMaterial->GetName().C_Str();
 
-	ProcessTextureType(pMaterial, pScene, aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE, TEXSLOT::ALBEDO, *material, fbxPath, "Albedo");
-	ProcessTextureType(pMaterial, pScene, aiTextureType_NORMALS, aiTextureType_NONE, TEXSLOT::NORMAL, *material, fbxPath, "Normal");
-	ProcessTextureType(pMaterial, pScene, aiTextureType_METALNESS, aiTextureType_NONE, TEXSLOT::METALIC, *material, fbxPath, "Metallic");
-	ProcessTextureType(pMaterial, pScene, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SPECULAR, TEXSLOT::ROUGHNESS, *material, fbxPath, "Roughness");
-	ProcessTextureType(pMaterial, pScene, aiTextureType_EMISSIVE, aiTextureType_NONE, TEXSLOT::EMISSIVE, *material, fbxPath, "Emissive");
-	ProcessTextureType(pMaterial, pScene, aiTextureType_AMBIENT_OCCLUSION, aiTextureType_NONE, TEXSLOT::AO, *material, fbxPath, "AO");
+    // Albedo / BaseColor
+    ProcessTextureType(pMaterial, pScene,
+        { aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE },
+        TEXSLOT::ALBEDO, *material, fbxPath, "Albedo");
 
-	return material;
+    // Normal
+    ProcessTextureType(pMaterial, pScene,
+        { aiTextureType_NORMALS, aiTextureType_NORMAL_CAMERA, aiTextureType_HEIGHT },
+        TEXSLOT::NORMAL, *material, fbxPath, "Normal");
+
+    // Metallic
+    ProcessTextureType(pMaterial, pScene,
+        { aiTextureType_METALNESS, aiTextureType_NONE },
+        TEXSLOT::METALIC, *material, fbxPath, "Metallic");
+
+    // Roughness
+    ProcessTextureType(pMaterial, pScene,
+        { aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SPECULAR },
+        TEXSLOT::ROUGHNESS, *material, fbxPath, "Roughness");
+
+    // Emissive
+    ProcessTextureType(pMaterial, pScene,
+        { aiTextureType_EMISSIVE, aiTextureType_NONE },
+        TEXSLOT::EMISSIVE, *material, fbxPath, "Emissive");
+
+    // AO
+    ProcessTextureType(pMaterial, pScene,
+        { aiTextureType_AMBIENT_OCCLUSION, aiTextureType_NONE },
+        TEXSLOT::AO, *material, fbxPath, "AO");
+
+    return material;
 }
 
 filesystem::path TextureLoader::ExtractAndSaveTexture(const aiTexture* texture, const filesystem::path& fbxPath, const string& materialName, const string& textureType)
@@ -57,36 +96,62 @@ filesystem::path TextureLoader::ExtractAndSaveTexture(const aiTexture* texture, 
     return savePath;
 }
 
-void TextureLoader::ProcessTextureType(const aiMaterial* pMaterial, const aiScene* pScene, aiTextureType assimpType1, aiTextureType assimpType2, TEXSLOT engineSlot, MaterialData& outMaterial, const filesystem::path& fbxPath, const string& strTextureType)
+filesystem::path TextureLoader::ResolveBestAgainstFbxFolder(const filesystem::path& fbxPath, const string& rawPath)
 {
-    aiString path;
-    const bool foundFirst = (aiReturn_SUCCESS == pMaterial->GetTexture(assimpType1, 0, &path));
-    const bool foundSecond = (!foundFirst && assimpType2 != aiTextureType_NONE &&
-        aiReturn_SUCCESS == pMaterial->GetTexture(assimpType2, 0, &path));
+    filesystem::path resolved = TextureLoader::ResolveRelativeToFbx(fbxPath, rawPath);
+    if (Utility::FileExists(resolved)) return resolved;
 
-    if (!foundFirst && !foundSecond)
+    const filesystem::path baseDir = fbxPath.parent_path();
+    const string           fileOnly = filesystem::path(rawPath).filename().string();
+    if (!fileOnly.empty())
     {
-        Utility::Log(L"[Mat:{}] {}: not found (types: {}, {})",
+        filesystem::path sibling = baseDir / fileOnly;
+        if (Utility::FileExists(sibling))
+            return sibling;
+    }
+
+    try
+    {
+        for (auto it = filesystem::directory_iterator(baseDir); it != filesystem::directory_iterator(); ++it)
+        {
+            if (it->is_regular_file() && it->path().filename().string() == fileOnly)
+                return it->path();
+        }
+    }
+    catch (...) {}
+
+    return {}; 
+}
+
+void TextureLoader::ProcessTextureType(const aiMaterial* pMaterial, const aiScene* pScene, initializer_list<aiTextureType> assimpTypes, TEXSLOT engineSlot, MaterialData& outMaterial, const filesystem::path& fbxPath, const string& strTextureType)
+{
+    aiString foundPath;
+    aiTextureType chosenType = aiTextureType_NONE;
+
+    const bool ok = TryGetFirstTexturePath(pMaterial, assimpTypes, foundPath, chosenType);
+    if (!ok)
+    {
+        wstringstream typesW; bool first = true;
+        for (aiTextureType t : assimpTypes) { if (!first) typesW << L", "; typesW << TextureTypeName(t); first = false; }
+        Utility::Log(L"[Mat:{}] {}: not found (candidates: {})",
             Utility::ToWString(outMaterial.name),
             Utility::ToWString(strTextureType),
-            TextureTypeName(assimpType1),
-            TextureTypeName(assimpType2));
+            typesW.str().c_str());
         return;
     }
 
-    const aiTextureType chosenType = foundFirst ? assimpType1 : assimpType2;
     Utility::Log(L"[Mat:{}] {}: found type={}  path={}",
         Utility::ToWString(outMaterial.name),
         Utility::ToWString(strTextureType),
         TextureTypeName(chosenType),
-        Utility::ToWString(path.C_Str()));
+        Utility::ToWString(foundPath.C_Str()));
 
-    if (path.length == 0) return;
+    if (foundPath.length == 0) return;
 
-    if (path.C_Str()[0] == '*')
+    if (foundPath.C_Str()[0] == '*')
     {
         int textureIndex = 0;
-        try { textureIndex = stoi(string(path.C_Str() + 1)); }
+        try { textureIndex = stoi(string(foundPath.C_Str() + 1)); }
         catch (...) {}
 
         if (!pScene || textureIndex < 0 || textureIndex >= (int)pScene->mNumTextures)
@@ -111,14 +176,16 @@ void TextureLoader::ProcessTextureType(const aiMaterial* pMaterial, const aiScen
     }
     else
     {
-        // 외부 경로는 FBX 기준 상대경로로 정규화해 저장
-        filesystem::path resolved = ResolveRelativeToFbx(fbxPath, path.C_Str());
+        // 외부 파일
+        filesystem::path resolved = ResolveBestAgainstFbxFolder(fbxPath, foundPath.C_Str());
         outMaterial.textures[engineSlot] = resolved.wstring();
-        Utility::Log(L"[Mat:{}] {}: resolved external → {}  [{}]",
+
+        Utility::Log(L"[Mat:{}] {}: resolved external(type={}) → {}  [{}]",
             Utility::ToWString(outMaterial.name),
             Utility::ToWString(strTextureType),
+            TextureTypeName(chosenType),
             resolved.c_str(),
-            filesystem::exists(resolved) ? L"FOUND" : L"NOT FOUND");
+            Utility::FileExists(resolved) ? L"FOUND" : L"NOT FOUND");
     }
 }
 

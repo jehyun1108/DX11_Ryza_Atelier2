@@ -10,6 +10,7 @@ enum class KEY
 	NUM0, NUM1, NUM2, NUM3, NUM4, NUM5, NUM6, NUM7, NUM8, NUM9,
 	LSHIFT, RSHIFT, LCTRL, RCTRL,
 	TAB, ESC, LBUTTON, RBUTTON,
+	ENTER,
 	END
 };
 
@@ -55,19 +56,21 @@ namespace Win32
 		for (int i{}; i <= 9; ++i)
 			map[VK_NUMPAD0 + i] = static_cast<KEY>(static_cast<_uint>(KEY::NUM0) + i);
 
-		map[VK_UP]       = KEY::UP;
-		map[VK_DOWN]     = KEY::DOWN;
-		map[VK_LEFT]     = KEY::LEFT;
-		map[VK_RIGHT]    = KEY::RIGHT;
-		map[VK_SPACE]    = KEY::SPACE;
-		map[VK_TAB]      = KEY::TAB;
-		map[VK_ESCAPE]   = KEY::ESC;
-		map[VK_LBUTTON]  = KEY::LBUTTON;
-		map[VK_RBUTTON]  = KEY::RBUTTON;
-		map[VK_LSHIFT]   = KEY::LSHIFT;
-		map[VK_RSHIFT]   = KEY::RSHIFT;
-		map[VK_LCONTROL] = KEY::LCTRL;
-		map[VK_RCONTROL] = KEY::RCTRL;
+		map[VK_UP]        = KEY::UP;
+		map[VK_DOWN]      = KEY::DOWN;
+		map[VK_LEFT]      = KEY::LEFT;
+		map[VK_RIGHT]     = KEY::RIGHT;
+		map[VK_SPACE]     = KEY::SPACE;
+		map[VK_TAB]       = KEY::TAB;
+		map[VK_ESCAPE]    = KEY::ESC;
+		map[VK_LBUTTON]   = KEY::LBUTTON;
+		map[VK_RBUTTON]   = KEY::RBUTTON;
+		map[VK_LSHIFT]    = KEY::LSHIFT;
+		map[VK_RSHIFT]    = KEY::RSHIFT;
+		map[VK_LCONTROL]  = KEY::LCTRL;
+		map[VK_RCONTROL]  = KEY::RCTRL;
+		map[VK_RETURN]    = KEY::ENTER;
+		map[VK_SEPARATOR] = KEY::ENTER;
 
 		return map;
 	}

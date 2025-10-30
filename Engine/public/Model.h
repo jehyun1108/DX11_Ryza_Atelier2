@@ -14,18 +14,19 @@ public:
 	Model();
 	static shared_ptr<Model>            LoadFromFile(const wstring& fullPath);
 
-	Skeleton*                           GetSkeletonRaw()  const { return skeleton.get(); }
-	shared_ptr<Skeleton>                GetSkeleton()     const { return skeleton; }
-	const ClipTable*                    GetClipTable()    const { return &clipTable; }
-	const vector<ModelParts>&           GetParts()        const { return parts; }
-	const vector<shared_ptr<AnimClip>>& GetAnimClips()    const { return animClips; }
-	const vector<shared_ptr<Material>>& GetMaterials()    const { return materials; }
+	Skeleton*                           GetSkeletonRaw()      const { return skeleton.get(); }
+	shared_ptr<Skeleton>                GetSkeleton()         const { return skeleton; }
+	const ClipTable*                    GetClipTable()        const { return &clipTable; }
+	const vector<ModelParts>&           GetParts()            const { return parts; }
+	const vector<shared_ptr<AnimClip>>& GetAnimClips()        const { return animClips; }
+	const vector<shared_ptr<Material>>& GetMaterials()        const { return materials; }
+	const vector<_float4x4>&            GetBindPoseMatrices() const { return bindPoseMatrices; }
 
 	const BoundingBox& GetBoundingBox()  const { return boundingBox; }
 	bool               IsSkeletalModel() const { return skeleton != nullptr; }
 
 	void ResolveMaterials(ShaderCache& shaderCache, TextureCache& textureCache);
-	void SetLogicalKey(wstring key) { logicalKey = move(key); }
+	void SetLogicalKey(wstring key)  { logicalKey = move(key); }
 	const wstring& GetLogicalKey() const { return logicalKey; }
 
 private:
@@ -35,6 +36,8 @@ private:
 	void    ReadSkeletons(ifstream& inFile);
 	void    ReadAnimations(ifstream& inFile);
 
+	void    TryNormalFromDiffuseMap(Material& targetMaterial, const wstring& diffuseFullPath, const wstring& baseKey);
+	void    BuildBindPose(const Skeleton& skeleton, vector<_float4x4>& out);
 	void    FinalSetUp();
 
 private:
@@ -49,8 +52,9 @@ private:
 	shared_ptr<Skeleton> skeleton;
 	vector<shared_ptr<AnimClip>> animClips;
 	vector<shared_ptr<Material>> materials;
+	vector<_float4x4> bindPoseMatrices;
 
-	bool isSkeletalModel = false;
+	bool isSkinned = false;
 
 	ClipTable clipTable;
 };

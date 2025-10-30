@@ -95,6 +95,7 @@ string Utility::ToString(LAYER layer)
 	case LAYER::EFFECT:	  return "Effect";
 	case LAYER::UI:		  return "UI";
 	case LAYER::MAPOBJ:   return "MapObj";
+	case LAYER::SKYBOX:   return "Skybox";
 	default:              return "Unknown_Layer";    
 	}
 }
@@ -461,4 +462,177 @@ _mat Utility::MakeWorldMat(const TransformData& tf)
 	const _mat mRot   = XMMatrixRotationQuaternion(vRot);
 	const _mat mTrans = XMMatrixTranslationFromVector(vPos);
 	return mScale * mRot * mTrans;
+}
+
+_float2 Utility::Clamp2D(_float2 vecXY, float maxLength)
+{
+	const float lenSq = vecXY.x * vecXY.x + vecXY.y * vecXY.y;
+	if (lenSq <= maxLength * maxLength) return vecXY;
+
+	const float len = sqrtf(lenSq);
+	if (len <= 1e-6f) return _float2(0.f, 0.f);
+
+	const float scale = maxLength / len;
+	return _float2{ vecXY.x * scale, vecXY.y * scale };
+}
+
+_float2 Utility::Normalize(_float2 v)
+{
+	const float lengthSq = v.x * v.x + v.y * v.y;
+	if (lengthSq <= 1e-12f) return _float2{ 0.f, 0.f };
+	const float invLen = 1.0f / sqrtf(lengthSq);
+	return _float2{ v.x * invLen, v.y * invLen };
+}
+
+void Utility::WrapToTwoPi(float& radians)
+{
+	static constexpr float twoPi = 6.28318530717958647692f;
+	if (radians > twoPi || radians < 0.f)
+	{
+		radians = fmodf(radians, twoPi);
+		if (radians < 0.f) radians += twoPi;
+	}
+}
+
+float Utility::ExtractYawFromWorld(const _float4x4& mat)
+{
+	_mat M = XMLoadFloat4x4(&mat);
+	_vec forward = M.r[2];
+	const float fx = XMVectorGetX(forward);
+	const float fz = XMVectorGetZ(forward);
+	return atan2f(fx, fz); 
+}
+
+_mat Utility::RemoveScaleKeepRotTrans(_mat M)
+{
+	XMVECTOR S, R, T;
+	if (!XMMatrixDecompose(&S, &R, &T, M)) return M;
+	const XMVECTOR one = XMVectorSet(1.f, 1.f, 1.f, 0.f);
+	return XMMatrixAffineTransformation(one, XMVectorZero(), R, T);
+}
+
+string Utility::StrPathStem(const wstring& wstr)
+{
+	if (wstr.empty()) return {};
+	filesystem::path pathObj(wstr);
+	wstring wStem = pathObj.stem().wstring();
+	return ToString(wStem);
+}
+
+SkyRule Utility::GetSkyRuleByIdx(_uint submeshIdx)
+{
+	switch (submeshIdx)
+	{
+	case 0: // 배경
+	case 1: // 배경
+		return { SkyQueue::Opaque, SkyCull::Back, false, false };
+
+	case 2: // 달
+		return { SkyQueue::Opaque, SkyCull::Back, false, false };
+
+	case 3: // 중앙 띠(운하 같은 판넬) 경계 보이면 AlphaBlend + Cull None 권장
+		return { SkyQueue::Alpha, SkyCull::None, true, false };
+    
+    case 4: // 구름
+    	return { SkyQueue::Alpha, SkyCull::Front, true, false };
+
+	default:
+		return { SkyQueue::Opaque, SkyCull::Front, false, false };
+	}
+}
+
+bool Utility::FileExists(const filesystem::path& candidatePath)
+{
+	error_code ioError;
+	return filesystem::exists(candidatePath, ioError) && filesystem::is_regular_file(candidatePath, ioError);
+}
+
+filesystem::path Utility::MakeNormalMapPath(const filesystem::path& diffuseFullPath)
+{
+	const filesystem::path& parentFolder = diffuseFullPath.parent_path();
+	const wstring extension = diffuseFullPath.extension().wstring();
+
+	const wstring stem = diffuseFullPath.stem().wstring();
+	if (stem.empty()) return {};
+
+	if (!all_of(stem.begin(), stem.end(), [](wchar_t ch) {return ch >= L'0' && ch <= L'9'; })) return {};
+
+	const size_t digitCount = stem.size();
+
+	try
+	{
+		long long numericValue = stoll(stem);
+		numericValue += 1;
+
+		wstringstream formatted;
+		formatted << setw(static_cast<int>(digitCount)) << setfill(L'0') << numericValue;
+		const wstring incrementedStem = formatted.str();
+
+		filesystem::path sibling = parentFolder / (incrementedStem + extension);
+		return sibling;
+	}
+	catch(...)
+	{
+		return {};
+	}
+}
+
+_vec Utility::BuildLookRot(const _vec& forward, const _vec& worldUp)
+{
+	_vec z = XMVector3Normalize(forward);
+	_vec x = XMVector3Normalize(XMVector3Cross(worldUp, z));
+	_vec y = XMVector3Normalize(XMVector3Cross(z, x));
+
+	_mat rot = XMMatrixIdentity();
+	rot.r[0] = x; rot.r[1] = y; rot.r[2] = z;
+	return XMQuaternionRotationMatrix(rot);
+}
+
+float Utility::WrapToPi(float rad)
+{
+	rad = fmodf(rad, XM_2PI);
+
+	while (rad > XM_PI)
+		rad -= XM_2PI;
+
+	while (rad < -XM_PI)
+		rad += XM_2PI;
+
+	return rad;
+}
+
+_uint Utility::ComputeIdxStride(DXGI_FORMAT fmt)
+{
+	switch (fmt)
+	{
+	case DXGI_FORMAT_R16_UINT: return 2;
+	case DXGI_FORMAT_R32_UINT: return 4;
+	default:                   return 0;
+	}
+}
+
+float Utility::Clamp(float v, float lo, float hi)
+{
+	return (v < lo) ? lo : (v > hi ? hi : v);
+}
+
+float Utility::SignedAngRad2D(const _float2& a, const _float2& b)
+{
+	const float dot = a.x * b.x + a.y * b.y;
+	const float det = a.x * b.y - a.y * b.x; 
+	return atan2f(det, dot);
+}
+
+_float2 Utility::Rotate2D(const _float2& v, float ang)
+{
+	const float c = cosf(ang);
+	const float s = sinf(ang);
+	return _float2{ v.x * c - v.y * s, v.x * s + v.y * c };
+}
+
+_float2 Utility::Normalize(float x, float z)
+{
+	const float len = sqrtf(x * x + z * z);
+	if (len < 1e-6f) return _float2{ 0.f, -1.f };
+	return _float2{ x / len, z / len };
 }

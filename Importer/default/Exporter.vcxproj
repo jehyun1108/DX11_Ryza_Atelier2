@@ -167,6 +167,8 @@
     <ClInclude Include="..\public\MainApp.h" />
     <ClInclude Include="..\public\ModelExporter.h" />
     <ClInclude Include="..\public\ModelImporter.h" />
+    <ClInclude Include="..\public\NavMeshEditor.h" />
+    <ClInclude Include="..\public\NavMeshEditorData.h" />
     <ClInclude Include="..\public\pch.h" />
     <ClInclude Include="..\public\TextureLoader.h" />
     <ClInclude Include="Exporter.h" />
@@ -179,6 +181,7 @@
     <ClCompile Include="..\private\MainApp.cpp" />
     <ClCompile Include="..\private\ModelExporter.cpp" />
     <ClCompile Include="..\private\ModelImporter.cpp" />
+    <ClCompile Include="..\private\NavMeshEditor.cpp" />
     <ClCompile Include="..\private\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>

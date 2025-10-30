@@ -3,6 +3,10 @@
 NS_BEGIN(Engine)
 
 enum class RENDERTYPE { NONBLEND, BLEND, END };
+enum class RENDERPASS { Opaque, Outline, Transparent, Grid, Debug, END };
+
+template<typename T, size_t N>
+using StateArray = array<T, N>;
 
 // Á¤·Ä
 struct SortKey

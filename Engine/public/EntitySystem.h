@@ -18,14 +18,8 @@ public:
 	T*       Get(Handle handle)        { return pool.Get(handle); }
 	const T* Get(Handle handle)  const { return pool.Get(handle); }
 
-	void DestroySlot(Handle handle)              { pool.DestroySlot(handle); }
+	void Destroy(Handle handle)             { pool.DestroySlot(handle); }
 	void DestroyOwned(EntityID owner)  override  { pool.DestroyOwned(owner); }
-
-	// owner/handle 없어도 되는 전역 업데이트용
-	template<typename Func>
-	void ForEachAlive(Func&& func)       { pool.ForEachAlive(forward<Func>(func));}
-	template<typename Func>
-	void ForEachAlive(Func&& func) const { pool.ForEachAlive(forward<Func>(func));}
 
 	// 모든 살아있는 슬롯 (owner, handle, data) 같이 오너와 정보까지 포함해 순회
 	template<typename Func>

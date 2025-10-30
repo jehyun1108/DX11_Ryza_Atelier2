@@ -8,7 +8,7 @@ public:
 	static unique_ptr<Renderer> Create();
 
 	HRESULT Init();
-	HRESULT Draw(const RenderScene& scene);
+	void Draw(const RenderScene& scene);
 
 	// State
 	void BindSamplers(SHADER stage, TEXSLOT slot, SAMPLER type = SAMPLER::LINEAR);
@@ -17,9 +17,12 @@ public:
 	void SetBlendState(BLENDSTATE type);
 
 private:
-	HRESULT UpdateCBuffers(const RenderScene& scene);
-	HRESULT DrawOpaque(const vector<DrawItem>& items);
-	HRESULT DrawTransparent(const vector<DrawItem>& items);
+	void DrawOpaque(const vector<DrawItem>& items);
+	void DrawTransparent(const vector<DrawItem>& items);
+	void DrawSkyBox(const RenderScene& scene);
+
+	void UpdateCBuffers(const RenderScene& scene);
+	void UpdateBoneCB(const _float4x4* sourceMatrices, _uint sourceCount);
 
 	// debug / grid
 	void DrawAABBLines(const BoundingBox& worldAABB, const _float4& color);
@@ -31,8 +34,13 @@ private:
 	void    DrawSphere(const _float3& center, float radius, const _float4& color, int segments = 48);
 	void    DrawColliders(const vector<ColliderProxy>& list);
 
+	// Skybox
+	void  ApplySkyCull(SkyCull cullMode);
+	void  ApplySkyBlend(bool transparent, bool premultiplied);
+	SkyDrawLists BuildSkyDrawLists(const vector<SkySubmesh>& submeshes);
+
 private:
-	GameInstance& game       = GameInstance::GetInstance();
+	GameInstance&   game     = GameInstance::GetInstance();
 	SystemRegistry& registry = game.GetRegistry();
 	
 	ID3D11Device*        device{};
@@ -49,9 +57,14 @@ private:
 	shared_ptr<CBuffer> lightCBuffer{};
 	shared_ptr<CBuffer> objCBuffer{};
 	shared_ptr<CBuffer> boneCBuffer{};
+	shared_ptr<CBuffer> skyCBuffer{};
+	shared_ptr<CBuffer> tsCBuffer{};
+
+	vector<_float4x4>   identityBones;
 
 	// VertexColor
-	shared_ptr<Shader> gridShader;
+	shared_ptr<Shader>   gridShader;
+	shared_ptr<Shader>   skyShader;
 
 	// Debug
 	ComPtr<ID3D11Buffer> aabbVB{};

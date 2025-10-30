@@ -16,20 +16,8 @@
     <Filter Include="99. Etc\Etc">
       <UniqueIdentifier>{adecc53d-cae9-4bcd-a7f8-7489405b5bc6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="01. Utility">
-      <UniqueIdentifier>{496ca546-8bb0-4eda-844d-6edfa38c590b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02. Resources">
       <UniqueIdentifier>{1f095fe2-6c5d-4e7f-b47f-aeff8a885634}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\00. Levels">
-      <UniqueIdentifier>{6ba4401d-4246-4c9f-88e0-bcba5704ad49}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\00. Levels\Level">
-      <UniqueIdentifier>{614a454a-1a5d-43e3-8047-d8535f3344da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\00. Levels\LevelMgr">
-      <UniqueIdentifier>{a498c635-b36b-4fac-ae7a-016f53ca0522}</UniqueIdentifier>
     </Filter>
     <Filter Include="00. Engine">
       <UniqueIdentifier>{a9b24c0d-4604-435d-a801-4c82cec4d142}</UniqueIdentifier>
@@ -85,9 +73,6 @@
     <Filter Include="00. Engine\04. ImGui\GuiMgr">
       <UniqueIdentifier>{4388f84d-e79c-4304-819f-3b0608024644}</UniqueIdentifier>
     </Filter>
-    <Filter Include="02. Resources\99. etc">
-      <UniqueIdentifier>{2c0fd01b-13c5-4d23-854d-cfeb54e19f4b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02. Resources\05. Model">
       <UniqueIdentifier>{9e99a55b-d785-48e6-986b-dbdb3d39116e}</UniqueIdentifier>
     </Filter>
@@ -99,9 +84,6 @@
     </Filter>
     <Filter Include="02. Resources\07. Skeleton">
       <UniqueIdentifier>{a6c0a0a0-100d-4f62-8931-fa9f65dbc0a3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\01. EntityMgr">
-      <UniqueIdentifier>{0934c0ab-fab4-4865-bbda-7c2b08f5a109}</UniqueIdentifier>
     </Filter>
     <Filter Include="03. EntitySystem">
       <UniqueIdentifier>{34bec56e-59d8-4486-9881-061f4941fa68}</UniqueIdentifier>
@@ -145,12 +127,6 @@
     <Filter Include="03. EntitySystem\06. Layer">
       <UniqueIdentifier>{a61a664e-59bc-4674-bf3a-92b433026c5a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="01. Utility\02. EntitySpawner">
-      <UniqueIdentifier>{ee0a9533-c49b-498b-ab59-fc1ce41dd7e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\03. TagSystem">
-      <UniqueIdentifier>{0a356cce-6692-4400-81b2-077ae4f1ac07}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02. Resources\00. Asset">
       <UniqueIdentifier>{04715722-b9d2-4929-8c1d-57c0770df6f0}</UniqueIdentifier>
     </Filter>
@@ -160,23 +136,8 @@
     <Filter Include="03. EntitySystem\07. Grid">
       <UniqueIdentifier>{a33dddd6-d50a-4b2f-94b5-60e331ebaf84}</UniqueIdentifier>
     </Filter>
-    <Filter Include="03. EntitySystem\97. ShaderFiles">
-      <UniqueIdentifier>{2e7b3315-952b-410f-890b-1cb62b68a5eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="03. EntitySystem\97. ShaderFiles\VS">
-      <UniqueIdentifier>{7235c739-6d96-4b23-98c8-7b3767fa7237}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="03. EntitySystem\97. ShaderFiles\PS">
-      <UniqueIdentifier>{0b543659-d9c2-483e-8921-c84aeff4b6b5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="03. EntitySystem\08. Picking">
       <UniqueIdentifier>{67fb9a2e-6039-4cbc-a8de-dd26abfd5040}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\99. Interface">
-      <UniqueIdentifier>{4bb76d0d-40b8-4e0f-9f99-5bd4798c822a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\98. InputLayout">
-      <UniqueIdentifier>{5e05cf96-c0ce-4e1e-b2f3-c544acaadb95}</UniqueIdentifier>
     </Filter>
     <Filter Include="98. Utility\00. Utility">
       <UniqueIdentifier>{278eec6f-e7bf-4dca-a7ef-98e890ded1ca}</UniqueIdentifier>
@@ -217,8 +178,167 @@
     <Filter Include="98. Utility\05. BinaryUtil">
       <UniqueIdentifier>{c902b48b-d56c-4ca6-8a09-564e9efae324}</UniqueIdentifier>
     </Filter>
+    <Filter Include="04. IntentPipeLine">
+      <UniqueIdentifier>{71ab6621-b128-4503-ae17-e2f99f008ad8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\01. InputGate">
+      <UniqueIdentifier>{38a7623d-c0c3-4700-a20f-2e8d984cbb36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\02. IntentCollector">
+      <UniqueIdentifier>{90ca5423-73f2-438d-9257-efe012f3644a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\03. IntentMerger">
+      <UniqueIdentifier>{4ea93eff-4c27-40a9-a558-a8e7407cc6df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\00. InputService">
+      <UniqueIdentifier>{62dd2d84-30a8-4de8-bf19-ddb41d97c47c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. EntitySystem\10. CollisionSystem\00. CollisionSystem">
+      <UniqueIdentifier>{874db5a7-e1fc-4715-9ed5-5cbb72e8d0b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. EntitySystem\10. CollisionSystem\01. MeshColliderSystem">
+      <UniqueIdentifier>{e08f1d4c-918e-4f7c-9461-f164dde8b921}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. EntitySystem\14. SkyboxSystem">
+      <UniqueIdentifier>{6b9e2a75-fe76-4a0e-87cf-e41a95da9f02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.. ShaderFiles">
+      <UniqueIdentifier>{2e7b3315-952b-410f-890b-1cb62b68a5eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. EntitySystem\15. NavMeshSystem">
+      <UniqueIdentifier>{1b92d09a-7a82-423b-a24f-da6881ffd754}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility">
+      <UniqueIdentifier>{496ca546-8bb0-4eda-844d-6edfa38c590b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\00. Levels">
+      <UniqueIdentifier>{6ba4401d-4246-4c9f-88e0-bcba5704ad49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\00. Levels\Level">
+      <UniqueIdentifier>{614a454a-1a5d-43e3-8047-d8535f3344da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\00. Levels\LevelMgr">
+      <UniqueIdentifier>{a498c635-b36b-4fac-ae7a-016f53ca0522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\01. EntityMgr">
+      <UniqueIdentifier>{0934c0ab-fab4-4865-bbda-7c2b08f5a109}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\02. EntitySpawner">
+      <UniqueIdentifier>{ee0a9533-c49b-498b-ab59-fc1ce41dd7e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\03. TagSystem">
+      <UniqueIdentifier>{0a356cce-6692-4400-81b2-077ae4f1ac07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\99. Interface">
+      <UniqueIdentifier>{4bb76d0d-40b8-4e0f-9f99-5bd4798c822a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\98. InputLayout">
+      <UniqueIdentifier>{5e05cf96-c0ce-4e1e-b2f3-c544acaadb95}</UniqueIdentifier>
+    </Filter>
     <Filter Include="01. Utility\04. WorldSerializer">
       <UniqueIdentifier>{c0b8825c-642e-4bf7-8132-4a3bfc309755}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. EntitySystem\03. Camera\02. OribitCamSystem">
+      <UniqueIdentifier>{de359756-9ed2-4b31-a843-5458e3e54cfc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. EntitySystem\16. UISystem">
+      <UniqueIdentifier>{bd45593e-22e5-4114-b488-e3a5519e7936}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.. ShaderFiles\01. HS">
+      <UniqueIdentifier>{d077f3f8-bc8f-4d0a-838b-453675f80368}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.. ShaderFiles\02. DS">
+      <UniqueIdentifier>{7b449bcc-8967-43e1-9505-2717bd7162be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.. ShaderFiles\03. PS">
+      <UniqueIdentifier>{0b543659-d9c2-483e-8921-c84aeff4b6b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.. ShaderFiles\00. VS">
+      <UniqueIdentifier>{7235c739-6d96-4b23-98c8-7b3767fa7237}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle">
+      <UniqueIdentifier>{94fab636-3625-475f-aae3-a9ed57ceba27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\02. BattleControllerSystem">
+      <UniqueIdentifier>{4f7f633b-a7db-449c-9fe0-11eccff3162b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\01. BattleIntroSystem">
+      <UniqueIdentifier>{653b0593-47b4-4d7c-882b-d0af1f6fc34f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\05. MovementSystem">
+      <UniqueIdentifier>{f43c0ca9-ba47-417d-8e85-af27413ecc2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\05. MovementSystem\00. MoveStateSystem">
+      <UniqueIdentifier>{856890af-80d5-446b-ab91-973555141190}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\05. MovementSystem\01. MoveProfileSystem">
+      <UniqueIdentifier>{7356b3a7-4a5a-4414-ba92-e7e5bc44cd83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\05. MovementSystem\02. MoveIntentSystem">
+      <UniqueIdentifier>{5e7ef039-3d72-409f-8d74-0e5f57a84270}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\05. MovementSystem\03. JumpSystem">
+      <UniqueIdentifier>{0be14206-eca4-4577-804a-3821419a9311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\06. FieldAnimSystem">
+      <UniqueIdentifier>{74836bb8-7810-47b8-9c53-3f306b871361}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\07. FacingSystem">
+      <UniqueIdentifier>{a81cbf3c-ceaa-40a9-9b5b-146b6d7e427c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\07. FacingSystem\00. FacingSystem">
+      <UniqueIdentifier>{ea77e1b7-f334-467f-ab15-6005650a8bb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\07. FacingSystem\01. FacingBlockService">
+      <UniqueIdentifier>{00a477cc-a758-4348-800c-f5b7bc75aa3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\07. FacingSystem\02. FacingForceSystem">
+      <UniqueIdentifier>{a543d051-a3d8-42ea-aa3c-3b9b643cf9d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\08. FieldControllerSystem">
+      <UniqueIdentifier>{ac8f7911-9c4a-4ac6-917d-0fb5a41d8281}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\99. AnimDataSystem">
+      <UniqueIdentifier>{45653875-c433-46f0-8b2e-2459674ea6be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\03. BattleSessionSystem">
+      <UniqueIdentifier>{d634bc1d-35f1-4b56-918b-a036c15bb546}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\04. BattleTimelineSystem">
+      <UniqueIdentifier>{aff3fab0-40c2-4033-85a6-625c41aed2b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\06. BattleAIController">
+      <UniqueIdentifier>{da4ed136-b5a3-4dd2-898e-835a6c235e2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\08. BattleUISystem">
+      <UniqueIdentifier>{f6fa5565-438a-489d-9705-41794790079c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\98. ActionAnimRegistry">
+      <UniqueIdentifier>{b5c2c75e-eef8-42fc-bc83-412002a03fd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\05. BattleExecutionSystem">
+      <UniqueIdentifier>{24d05f91-8319-433c-a7c0-acd29b968682}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="0">
+      <UniqueIdentifier>{776c3500-4a56-4e8d-a80d-2a317d480581}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode">
+      <UniqueIdentifier>{d8e92a86-54be-4227-88c6-781c0c51017b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\02. BattleOrchestraSystem">
+      <UniqueIdentifier>{d1b4d781-421a-4aaa-a981-24db6be462f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\01. FieldOrchestraSystem">
+      <UniqueIdentifier>{5fde460a-32fc-43fe-924b-45b8c2ff7478}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\00. GameModeDirectorSystem">
+      <UniqueIdentifier>{c314950c-1af4-4585-8120-e5bc5441a320}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. IntentPipeLine\97. CharacterDataSystem">
+      <UniqueIdentifier>{87486a52-9232-481c-849b-34aaf0d0c05d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\00. BattleEventBus">
+      <UniqueIdentifier>{0b2c4d58-f3f1-48e4-8a3b-76b4675adc12}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -270,7 +390,7 @@
     <ClInclude Include="..\public\CBuffer.h">
       <Filter>02. Resources\04. CBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\Engine_ShaderStruct.h">
+    <ClInclude Include="..\public\Engine_InputLayout.h">
       <Filter>99. Etc\Etc</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Engine_Typedef.h">
@@ -375,9 +495,6 @@
     </ClInclude>
     <ClInclude Include="..\public\FaceSystem.h">
       <Filter>03. EntitySystem\01. Animator\01. FaceSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\ComponentPool.h">
-      <Filter>01. Utility</Filter>
     </ClInclude>
     <ClInclude Include="..\public\SocketData.h">
       <Filter>03. EntitySystem\02. Socket</Filter>
@@ -505,16 +622,7 @@
     <ClInclude Include="..\public\GpuUtil.h">
       <Filter>98. Utility\02. GpuUtil</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\CollisionData.h">
-      <Filter>03. EntitySystem\10. CollisionSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\CollisionSystem.h">
-      <Filter>03. EntitySystem\10. CollisionSystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\RenderSystemData.h">
-      <Filter>03. EntitySystem\99. RenderSystem\00. RenderData</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\RenderData.h">
       <Filter>03. EntitySystem\99. RenderSystem\00. RenderData</Filter>
     </ClInclude>
     <ClInclude Include="..\public\RenderSystem.h">
@@ -543,6 +651,189 @@
     </ClInclude>
     <ClInclude Include="..\public\WorldSerializer.h">
       <Filter>01. Utility\04. WorldSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldControllerSystem.h">
+      <Filter>04. IntentPipeLine\08. FieldControllerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldControllerData.h">
+      <Filter>04. IntentPipeLine\08. FieldControllerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MoveStateData.h">
+      <Filter>04. IntentPipeLine\05. MovementSystem\00. MoveStateSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MoveStateSystem.h">
+      <Filter>04. IntentPipeLine\05. MovementSystem\00. MoveStateSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MoveProfileSystem.h">
+      <Filter>04. IntentPipeLine\05. MovementSystem\01. MoveProfileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MoveIntentSystem.h">
+      <Filter>04. IntentPipeLine\05. MovementSystem\02. MoveIntentSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MoveProfileData.h">
+      <Filter>04. IntentPipeLine\05. MovementSystem\01. MoveProfileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MoveIntentData.h">
+      <Filter>04. IntentPipeLine\05. MovementSystem\02. MoveIntentSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\InputGate.h">
+      <Filter>04. IntentPipeLine\01. InputGate</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\IntentCollector.h">
+      <Filter>04. IntentPipeLine\02. IntentCollector</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\IntentMerger.h">
+      <Filter>04. IntentPipeLine\03. IntentMerger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\InputService.h">
+      <Filter>04. IntentPipeLine\00. InputService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CollisionData.h">
+      <Filter>03. EntitySystem\10. CollisionSystem\00. CollisionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CollisionSystem.h">
+      <Filter>03. EntitySystem\10. CollisionSystem\00. CollisionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MeshColliderData.h">
+      <Filter>03. EntitySystem\10. CollisionSystem\01. MeshColliderSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MeshColliderSystem.h">
+      <Filter>03. EntitySystem\10. CollisionSystem\01. MeshColliderSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CBufferTypes.h">
+      <Filter>02. Resources\04. CBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SkyboxSystem.h">
+      <Filter>03. EntitySystem\14. SkyboxSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SkyboxData.h">
+      <Filter>03. EntitySystem\14. SkyboxSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\NavMeshSystem.h">
+      <Filter>03. EntitySystem\15. NavMeshSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\NavMeshData.h">
+      <Filter>03. EntitySystem\15. NavMeshSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldAnimSystem.h">
+      <Filter>04. IntentPipeLine\06. FieldAnimSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldAnimData.h">
+      <Filter>04. IntentPipeLine\06. FieldAnimSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ComponentPool.h">
+      <Filter>01. Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\InputRouting.h">
+      <Filter>04. IntentPipeLine\00. InputService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\OrbitCamData.h">
+      <Filter>03. EntitySystem\03. Camera\02. OribitCamSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\OrbitCamSystem.h">
+      <Filter>03. EntitySystem\03. Camera\02. OribitCamSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIData.h">
+      <Filter>03. EntitySystem\16. UISystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UISystem.h">
+      <Filter>03. EntitySystem\16. UISystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleControllerData.h">
+      <Filter>05. Battle\02. BattleControllerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleControllerSystem.h">
+      <Filter>05. Battle\02. BattleControllerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\AnimDataSystem.h">
+      <Filter>04. IntentPipeLine\99. AnimDataSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CharaAnimData.h">
+      <Filter>04. IntentPipeLine\99. AnimDataSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleIntroSystem.h">
+      <Filter>05. Battle\01. BattleIntroSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleIntroData.h">
+      <Filter>05. Battle\01. BattleIntroSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\JumpData.h">
+      <Filter>04. IntentPipeLine\05. MovementSystem\03. JumpSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\JumpSystem.h">
+      <Filter>04. IntentPipeLine\05. MovementSystem\03. JumpSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FacingData.h">
+      <Filter>04. IntentPipeLine\07. FacingSystem\00. FacingSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FacingSystem.h">
+      <Filter>04. IntentPipeLine\07. FacingSystem\00. FacingSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FacingBlockService.h">
+      <Filter>04. IntentPipeLine\07. FacingSystem\01. FacingBlockService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FacingForceService.h">
+      <Filter>04. IntentPipeLine\07. FacingSystem\02. FacingForceSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FacingBlockData.h">
+      <Filter>04. IntentPipeLine\07. FacingSystem\01. FacingBlockService</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FacingForceData.h">
+      <Filter>04. IntentPipeLine\07. FacingSystem\02. FacingForceSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleSessionSystem.h">
+      <Filter>05. Battle\03. BattleSessionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleSessionData.h">
+      <Filter>05. Battle\03. BattleSessionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleTimelineData.h">
+      <Filter>05. Battle\04. BattleTimelineSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleTimelineSystem.h">
+      <Filter>05. Battle\04. BattleTimelineSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ActionAnimRegistry.h">
+      <Filter>04. IntentPipeLine\98. ActionAnimRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ActionAnimData.h">
+      <Filter>04. IntentPipeLine\98. ActionAnimRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleExecutionSystem.h">
+      <Filter>05. Battle\05. BattleExecutionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleExecutionData.h">
+      <Filter>05. Battle\05. BattleExecutionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleOrchestraSystem.h">
+      <Filter>06. GameMode\02. BattleOrchestraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldOrchestraSystem.h">
+      <Filter>06. GameMode\01. FieldOrchestraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\IModeOrchestra.h">
+      <Filter>06. GameMode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\GameModeDirectorSystem.h">
+      <Filter>06. GameMode\00. GameModeDirectorSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleOrchestraData.h">
+      <Filter>06. GameMode\02. BattleOrchestraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CharacterDataSystem.h">
+      <Filter>04. IntentPipeLine\97. CharacterDataSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CharacterData.h">
+      <Filter>04. IntentPipeLine\97. CharacterDataSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleEventBusData.h">
+      <Filter>05. Battle\00. BattleEventBus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleEventBus.h">
+      <Filter>05. Battle\00. BattleEventBus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleData.h">
+      <Filter>05. Battle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -702,9 +993,6 @@
     <ClCompile Include="..\private\GpuUtil.cpp">
       <Filter>98. Utility\02. GpuUtil</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\CollisionSystem.cpp">
-      <Filter>03. EntitySystem\10. CollisionSystem</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\RenderSystem.cpp">
       <Filter>03. EntitySystem\99. RenderSystem\01. RenderSystem</Filter>
     </ClCompile>
@@ -720,45 +1008,153 @@
     <ClCompile Include="..\private\WorldSerializer.cpp">
       <Filter>01. Utility\04. WorldSerializer</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\FieldControllerSystem.cpp">
+      <Filter>04. IntentPipeLine\08. FieldControllerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MoveStateSystem.cpp">
+      <Filter>04. IntentPipeLine\05. MovementSystem\00. MoveStateSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MoveProfileSystem.cpp">
+      <Filter>04. IntentPipeLine\05. MovementSystem\01. MoveProfileSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MoveIntentSystem.cpp">
+      <Filter>04. IntentPipeLine\05. MovementSystem\02. MoveIntentSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\InputGate.cpp">
+      <Filter>04. IntentPipeLine\01. InputGate</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\IntentCollector.cpp">
+      <Filter>04. IntentPipeLine\02. IntentCollector</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\IntentMerger.cpp">
+      <Filter>04. IntentPipeLine\03. IntentMerger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\InputService.cpp">
+      <Filter>04. IntentPipeLine\00. InputService</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CollisionSystem.cpp">
+      <Filter>03. EntitySystem\10. CollisionSystem\00. CollisionSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MeshColliderSystem.cpp">
+      <Filter>03. EntitySystem\10. CollisionSystem\01. MeshColliderSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\SkyboxSystem.cpp">
+      <Filter>03. EntitySystem\14. SkyboxSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\NavMeshSystem.cpp">
+      <Filter>03. EntitySystem\15. NavMeshSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FieldAnimSystem.cpp">
+      <Filter>04. IntentPipeLine\06. FieldAnimSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\OrbitCamSystem.cpp">
+      <Filter>03. EntitySystem\03. Camera\02. OribitCamSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UISystem.cpp">
+      <Filter>03. EntitySystem\16. UISystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleControllerSystem.cpp">
+      <Filter>05. Battle\02. BattleControllerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\AnimDataSystem.cpp">
+      <Filter>04. IntentPipeLine\99. AnimDataSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleIntroSystem.cpp">
+      <Filter>05. Battle\01. BattleIntroSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\JumpSystem.cpp">
+      <Filter>04. IntentPipeLine\05. MovementSystem\03. JumpSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FacingSystem.cpp">
+      <Filter>04. IntentPipeLine\07. FacingSystem\00. FacingSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FacingBlockService.cpp">
+      <Filter>04. IntentPipeLine\07. FacingSystem\01. FacingBlockService</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FacingForceService.cpp">
+      <Filter>04. IntentPipeLine\07. FacingSystem\02. FacingForceSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleSessionSystem.cpp">
+      <Filter>05. Battle\03. BattleSessionSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleTimelineSystem.cpp">
+      <Filter>05. Battle\04. BattleTimelineSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ActionAnimRegistry.cpp">
+      <Filter>04. IntentPipeLine\98. ActionAnimRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleExecutionSystem.cpp">
+      <Filter>05. Battle\05. BattleExecutionSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleOrchestraSystem.cpp">
+      <Filter>06. GameMode\02. BattleOrchestraSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FieldOrchestraSystem.cpp">
+      <Filter>06. GameMode\01. FieldOrchestraSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\GameModeDirectorSystem.cpp">
+      <Filter>06. GameMode\00. GameModeDirectorSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CharacterDataSystem.cpp">
+      <Filter>04. IntentPipeLine\97. CharacterDataSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleEventBus.cpp">
+      <Filter>05. Battle\00. BattleEventBus</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\bin\ShaderFiles\PNUTan_VS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\VS</Filter>
+      <Filter>100.. ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_VS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\VS</Filter>
+      <Filter>100.. ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PC_VS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\VS</Filter>
+      <Filter>100.. ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUV_VS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\VS</Filter>
+      <Filter>100.. ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNU_VS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\VS</Filter>
+      <Filter>100.. ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PC_PS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\PS</Filter>
+      <Filter>100.. ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNU_PS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\PS</Filter>
+      <Filter>100.. ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTan_PS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\PS</Filter>
+      <Filter>100.. ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_PS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\PS</Filter>
+      <Filter>100.. ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUV_PS.hlsl">
-      <Filter>03. EntitySystem\97. ShaderFiles\PS</Filter>
+      <Filter>100.. ShaderFiles\03. PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Skybox_VS.hlsl">
+      <Filter>100.. ShaderFiles\00. VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Skybox_PS.hlsl">
+      <Filter>100.. ShaderFiles\03. PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_VS_TS.hlsl">
+      <Filter>100.. ShaderFiles\00. VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_HS.hlsl">
+      <Filter>100.. ShaderFiles\01. HS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_DS.hlsl">
+      <Filter>100.. ShaderFiles\02. DS</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\bin\ShaderFiles\Common.hlsli">
-      <Filter>03. EntitySystem\97. ShaderFiles</Filter>
+      <Filter>100.. ShaderFiles</Filter>
     </Text>
   </ItemGroup>
 </Project>

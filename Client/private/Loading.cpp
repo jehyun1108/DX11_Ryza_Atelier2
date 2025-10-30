@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Loading.h"
-#include "GamePlay.h"
 
 HRESULT Loading::Init()
 {

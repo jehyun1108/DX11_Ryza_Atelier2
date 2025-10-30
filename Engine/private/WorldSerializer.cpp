@@ -239,11 +239,11 @@ EntityID WorldSerializer::SpawnFromDto(const WorldInstanceDto& dto)
 	ModelMeta meta{};
 	meta.fullPath         = fullPath.wstring();
 	meta.resolveMaterials = true;
-
+	
 	assets.RegisterModel(normalizedKey, meta);
 
 	// 3. Spawn
-	EntitySpawner spawner{ registry, entities };
+	EntitySpawner spawner{ registry, entities, assets };
 
 	TransformDesc tfDesc{};
 	tfDesc.pos   = _float3(dto.pos[0], dto.pos[1], dto.pos[2]);
@@ -271,23 +271,22 @@ EntityID WorldSerializer::SpawnFromDto(const WorldInstanceDto& dto)
 			quatZ = 0.f;
 			quatW = 0.f;
 		}
-
 		tfDesc.rot = _float4(quatX, quatY, quatZ, quatW);
 	}
 	
-	{
-		float scaleX = (fabsf(dto.scale[0]) < 1e-6f) ? 1e-6f : dto.scale[0];
-		float scaleY = (fabsf(dto.scale[1]) < 1e-6f) ? 1e-6f : dto.scale[1];
-		float scaleZ = (fabsf(dto.scale[2]) < 1e-6f) ? 1e-6f : dto.scale[2];
-		tfDesc.scale = _float3(scaleX, scaleY, scaleZ);
-	}
+	float scaleX = (fabsf(dto.scale[0]) < 1e-6f) ? 1e-6f : dto.scale[0];
+	float scaleY = (fabsf(dto.scale[1]) < 1e-6f) ? 1e-6f : dto.scale[1];
+	float scaleZ = (fabsf(dto.scale[2]) < 1e-6f) ? 1e-6f : dto.scale[2];
+	tfDesc.scale = _float3(scaleX, scaleY, scaleZ);
 
 	auto handles = spawner.NewEntity()
 		.WithTf(tfDesc)
 		.WithLayer(dto.layerMask)
 		.WithModel(normalizedKey)
-		.WithPickingFromModel()
 		.WithColliderFromModel(ColliderType::AABB)
+		.WithMeshCollider()
+		//.WithPickable()
+		//.WithSelectable()
 		.Build();
 
 	return handles.entity;

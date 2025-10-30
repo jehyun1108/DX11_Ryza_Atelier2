@@ -1,5 +1,10 @@
 #include "Enginepch.h"
 
+Shader::Shader()
+{
+    device = DEVICE;
+}
+
 shared_ptr<Shader> Shader::CreateFromBlobs(const ShaderCreateDesc& desc)
 {
 	auto shader = make_shared<Shader>();
@@ -16,23 +21,36 @@ HRESULT Shader::Init(const ShaderCreateDesc& desc)
     if (stages & SHADER::VS) 
     {
         assert(desc.vsBlob);
-        HR(DEVICE->CreateVertexShader(desc.vsBlob->GetBufferPointer(),desc.vsBlob->GetBufferSize(), nullptr, &vs));
+        HR(device->CreateVertexShader(desc.vsBlob->GetBufferPointer(),desc.vsBlob->GetBufferSize(), nullptr, &vs));
 
         auto elements = desc.layout.Build();
-        HR(DEVICE->CreateInputLayout(elements.data(), (UINT)elements.size(), desc.vsBlob->GetBufferPointer(), desc.vsBlob->GetBufferSize(), &inputLayout));
+        HR(device->CreateInputLayout(elements.data(), (UINT)elements.size(), desc.vsBlob->GetBufferPointer(), desc.vsBlob->GetBufferSize(), &inputLayout));
     }
     if (stages & SHADER::PS)
     {
         assert(desc.psBlob);
-        HR(DEVICE->CreatePixelShader(desc.psBlob->GetBufferPointer(),desc.psBlob->GetBufferSize(), nullptr, &ps));
+        HR(device->CreatePixelShader(desc.psBlob->GetBufferPointer(),desc.psBlob->GetBufferSize(), nullptr, &ps));
+    }
+    if (stages & SHADER::HS)
+    {
+        assert(desc.hsBlob);
+        HR(device->CreateHullShader(desc.hsBlob->GetBufferPointer(), desc.hsBlob->GetBufferSize(), nullptr, &hs));
+    }
+    if (stages & SHADER::DS)
+    {
+        assert(desc.dsBlob);
+        HR(DEVICE->CreateDomainShader(desc.dsBlob->GetBufferPointer(), desc.dsBlob->GetBufferSize(), nullptr, &ds));
     }
     return S_OK;
 }
 
 void Shader::Bind(ID3D11DeviceContext* context)
 {
-    if (inputLayout)         context->IASetInputLayout(inputLayout.Get());
+    if (inputLayout)        
+        context->IASetInputLayout(inputLayout.Get());
 
-    if (stages & SHADER::VS) context->VSSetShader(vs.Get(), nullptr, 0);
-    if (stages & SHADER::PS) context->PSSetShader(ps.Get(), nullptr, 0);
+    context->VSSetShader((stages & SHADER::VS) ? vs.Get() : nullptr, nullptr, 0);
+    context->PSSetShader((stages & SHADER::PS) ? ps.Get() : nullptr, nullptr, 0);
+    context->HSSetShader((stages & SHADER::HS) ? hs.Get() : nullptr, nullptr, 0);
+    context->DSSetShader((stages & SHADER::DS) ? ds.Get() : nullptr, nullptr, 0);
 }

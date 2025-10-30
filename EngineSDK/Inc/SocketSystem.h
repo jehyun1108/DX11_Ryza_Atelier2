@@ -9,9 +9,9 @@ class ENGINE_DLL SocketSystem : public EntitySystem<SocketData>, public IGuiRend
 public:
 	explicit SocketSystem(SystemRegistry& registry) : EntitySystem(registry) {}
 
-	Handle Create(EntityID owner, Handle childTf, Handle parentAnim, const string& boneName,
+	Handle Create(EntityID owner, Handle childTf, Handle parentAnim, Handle parentTf, const string& boneName,
 		const _float3& offsetPos = {}, const _float3& offsetRot = {});
-	Handle Create(EntityID owner, Handle childTf, Handle parentAnim, _uint boneIdx, 
+	Handle Create(EntityID owner, Handle childTf, Handle parentAnim, Handle parentTf, _uint boneIdx, 
 		const _float3& offsetPos = {}, const _float3& offsetRot = {});
 
 	void SetOffsetMat(Handle handle, _fmat mat);

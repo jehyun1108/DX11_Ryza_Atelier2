@@ -3,17 +3,10 @@
 Handle SelectionSystem::Create(EntityID owner, bool selectable, _uint layerMask)
 {
 	Handle handle = CreateComp(owner);
-	if (auto comp = Get(handle))
-	{
-		comp->selectable = selectable;
-		comp->layerMask = layerMask;
-	}
+	auto& comp = *Get(handle);
+	comp.selectable = selectable;
+	comp.layerMask  = layerMask;
 	return handle;
-}
-
-void SelectionSystem::ClearSelection()
-{
-	selected.clear();
 }
 
 void SelectionSystem::SelectOnly(EntityID id)
@@ -82,10 +75,9 @@ void SelectionSystem::UpdateHover()
 
 	// Picking
 	auto pickSys = registry.TryGet<PickingSystem>();
-	if (!pickSys) return;
 
 	PickingHit hit{};
-	if (pickSys->RaycastAll(origin, dir, context.layerMask, hit))
+	if (pickSys->Pick(PickingRequest{ origin, dir, false, {}, {}, {}, context.layerMask }, hit) && hit.hit)
 		hovered = hit.entity;
 }
 
@@ -138,7 +130,6 @@ void SelectionSystem::UpdateDrag(float dt)
 
 	if (!drag.active && context.mouseLeftDown)
 	{
-		// 단일 타겟
 		if (selected.empty())
 		{
 			if (hovered == 0) return;
@@ -156,15 +147,13 @@ void SelectionSystem::UpdateDrag(float dt)
 			}
 		}
 
-		// 평면 고정: 외부에서 켜지지 않았다면 XZ 평면으로 고정
 		if (!context.dragPlane.enabled)
 		{
 			context.dragPlane.enabled = true;
-			context.dragPlane.normal = Utility::Up3();
-			context.dragPlane.point = _float3(0, 0, 0);
+			context.dragPlane.normal  = Utility::Up3();
+			context.dragPlane.point   = _float3(0, 0, 0);
 		}
 		
-		// 시작 히트점 계산 고정된 평면으로
 		_float3 hit{};
 		if (!RayPlaneIntersect(origin, dir, context.dragPlane.point, context.dragPlane.normal, hit))
 		{
@@ -192,7 +181,6 @@ void SelectionSystem::UpdateDrag(float dt)
 		return;
 	}
 
-	// Drag 실행
 	if (drag.active && context.mouseLeftHeld)
 	{
 		if (!context.dragPlane.enabled) return;
@@ -203,7 +191,6 @@ void SelectionSystem::UpdateDrag(float dt)
 
 		_float3 delta = { cur.x - drag.planeHitStart.x, cur.y - drag.planeHitStart.y, cur.z - drag.planeHitStart.z };
 
-		// Snap
 		if (context.snap.enabled)
 		{
 			delta.x = Snap(delta.x, context.snap.stepX, context.snap.origin.x);
@@ -211,7 +198,6 @@ void SelectionSystem::UpdateDrag(float dt)
 			delta.z = Snap(delta.z, context.snap.stepZ, context.snap.origin.z);
 		}
 
-		// 단일 대상
 		for (auto& pair : drag.startPos)
 		{
 			EntityID id = pair.first;
@@ -228,7 +214,6 @@ void SelectionSystem::UpdateDrag(float dt)
 		return;
 	}
 
-	// Drag End
 	if (drag.active && context.mouseLeftUp)
 	{
 		drag = {};
@@ -267,7 +252,7 @@ float SelectionSystem::Snap(float v, float step, float origin)
 void SelectionSystem::RenderGui(EntityID id) 
 {
 #ifdef USE_IMGUI
-	if (ImGui::CollapsingHeader("Selection", ImGuiTreeNodeFlags_DefaultOpen))
+	if (ImGui::CollapsingHeader("Selection"))
 	{
 		ImGui::Text("Hovered: %u", (_uint)hovered);
 		ImGui::Text("Selected Count: %d", (int)selected.size());

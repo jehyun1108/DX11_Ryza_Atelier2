@@ -1,7 +1,5 @@
 #pragma once
 
-#include "MeshUtil.h"
-
 NS_BEGIN(Engine)
 
 class ENGINE_DLL Mesh 
@@ -17,30 +15,33 @@ public:
 	void Draw(ID3D11DeviceContext* context) const;
 
 	// Utility
-	_uint                  GetVtxCount()     const { return vtxCount; }
-	_uint                  GetIdxCount()     const { return idxCount; }
-	_uint                  GetVertexStride() const { return vtxStride; }
-	DXGI_FORMAT            GetIdxFormat()    const { return idxFmt; }
-	D3D_PRIMITIVE_TOPOLOGY GetTopology()     const { return topology; }
-	VertexLayoutID         GetLayoutID()     const { return layoutID; }
+	_uint                  GetVtxCount()      const { return vtxCount; }
+	_uint                  GetIdxCount()      const { return idxCount; }
+	_uint                  GetVertexStride()  const { return vtxStride; }
+	DXGI_FORMAT            GetIdxFormat()     const { return idxFmt; }
+	D3D_PRIMITIVE_TOPOLOGY GetTopology()      const { return topology; }
+	VertexLayoutID         GetLayoutID()      const { return layoutID; }
 
 	MESH                   GetMeshKind()     const { return meshKind; }
 	MESHTYPE               GetUsage()        const { return usage; }
 	PRIMITIVE              GetPrimitive()    const { return primitive; }
 	bool                   IsRenderable()    const { return usage != MESHTYPE::Driver; }
+	const wstring&         GetName()         const { return key; }
 
 	// Bounding
 	bool                   HasLocalBounds()  const { return hasLocalBounds; }
 	const BoundingBox&     GetLocalAABB()    const { return localAABB; }
 	const BoundingSphere&  GetLocalSphere()  const { return localSphere; }
 
+	// CPU 복사본 접근자 (피킹/충돌용)
+	const uint8_t* GetCPUVertexBytes() const { return cpuVB.empty() ? nullptr : cpuVB.data(); }
+	const uint8_t* GetCPUIndexBytes()  const { return cpuIB.empty() ? nullptr : cpuIB.data(); }
+
 private:
-	static _uint ComputeIdxStride(DXGI_FORMAT fmt);
 	HRESULT      CreateVB(ID3D11Device* device, const void* data, _uint stride, _uint count);
 	HRESULT      CreateIB(ID3D11Device* device, const void* data, _uint count, DXGI_FORMAT fmt);
 	HRESULT      BuildPrimitive(const MeshMeta& meta, vector<uint8_t>& outVtx, vector<uint8_t>& outIdx,
 		_uint& outVtxCount, _uint& outIdxCount, _uint& outVtxStride, DXGI_FORMAT& outIdxFmt) const;
-	size_t       GetPosOffset(VertexLayoutID layout);
 
 private:
 	// GPU
@@ -56,6 +57,7 @@ private:
 	VertexLayoutID         layoutID  = VertexLayoutID::Unknown;
 
 	// Type
+	wstring                key{};
 	MESH                   meshKind  = MESH::Static;
 	MESHTYPE               usage     = MESHTYPE::Static;
 	PRIMITIVE              primitive = PRIMITIVE::None;
@@ -64,6 +66,10 @@ private:
 	bool                   hasLocalBounds = false;
 	BoundingBox            localAABB{};
 	BoundingSphere         localSphere{};
+
+	// CPU Bytes
+	vector<uint8_t> cpuVB;
+	vector<uint8_t> cpuIB;
 };
 
 NS_END

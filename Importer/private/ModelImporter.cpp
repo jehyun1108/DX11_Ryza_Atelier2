@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "ModelImporter.h"
-
 #include "TextureLoader.h"
 
 _float4x4 ModelImporter::ConvertAssimpMatrix(const aiMatrix4x4 aiMat)
@@ -16,7 +15,14 @@ _float4x4 ModelImporter::ConvertAssimpMatrix(const aiMatrix4x4 aiMat)
 unique_ptr<ImportedData> ModelImporter::Import(const filesystem::path& fbxPath)
 {
 	 unique_ptr<Assimp::Importer> importer = make_unique<Assimp::Importer>();
-	_uint flag = aiProcess_ConvertToLeftHanded | aiProcessPreset_TargetRealtime_Fast;
+	_uint flag = aiProcess_ConvertToLeftHanded |
+		aiProcess_Triangulate           |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_GenSmoothNormals      |      // 노멀이 없을 때 대비
+		aiProcess_CalcTangentSpace      |      // Tangent/Bitangent 강제 생성
+		aiProcess_ImproveCacheLocality  |
+		aiProcess_LimitBoneWeights      |
+		aiProcess_SortByPType;
 
 	scene = importer->ReadFile(fbxPath.string(), flag);
 
@@ -27,26 +33,12 @@ unique_ptr<ImportedData> ModelImporter::Import(const filesystem::path& fbxPath)
 	}
 
 	auto outData = make_unique<ImportedData>();
+	outData->isSkinned = scene->mNumAnimations > 0;
+
 	ParseMaterials(*outData, fbxPath);
-
-	bool anyMeshSkinned = false;
-	for (_uint i = 0; i < scene->mNumMeshes; ++i)
-	{
-		if (scene->mMeshes[i]->mNumBones > 0)
-		{
-			anyMeshSkinned = true;
-			break;
-		}
-	}
-	outData->hasSkeletonBlock = anyMeshSkinned;
-
-	if (outData->hasSkeletonBlock)
-		ParseSkeletons(*outData);
-
+	if (outData->isSkinned) ParseSkeletons(*outData);
 	ParseMeshes(*outData);
-
-	if (outData->hasSkeletonBlock)
-		ParseAnimations(*outData);
+	if (outData->isSkinned) ParseAnimations(*outData);
 
 	// ------------------------------------------------------------
 	return outData;
@@ -80,7 +72,6 @@ void ModelImporter::ParseSkeletons(ImportedData& outData)
 				outSkeleton.bones[it->second].invBindPose = ConvertAssimpMatrix(bone->mOffsetMatrix);
 		}
 	}
-
 	auto rootIter = find_if(outSkeleton.bones.begin(), outSkeleton.bones.end(), [](const BoneInfo& bone) {return bone.parentIdx == -1; });
 	outSkeleton.rootBoneIdx = (rootIter != outSkeleton.bones.end()) ? outSkeleton.boneNameToIdx[rootIter->boneName] : -1;
 	assert(outSkeleton.rootBoneIdx >= 0 && "Root bone not found");
@@ -122,9 +113,9 @@ void ModelImporter::ParseVerticesPNUTanSkin(const aiMesh* mesh, MeshData& outMes
 	{
 		auto& vertex = outMesh.verticesPNUTanSkin[i];
 
-		if (hasPos)    vertex.pos = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
-		if (hasNormal) vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-		if (hasUV0)    vertex.uv = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+		if (hasPos)    vertex.pos    = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+		if (hasNormal) vertex.normal = { mesh->mNormals[i].x,  mesh->mNormals[i].y, mesh->mNormals[i].z };
+		if (hasUV0)    vertex.uv     = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
 
 		// Tangent.w = sign (handedness)
 		if (hasTangent)
@@ -164,7 +155,6 @@ void ModelImporter::ParseVerticesPNUTan(const aiMesh* mesh, MeshData& outMesh)
 		if (hasNormal) vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
 		if (hasUV0)    vertex.uv     = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
 
-		// Tangent.w = sign (handedness)
 		if (hasTangent)
 		{
 			const aiVector3D& T = mesh->mTangents[i];
@@ -183,8 +173,7 @@ void ModelImporter::ParseMeshes(ImportedData& outData)
 {
 	outData.meshes.reserve(scene->mNumMeshes);
 	SkeletonInfo* pSkeleton = outData.skeleton.get();
-	
-	const _uint rootBoneIdx = (pSkeleton ? pSkeleton->rootBoneIdx : (_uint)-1);
+	const _uint rootBoneIdx = (pSkeleton ? static_cast<_uint>(pSkeleton->rootBoneIdx) : static_cast<_uint>(-1));
 
 	set<_uint> physicsBoneIndices;
 
@@ -197,16 +186,15 @@ void ModelImporter::ParseMeshes(ImportedData& outData)
 		meshData->materialIdx = curMesh->mMaterialIndex;
 		meshData->type        = (meshData->name.contains("driverMesh")) ? MESHTYPE::Driver : MESHTYPE::Animated;
 		
-		const bool isSkinnedMesh = (curMesh->mNumBones > 0);
-		meshData->layoutID       = isSkinnedMesh ? VertexLayoutID::PNUTanSkin : VertexLayoutID::PNUTan;
+		const bool isSkinned = outData.isSkinned;
+		meshData->layoutID   = isSkinned ? VertexLayoutID::PNUTanSkin : VertexLayoutID::PNUTan;
 		
-		if (isSkinnedMesh)
+		if (isSkinned)
 		{
 			assert(pSkeleton && "ParseMeshes - Skinned mesh found but skeleton is null");
 			ParseVerticesPNUTanSkin(curMesh, *meshData);
 
-			vector<vector<pair<_uint, float>>> tempWeights;
-			tempWeights.resize(curMesh->mNumVertices);
+			vector<vector<pair<_uint, float>>> tempWeights(curMesh->mNumVertices);
 			ParseWeights(curMesh, *pSkeleton, tempWeights);
 
 			vector<_uint> nonRootBoneIndicesInMesh;
@@ -283,7 +271,6 @@ void ModelImporter::ParseMeshes(ImportedData& outData)
 			ParseVerticesPNUTan(curMesh, *meshData);
 
 		ParseIndices(curMesh, *meshData);
-
 		outData.meshes.push_back(move(meshData));
 	}
 
@@ -334,19 +321,21 @@ void ModelImporter::ParseIndices(const aiMesh* mesh, MeshData& outMesh)
 
 float ModelImporter::ComputeTangentSign(const aiVector3D& normalAi, const aiVector3D& tangentAi, const aiVector3D& bitangentAi)
 {
-	// N, T, B (Assimp 기준) -> sign = sign( dot(cross(N,T), B))
-	const _float3 normal    = { normalAi.x, normalAi.y, normalAi.z };
-	const _float3 tangent   = { tangentAi.x, tangentAi.y, tangentAi.z };
+	const _float3 normal    = { normalAi.x,    normalAi.y,    normalAi.z    };
+	const _float3 tangent   = { tangentAi.x,   tangentAi.y,   tangentAi.z   };
 	const _float3 biTangent = { bitangentAi.x, bitangentAi.y, bitangentAi.z };
 
-	_vec N = XMLoadFloat3(&normal);
-	_vec T = XMLoadFloat3(&tangent);
-	_vec B = XMLoadFloat3(&biTangent);
+	_vec N = XMVector3Normalize(XMLoadFloat3(&normal));
+	_vec T = XMVector3Normalize(XMLoadFloat3(&tangent));
+	_vec B = XMVector3Normalize(XMLoadFloat3(&biTangent));
 
-	_vec crossNT = XMVector3Cross(N, T);
-	float dotValue;
-	XMStoreFloat(&dotValue, XMVector3Dot(crossNT, B));
+	const float lenN = XMVectorGetX(XMVector3Length(N));
+	const float lenT = XMVectorGetX(XMVector3Length(T));
+	const float lenB = XMVectorGetX(XMVector3Length(B));
+	if (lenN < 1e-8f || lenT < 1e-8f || lenB < 1e-8f) return +1.f;
 
+	const _vec crossNT = XMVector3Cross(N, T);
+	float dotValue = XMVectorGetX(XMVector3Dot(crossNT, B));
 	return (dotValue < 0.f) ? -1.f : +1.f;
 }
 
@@ -362,8 +351,7 @@ void ModelImporter::ParseAnimations(ImportedData& outData)
 		clip->name = anim->mName.C_Str();
 		clip->duration = (float)anim->mDuration;
 		clip->tickPerSec = (float)anim->mTicksPerSecond;
-		if (clip->tickPerSec == 0.f)
-			clip->tickPerSec = 30.f;
+		if (clip->tickPerSec == 0.f) clip->tickPerSec = 30.f;
 
 		for (_uint j = 0; j < anim->mNumChannels; ++j)
 		{
@@ -385,7 +373,6 @@ void ModelImporter::ParseAnimations(ImportedData& outData)
 				key.value = { val.x, val.y, val.z };
 				boneAnim.posKeys.push_back(key);
 			}
-
 			for (_uint k = 0; k < nodeAnim->mNumRotationKeys; ++k)
 			{
 				Keyframe<_float4> key;
@@ -394,7 +381,6 @@ void ModelImporter::ParseAnimations(ImportedData& outData)
 				key.value = { val.x, val.y, val.z, val.w };
 				boneAnim.rotKeys.push_back(key);
 			}
-
 			for (_uint k = 0; k < nodeAnim->mNumScalingKeys; ++k)
 			{
 				Keyframe<_float3> key;
@@ -414,9 +400,7 @@ void ModelImporter::ParseMaterials(ImportedData& outData, const filesystem::path
 	for (_uint i = 0; i < scene->mNumMaterials; ++i)
 	{
 		aiMaterial* aiMtrl = scene->mMaterials[i];
-
 		unique_ptr<MaterialData> materialData = TextureLoader::LoadMaterial(aiMtrl, scene, fbxPath);
-
 		outData.materials.push_back(move(materialData));
 	}
 }

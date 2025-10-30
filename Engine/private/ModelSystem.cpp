@@ -12,18 +12,6 @@ Handle ModelSystem::Create(EntityID owner, Handle transform, const wstring& mode
 	assert(comp.model && "Model resource not found");
 	if (!comp.model) return {};
 
-// ------------- Model scale -> x0.1
-	if (transform.IsValid())
-	{
-		auto& tfSys = registry.Get<TransformSystem>();
-		if (auto* tf = tfSys.Get(transform))
-		{
-			tf->scale.x = 0.1f;
-			tf->scale.y = 0.1f;
-			tf->scale.z = 0.1f;
-		}
-	}
-
 	// -----------------------------------
 	if (comp.model->IsSkeletalModel())
 	{
@@ -43,6 +31,10 @@ Handle ModelSystem::Create(EntityID owner, Handle transform, const wstring& mode
 			comp.animator = animator;
 	}
 	comp.enabled = true;
+
+	auto& mcSys = registry.Get<MeshColliderSystem>();
+	mcSys.Create(owner, transform, *comp.model, 0xFFFFFFFFu, true);
+
 	return handle;
 }
 
@@ -54,6 +46,10 @@ void ModelSystem::SetEnabled(Handle handle, bool on)
 
 void ModelSystem::RenderGui(EntityID id)
 {
+	auto& assets      = GAME.GetAssetSystem();
+	auto& shaderCache = assets.GetShaderCache();
+	auto& texCache    = assets.GetTextureCache();
+
 #ifdef USE_IMGUI
     ForEachOwned(id, [&](Handle handle, ModelData& model)
         {
@@ -73,6 +69,32 @@ void ModelSystem::RenderGui(EntityID id)
 					return;
 				}
 
+				// ---------------------------------------------------------------------------
+				if (ImGui::Button("Apply PNUTanSkin to All Materials"))
+				{
+					for (auto& part : model.model->GetParts())
+					{
+						if (part.material)
+						{
+							part.material->SetShaderKey(L"PNUTanSkin");
+							part.material->Resolve(shaderCache, texCache); // ← 즉시 셰이더 갱신
+						}
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Apply PNUTanSkin_TS to All Materials"))
+				{
+					for (auto& part : model.model->GetParts())
+					{
+						if (part.material)
+						{
+							part.material->SetShaderKey(L"PNUTanSkin_TS");
+							part.material->Resolve(shaderCache, texCache); // ← 즉시 셰이더 갱신
+						}
+					}
+				}
+				ImGui::Separator();
+				// --------------------------------------------------------------------------
 				const bool isSkeletal   = model.model->IsSkeletalModel();
 				const auto& parts       = model.model->GetParts();
 				const BoundingBox& aabb = model.model->GetBoundingBox();

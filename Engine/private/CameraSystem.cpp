@@ -5,6 +5,7 @@ Handle CameraSystem::Create(EntityID owner, Handle transform, float fovY, float 
     Handle handle = CreateComp(owner);
     auto& cam     = *Get(handle);
     cam           = {};
+    cam.owner     = owner;
     cam.transform = transform;
     cam.fovY      = fovY;
     cam.aspect    = aspect;
@@ -22,17 +23,16 @@ Handle CameraSystem::Create(EntityID owner, Handle transform, float fovY, float 
         mainCam = handle;
         cam.isMainCam = true;
     }
-
     return handle;
 }
 
 void CameraSystem::Update(float dt)
 {
     auto& tfSys = registry.Get<TransformSystem>();
-    ForEachAlive([&](_uint, CameraData& cam)
+    ForEachAliveEx([&](Handle handle, EntityID owner, CameraData& cam)
         {
-            UpdateFollowing(cam, tfSys, dt);
-            RebuildMatrices(cam, tfSys);
+            UpdateFollowing(cam, dt);
+            RebuildMatrices(cam);
         });
 }
 
@@ -95,6 +95,22 @@ void CameraSystem::SetRayPolicy(Handle handle, RAYORIGIN policy)
         cam->rayPolicy = policy;
 }
 
+void CameraSystem::SetFollowOffsetSpace(Handle handle, OffsetSpace space)
+{
+    if (auto cam = Get(handle))
+        cam->offsetSpace = space;
+}
+
+void CameraSystem::SetFollowPolicy(Handle handle, FollowPolicy policy, float softDamping)
+{
+    if (auto cam = Get(handle))
+    {
+        cam->followPolicy = policy;
+        cam->softDamping  = softDamping;
+        cam->desiredInit  = false;
+    }
+}
+
 const _float4x4* CameraSystem::TryGetView(Handle handle) const
 {
     return Validate(handle) ? &Get(handle)->view : nullptr;
@@ -127,7 +143,7 @@ _vec CameraSystem::TryGetPos(Handle handle) const
 
 const _float4x4& CameraSystem::GetView(Handle handle) const
 {
-    return  RequiredCam(this, handle, "GetView: invalid camera").view; 
+    return RequiredCam(this, handle, "GetView: invalid camera").view; 
 }
 
 const _float4x4& CameraSystem::GetProj(Handle handle) const
@@ -153,26 +169,6 @@ const _float4x4& CameraSystem::GetInvViewProj(Handle handle) const
 _vec CameraSystem::GetPos(Handle handle) const
 {
     return XMLoadFloat4(&RequiredCam(this, handle, "GetPos: invalid camera").camPos);
-}
-
-float CameraSystem::GetFovY(Handle handle) const
-{
-    return Validate(handle) ? Get(handle)->fovY : 0.f;
-}
-
-float CameraSystem::GetAspect(Handle handle) const
-{
-    return Validate(handle) ? Get(handle)->aspect : 0.f;
-}
-
-float CameraSystem::GetNearZ(Handle handle) const
-{
-    return Validate(handle) ? Get(handle)->nearZ : 0.f;
-}
-
-float CameraSystem::GetFarZ(Handle handle) const
-{
-    return Validate(handle) ? Get(handle)->farZ : 0.f;
 }
 
 void CameraSystem::CreateRayFromScreen(Handle handle, const _float2& screenPos, const D3D11_VIEWPORT& vp, _vec& outRayOrigin, _vec& outRayDir) const
@@ -219,9 +215,10 @@ const CameraData& CameraSystem::RequiredCam(const CameraSystem* self, Handle han
     return *cam;
 }
 
-void CameraSystem::UpdateFollowing(CameraData& cam, TransformSystem& tfSys, float dt) const
+void CameraSystem::UpdateFollowing(CameraData& cam, float dt) const
 {
     if (!cam.targetTf.IsValid()) return;
+    auto& tfSys        = registry.Get<TransformSystem>();
 
     const TransformData* targetTf = tfSys.Get(cam.targetTf);
     TransformData* selfTf         = tfSys.Get(cam.transform);
@@ -229,37 +226,62 @@ void CameraSystem::UpdateFollowing(CameraData& cam, TransformSystem& tfSys, floa
 
     const _vec targetPos = XMLoadFloat3(&targetTf->pos);
 
-    const _vec right = tfSys.GetRight(cam.targetTf);
-    const _vec up = tfSys.GetUp(cam.targetTf);
-    const _vec look = tfSys.GetLook(cam.targetTf);
-
-    const _vec bestPos = targetPos + right * cam.followOffset.x + up * cam.followOffset.y + look * cam.followOffset.z;
+    // 1. Offset 좌표계 선택
+    _vec bestPos{};
+    if (cam.offsetSpace == OffsetSpace::TargetSpace)
+    {
+        const _vec right = tfSys.GetRight(cam.targetTf);
+        const _vec up    = tfSys.GetUp(cam.targetTf);
+        const _vec look  = tfSys.GetLook(cam.targetTf);
+        bestPos = targetPos + right * cam.followOffset.x + up * cam.followOffset.y + look * cam.followOffset.z;
+    }
+    else
+        bestPos = targetPos + XMLoadFloat3(&cam.followOffset);
 
     XMStoreFloat3(&selfTf->pos, bestPos);
 
-    const _vec lookAt = targetPos + XMVectorSet(0.f, 2.f, 0.f, 0.f);
-    _vec worldUp = Utility::Up();
-    _vec z       = XMVector3Normalize(lookAt - bestPos);
-    _vec x       = XMVector3Normalize(XMVector3Cross(worldUp, z));
-
-    if (XMVectorGetX(XMVector3LengthSq(x)) < 1e-12f)
+    // 2. 회전 Policy
+    const _vec worldUp = Utility::Up();
+    if (cam.followPolicy == FollowPolicy::PosOnly)
     {
-        worldUp = Utility::Right();
-        x = XMVector3Normalize(XMVector3Cross(worldUp, z));
+        selfTf->dirty = true;
+        return;
     }
-    const _vec y = XMVector3Normalize(XMVector3Cross(z, x));
 
-    _mat rotMat = XMMatrixIdentity();
-    rotMat.r[0] = x;
-    rotMat.r[1] = y;
-    rotMat.r[2] = z;
+    // Hard/Soft LookAt 의 목표 회전 (타깃의 약간위)
+    const _vec lookAt = targetPos + XMVectorSet(0.f, 2.f, 0.f, 0.f);
+    const _vec forward = XMVector3Normalize(lookAt - bestPos);
+    const _vec desiredQ = Utility::BuildLookRot(forward, worldUp);
 
-    XMStoreFloat4(&selfTf->rot, XMQuaternionRotationMatrix(rotMat));
+    if (cam.followPolicy == FollowPolicy::HardLookAt)
+    {
+        XMStoreFloat4(&selfTf->rot, desiredQ);
+        selfTf->dirty = true;
+        return;
+    }
+
+    // SoftLookAt
+    _vec curQ = XMLoadFloat4(&selfTf->rot);
+    curQ = XMQuaternionNormalize(curQ);
+
+    if (!cam.desiredInit)
+    {
+        XMStoreFloat4(&selfTf->rot, desiredQ);
+        cam.desiredRot = selfTf->rot;
+        cam.desiredInit = true;
+        selfTf->dirty = true;
+        return;
+    }
+    const float lambda = max(0.01f, cam.softDamping); 
+    const float t      = 1.f - expf(-lambda * dt);        
+    const _vec outQ    = XMQuaternionSlerp(curQ, desiredQ, t);
+    XMStoreFloat4(&selfTf->rot, XMQuaternionNormalize(outQ));
     selfTf->dirty = true;
 }
 
-void CameraSystem::RebuildMatrices(CameraData& cam, TransformSystem& tfSys) const
+void CameraSystem::RebuildMatrices(CameraData& cam) const
 {
+    auto& tfSys = registry.Get<TransformSystem>();
     const TransformData* tf = tfSys.Get(cam.transform);
     if (!tf) return;
 

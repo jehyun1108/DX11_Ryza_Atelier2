@@ -10,7 +10,6 @@ public:
 	explicit CameraSystem(SystemRegistry& registry) : EntitySystem(registry) {}
 
 	Handle Create(EntityID owner, Handle transform, float fovY, float aspect, float nearZ, float farZ);
-
 	void Update(float dt);
 
 	void SetPerspective(Handle handle, float fovY, float aspect, float nearZ, float farZ);
@@ -18,6 +17,8 @@ public:
 	void ClearTarget(Handle handle);
 	void SetMainCam(Handle handle, bool isMainCam);
 	void SetRayPolicy(Handle handle, RAYORIGIN policy);
+	void SetFollowOffsetSpace(Handle handle, OffsetSpace space);
+	void SetFollowPolicy(Handle handle, FollowPolicy policy, float softDamping = 10.f);
 
 	Handle GetMainCamHandle() const { return mainCam; }
 
@@ -44,10 +45,10 @@ public:
 	const _float4x4& GetMainInvViewProj() const { return GetInvViewProj(mainCam); }
 	_vec             GetMainPos()         const { return GetPos(mainCam); }
 
-	float GetFovY(Handle handle)   const;
-	float GetAspect(Handle handle) const;
-	float GetNearZ(Handle handle)  const;
-	float GetFarZ(Handle handle)   const;
+	float GetFovY(Handle handle)   const { return Validate(handle) ? Get(handle)->fovY   : 0.f; }
+	float GetAspect(Handle handle) const { return Validate(handle) ? Get(handle)->aspect : 0.f; }
+	float GetNearZ(Handle handle)  const { return Validate(handle) ? Get(handle)->nearZ  : 0.f; }
+	float GetFarZ(Handle handle)   const { return Validate(handle) ? Get(handle)->farZ   : 0.f; }
 
 	void CreateRayFromScreen(Handle handle, const _float2& screenPos, const D3D11_VIEWPORT& vp, _vec& outRayOrigin, _vec& outRayDir) const;
 	void RenderGui(EntityID id) override;
@@ -56,8 +57,8 @@ public:
 private:
 	static const CameraData& RequiredCam(const CameraSystem* self, Handle handle, const char* what);
 
-	void        UpdateFollowing(CameraData& cam, TransformSystem& tfSys, float dt) const;
-	void        RebuildMatrices(CameraData& cam, TransformSystem& tfSys) const;
+	void        UpdateFollowing(CameraData& cam, float dt) const;
+	void        RebuildMatrices(CameraData& cam) const;
 	static void ScreenToNdc(const _float2& screenPos, const D3D11_VIEWPORT& vp, float& ndcX, float& ndcY);
 
 private:

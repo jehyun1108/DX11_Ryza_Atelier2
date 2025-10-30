@@ -16,6 +16,7 @@ HRESULT Mesh::InitFromBuffers(ID3D11Device* device, const MeshMeta& meta,
 	vtxCount  = inVtxCount;
 	vtxStride = inVtxStride;
 	idxCount  = inIdxCount;
+	key       = meta.key;
 
 	// VB / IB
 	HR(CreateVB(device, vtxData, vtxStride, vtxCount));
@@ -28,69 +29,20 @@ HRESULT Mesh::InitFromBuffers(ID3D11Device* device, const MeshMeta& meta,
 		hasLocalBounds = true;
 	}
 
-	{
-		const uint8_t* base    = reinterpret_cast<const uint8_t*>(vtxData);
-		const size_t posOffset = GetPosOffset(layoutID);
+	const uint8_t* base = reinterpret_cast<const uint8_t*>(vtxData);
+	BoundingBox::CreateFromPoints(localAABB, vtxCount, reinterpret_cast<const _float3*>(base), static_cast<size_t>(vtxStride));
 
-		BoundingBox::CreateFromPoints(localAABB, vtxCount, reinterpret_cast<const _float3*>(base + posOffset), static_cast<size_t>(vtxStride));
+	const _float3& extent = localAABB.Extents;
+	const float radius    = sqrtf(extent.x * extent.x + extent.y * extent.y + extent.z * extent.z);
 
-		const _float3& extent = localAABB.Extents;
-		const float radius = sqrtf(extent.x * extent.x + extent.y * extent.y + extent.z * extent.z);
-		localSphere = BoundingSphere(localAABB.Center, radius);
+	localSphere    = BoundingSphere(localAABB.Center, radius);
+	hasLocalBounds = (localSphere.Radius > 0.f);
 
-		hasLocalBounds = (localSphere.Radius > 0.f);
-	}
-
-	return S_OK;
-}
-
-HRESULT Mesh::InitPrimitive(ID3D11Device* device, const MeshMeta& meta)
-{
-	assert(device && meta.meshKind == MESH::Primitive && meta.layout != VertexLayoutID::Unknown);
-
-	meshKind  = MESH::Primitive;
-	usage     = meta.usage;
-	primitive = meta.primitive;
-	layoutID  = meta.layout;
-	topology  = meta.topology;
-
-	if (layoutID != VertexLayoutID::PNUTan) 
-		return E_INVALIDARG;
-
-	vector<uint8_t> vtx, idx;
-	_uint vCount = 0;
-	_uint iCount = 0;
-	_uint stride = 0;
-	DXGI_FORMAT idxFormat = DXGI_FORMAT_R16_UINT;
-
-	HR(BuildPrimitive(meta, vtx, idx, vCount, iCount, stride, idxFormat));
-
-	vtxCount  = vCount;
-	idxCount  = iCount;
-	vtxStride = stride;
-	idxFmt    = idxFormat;
-
-	// Bounding
-	if (localSphere.Radius <= 0.f && meta.localSphere.Radius > 0.f)
-	{
-		localAABB   = meta.localAABB;
-		localSphere = meta.localSphere;
-		hasLocalBounds = true;
-	}
-	else if (localSphere.Radius <= 0.f)
-	{
-		const float radiusX = meta.sizeX * 0.5f;
-		const float radiusY = meta.sizeY * 0.5f;
-		const float radiusZ = meta.sizeZ * 0.5f;
-		localAABB = BoundingBox({}, { radiusX, radiusY, radiusZ });
-		localSphere = BoundingSphere({}, sqrtf(radiusX * radiusX + radiusY * radiusY + radiusZ * radiusZ));
-		hasLocalBounds = true;
-	}
-
-	HR(CreateVB(device, vtx.data(), vtxStride, vtxCount));
-	HR(CreateIB(device, idx.data(), idxCount, idxFmt));
-
-
+	// cpu 복사본 보관
+	cpuVB.assign(reinterpret_cast<const uint8_t*>(vtxData), reinterpret_cast<const uint8_t*>(vtxData) + inVtxStride * inVtxCount);
+	const size_t idxStride = Utility::ComputeIdxStride(idxFmt);
+	cpuIB.assign(reinterpret_cast<const uint8_t*>(idxData), reinterpret_cast<const uint8_t*>(idxData) + idxStride * inIdxCount);
+	
 	return S_OK;
 }
 
@@ -101,24 +53,13 @@ void Mesh::Bind(ID3D11DeviceContext* context) const
 	_uint stride = vtxStride;
 	context->IASetVertexBuffers(0, 1, vb.GetAddressOf(), &stride, &offset);
 	context->IASetIndexBuffer(ib.Get(), idxFmt, 0);
-	context->IASetPrimitiveTopology(topology);
+	//context->IASetPrimitiveTopology(topology);
 }
 
 void Mesh::Draw(ID3D11DeviceContext* context) const
 {
 	assert(idxCount > 0);
 	context->DrawIndexed(idxCount, 0, 0);
-}
-
-_uint Mesh::ComputeIdxStride(DXGI_FORMAT fmt)
-{
-	switch (fmt)
-	{
-	case DXGI_FORMAT_R16_UINT: return 2;
-	case DXGI_FORMAT_R32_UINT: return 4;
-	default:                   return 0;
-	}
-	
 }
 
 HRESULT Mesh::CreateVB(ID3D11Device* device, const void* data, _uint stride, _uint count)
@@ -137,7 +78,7 @@ HRESULT Mesh::CreateVB(ID3D11Device* device, const void* data, _uint stride, _ui
 HRESULT Mesh::CreateIB(ID3D11Device* device, const void* data, _uint count, DXGI_FORMAT fmt)
 {
 	D3D11_BUFFER_DESC desc{};
-	desc.ByteWidth = ComputeIdxStride(fmt) * count;
+	desc.ByteWidth = Utility::ComputeIdxStride(fmt) * count;
 	desc.Usage     = D3D11_USAGE_DEFAULT;
 	desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	
@@ -147,19 +88,52 @@ HRESULT Mesh::CreateIB(ID3D11Device* device, const void* data, _uint count, DXGI
 	return device->CreateBuffer(&desc, &sub, ib.GetAddressOf());
 }
 
-size_t Mesh::GetPosOffset(VertexLayoutID layout)
+HRESULT Mesh::InitPrimitive(ID3D11Device* device, const MeshMeta& meta)
 {
-	switch (layout)
-	{
-	case VertexLayoutID::Unknown:	  return 0;
-	case VertexLayoutID::PUV:		  return 0;
-	case VertexLayoutID::PNU:		  return 0;
-	case VertexLayoutID::PNUTan:	  return 0;
-	case VertexLayoutID::PNUTanSkin:  return 0;
-	default:                          return 0;
-	}
-}
+	assert(device && meta.meshKind == MESH::Primitive && meta.layout != VertexLayoutID::Unknown);
 
+	meshKind = MESH::Primitive;
+	usage = meta.usage;
+	primitive = meta.primitive;
+	layoutID = meta.layout;
+	topology = meta.topology;
+
+	if (layoutID != VertexLayoutID::PNUTan) return E_INVALIDARG;
+
+	vector<uint8_t> vtx, idx;
+	_uint vCount = 0;
+	_uint iCount = 0;
+	_uint stride = 0;
+	DXGI_FORMAT idxFormat = DXGI_FORMAT_R16_UINT;
+
+	HR(BuildPrimitive(meta, vtx, idx, vCount, iCount, stride, idxFormat));
+
+	vtxCount = vCount;
+	idxCount = iCount;
+	vtxStride = stride;
+	idxFmt = idxFormat;
+
+	// Bounding
+	if (localSphere.Radius <= 0.f && meta.localSphere.Radius > 0.f)
+	{
+		localAABB = meta.localAABB;
+		localSphere = meta.localSphere;
+		hasLocalBounds = true;
+	}
+	else if (localSphere.Radius <= 0.f)
+	{
+		const float radiusX = meta.sizeX * 0.5f;
+		const float radiusY = meta.sizeY * 0.5f;
+		const float radiusZ = meta.sizeZ * 0.5f;
+		localAABB = BoundingBox({}, { radiusX, radiusY, radiusZ });
+		localSphere = BoundingSphere({}, sqrtf(radiusX * radiusX + radiusY * radiusY + radiusZ * radiusZ));
+		hasLocalBounds = true;
+	}
+
+	HR(CreateVB(device, vtx.data(), vtxStride, vtxCount));
+	HR(CreateIB(device, idx.data(), idxCount, idxFmt));
+	return S_OK;
+}
 
 HRESULT Mesh::BuildPrimitive(const MeshMeta& meta, vector<uint8_t>& outVtx, vector<uint8_t>& outIdx,
 	_uint& outVtxCount, _uint& outIdxCount, _uint& outVtxStride, DXGI_FORMAT& outIdxFmt) const

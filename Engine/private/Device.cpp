@@ -45,7 +45,7 @@ HRESULT Device::CreateDeviceAndContext()
 {
 	_uint flags = 0;
 #ifdef _DEBUG
-	flags |= D3D11_CREATE_DEVICE_DEBUG;
+	//flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 	static const D3D_FEATURE_LEVEL levels[] = 
@@ -201,12 +201,11 @@ HRESULT Device::ClearDSV()
 
 	context->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 	return S_OK;
-}
+} 
 
 void Device::ApplyFrameLimiter()
 {
-	if (opts.vsyncMode != VSyncMode::Off || opts.frameLimiterHz == 0)
-		return;
+	if (opts.vsyncMode != VSyncMode::Off || opts.frameLimiterHz == 0) return;
 
 	const auto now = high_resolution_clock::now();
 	const double targetMs = 1000.0 / static_cast<double>(opts.frameLimiterHz);
@@ -289,9 +288,9 @@ void Device::ReleaseDevice()
 		ComPtr<ID3D11Debug> debug;
 		if (SUCCEEDED(device.As(&debug)))
 		{
-			OutputDebugStringW(L"--- D3D11 Live Objects ---\r\n");
-			debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-			OutputDebugStringW(L"--- D3D11 Live Objects END ---\r\n");
+		//	OutputDebugStringW(L"--- D3D11 Live Objects ---\r\n");
+		//	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+		//	OutputDebugStringW(L"--- D3D11 Live Objects END ---\r\n");
 		}
 	}
 #endif

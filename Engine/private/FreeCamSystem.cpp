@@ -4,7 +4,6 @@ namespace
 {
     inline float WrapAngleDeg(float a)
     {
-        // [-180, 180) 정규화
         a = fmodf(a, 360.f);
         if (a < -180.f)  a += 360.f;
         if (a >= 180.f)  a -= 360.f;
@@ -21,8 +20,6 @@ Handle FreeCamSystem::Create(EntityID owner, Handle transform, float moveSpeed, 
     freeCam.moveSpeed   = moveSpeed;
     freeCam.sensitivity = sens;
     freeCam.isActive    = true;
-
-    registry.Get<TransformSystem>().SetSpeed(transform, moveSpeed);
     return handle;
 }
 
@@ -35,10 +32,7 @@ void FreeCamSystem::SetActive(Handle handle, bool on)
 void FreeCamSystem::SetSpeed(Handle handle, float speed)
 {
     if (auto cam = Get(handle))
-    {
-        cam->moveSpeed = speed;
-        registry.Get<TransformSystem>().SetSpeed(cam->transform, speed);
-    }
+        cam->moveSpeed = max(0.f, speed);
 }
 
 void FreeCamSystem::SetSensitivity(Handle handle, float sens)
@@ -52,34 +46,41 @@ void FreeCamSystem::Update(float dt)
     auto& tfSys = registry.Get<TransformSystem>();
     GameInstance& input = GameInstance::GetInstance();
 
-    ForEachAlive([&](_uint, FreeCamData& freeCam) 
+    ForEachAliveEx([&](Handle handle, EntityID owner, FreeCamData& cam)
         {
-            if (!freeCam.isActive) return;
-            TransformData* tf = tfSys.Get(freeCam.transform);
-            if (!tf) return;
+            if (!cam.isActive) return;
+            if (!tfSys.Validate(cam.transform)) return;
+           
+            float dx = 0.f, dy = 0.f, dz = 0.f;
+            if (input.KeyPressing(KEY::D)) dx += 1.f;
+            if (input.KeyPressing(KEY::A)) dx -= 1.f;
+            if (input.KeyPressing(KEY::E)) dy += 1.f;
+            if (input.KeyPressing(KEY::Q)) dy -= 1.f;
+            if (input.KeyPressing(KEY::W)) dz += 1.f;
+            if (input.KeyPressing(KEY::S)) dz -= 1.f;
 
-            const float speed = freeCam.moveSpeed;
-            if (input.KeyPressing(KEY::W)) tfSys.Move(freeCam.transform, MOVE::FORWARD, dt);
-            if (input.KeyPressing(KEY::S)) tfSys.Move(freeCam.transform, MOVE::BACK, dt);
-            if (input.KeyPressing(KEY::A)) tfSys.Move(freeCam.transform, MOVE::LEFT, dt);
-            if (input.KeyPressing(KEY::D)) tfSys.Move(freeCam.transform, MOVE::RIGHT, dt);
-            if (input.KeyPressing(KEY::Q)) tfSys.Move(freeCam.transform, MOVE::UP, dt);
-            if (input.KeyPressing(KEY::E)) tfSys.Move(freeCam.transform, MOVE::DOWN, dt);
+            // 대각선 가속 방지
+            const float lenSq = dx * dx + dy * dy + dz * dz;
+            if (lenSq > 1e-12f)
+            {
+                const float invLen = 1.f / sqrtf(lenSq);
+                dx *= invLen; dy *= invLen; dz *= invLen;
 
+                const float scale = cam.moveSpeed * dt;
+                const _float3 dtLocal = { dx * scale, dy * scale, dz * scale };
+                tfSys.AddLocalOffset(cam.transform, dtLocal);
+            }
+
+            // 마우스 회전
             if (input.KeyPressing(KEY::RBUTTON))
             {
-                const _float2 delta = input.GetMouseDelta();
+                const _float2 mouseDt = input.GetMouseDelta();
+                cam.yawDeg = WrapAngleDeg(cam.yawDeg + mouseDt.x * cam.sensitivity);
+                cam.pitchDeg = clamp(cam.pitchDeg + (-mouseDt.y * cam.sensitivity), -89.f, 89.f);
 
-                freeCam.yawDeg   += delta.x * freeCam.sensitivity;
-                freeCam.pitchDeg += -delta.y * freeCam.sensitivity;   
-
-                freeCam.pitchDeg = clamp(freeCam.pitchDeg, -89.0f, 89.0f);
-                freeCam.yawDeg = WrapAngleDeg(freeCam.yawDeg);
-
-                const float yawRad   = XMConvertToRadians(freeCam.yawDeg);
-                const float pitchRad = XMConvertToRadians(freeCam.pitchDeg);
-
-                tfSys.SetRotation(freeCam.transform, yawRad, pitchRad);
+                const float yawRad   = XMConvertToRadians(cam.yawDeg);
+                const float pitchRad = XMConvertToRadians(cam.pitchDeg);
+                tfSys.SetRotation(cam.transform, yawRad, pitchRad);
             }
         });
 }
@@ -98,7 +99,7 @@ void FreeCamSystem::RenderGui(EntityID id)
                     SetActive(handle, active);
 
                 float speed = freeCam.moveSpeed;
-                if (ImGui::DragFloat("Spped", &speed, 0.1f, 0.0f, 10000.0f, "%.3f"))
+                if (ImGui::DragFloat("Speed", &speed, 0.1f, 0.0f, 10000.0f, "%.3f"))
                     SetSpeed(handle, max(0.0f, speed));
 
                 float sens = freeCam.sensitivity;

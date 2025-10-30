@@ -6,6 +6,7 @@ struct ENGINE_DLL SocketData
 {
 	Handle childTf;
 	Handle parentAnim;
+	Handle parentTf;
 	_uint  boneIdx = (_uint)-1;
 
 	_float4x4 offsetMat{};

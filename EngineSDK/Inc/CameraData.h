@@ -2,27 +2,30 @@
 
 NS_BEGIN(Engine)
 enum class RAYORIGIN { CameraPos, NearPlane, END };
+enum class OffsetSpace {TargetSpace, WorldSpace};
+enum class FollowPolicy {HardLookAt, SoftLookAt, PosOnly };
 
 struct ENGINE_DLL CameraData
 {
+	EntityID owner{};
 	Handle transform;
 	Handle targetTf;
-	_float3 followOffset{};
 
-	float fovY   = XM_PIDIV4;
-	float aspect = 1.777778f; // 16 : 9
-	float nearZ  = 0.1f;
-	float farZ = 1000.f;
+	float fovY{}, aspect{}, nearZ{}, farZ{};
+	_float3 followOffset = {};
 
+	OffsetSpace  offsetSpace = OffsetSpace::TargetSpace;  
+	FollowPolicy followPolicy = FollowPolicy::HardLookAt;   
+	float        softDamping = 10.f;
+
+	// 내부 캐시(소프트 회전용)
+	_float4 desiredRot{};  
+	bool    desiredInit = false;
+
+	_float4x4 view{}, proj{}, viewProj{}, invView{}, invViewProj{};
+	_float4   camPos{};
 	bool      isMainCam = false;
 	RAYORIGIN rayPolicy = RAYORIGIN::CameraPos;
-
-	_float4x4 view{};
-	_float4x4 proj{};
-	_float4x4 viewProj{};
-	_float4x4 invView{};
-	_float4x4 invViewProj{};
-	_float4   camPos{};
 };
 
 NS_END

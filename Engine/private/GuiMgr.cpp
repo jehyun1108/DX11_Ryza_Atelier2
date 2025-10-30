@@ -136,7 +136,6 @@ void GuiMgr::Render()
 		ImGui::DockBuilderDockWindow("Inspector", dock_right);
 		ImGui::DockBuilderDockWindow("Importer", dock_bottom);
 		ImGui::DockBuilderDockWindow("MapTool", dock_bottom);
-		ImGui::DockBuilderDockWindow("Level", dock_top_left);
 		ImGui::DockBuilderDockWindow("FPS", dock_top_right);
 
 		// ÅÇ¹Ù ¼û±è(ÇÊ¿äÇÑ °÷¸¸)

@@ -19,6 +19,9 @@ struct ENGINE_DLL EntityHandles
 	Handle grid{};
 	Handle picking{};
 	Handle collision{};
+	Handle skybox{};
+	Handle faceAnim{};
+	Handle orbitCam{};
 
 	explicit operator bool() const { return entity != invalidEntity; }
 };

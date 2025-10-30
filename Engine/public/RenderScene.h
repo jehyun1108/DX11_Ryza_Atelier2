@@ -15,12 +15,16 @@ struct RenderScene
 	bool drawColliders = false;
 	vector<ColliderProxy> colliders;
 
+	// Skybox
+	SkyboxProxy skybox{};
+
 	void Clear()
 	{
 		lights.clear();
 		queues.Clear();
 		drawColliders = false;
 		colliders.clear();
+		skybox = {};
 	}
 };
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CBufferTypes.h"
+
 NS_BEGIN(Engine)
 
 class ENGINE_DLL CBuffer 
@@ -20,6 +22,14 @@ public:
 
 	const void* GetData() const { return cpuData.data(); }
 	const D3D11_BUFFER_DESC& GetDesc() const { return desc; }
+
+	template<typename T>
+	void UpdateAndBind(const T& data, SHADER stage, CBUFFERSLOT slot)
+	{
+		SetData(&data, sizeof(T));
+		Update();
+		Bind(stage, slot);
+	}
 
 private:
 	explicit CBuffer(size_t byteSize) { Resize(byteSize); }

@@ -10,13 +10,13 @@ bool ModelExporter::Export(const ImportedData& data, const filesystem::path& out
         return false;
     }
 
-    const bool hasSkeletonBlock = data.hasSkeletonBlock;
-    WriteData(hasSkeletonBlock);
+    const bool isSkinned = data.isSkinned;
+    WriteData(isSkinned);
 
     WriteMaterials(data.materials);
     WriteMeshes(data.meshes);
 
-    if (hasSkeletonBlock)
+    if (isSkinned)
     {
         WriteSkeleton(*data.skeleton);
         WriteAnimations(data.animations);
@@ -81,15 +81,15 @@ void ModelExporter::WriteMeshes(const vector<unique_ptr<MeshData>>& meshes)
 
         case VertexLayoutID::PNUTanSkin:
         {
-            static_assert(is_trivially_copyable_v<Vertex_Anim>, "Vertex_Anim must be trivally copyable");
+            static_assert(is_trivially_copyable_v<Vertex_PNUTanSkin>, "Vertex_PNUTanSkin must be trivally copyable");
 
-            const _uint vertexStride = static_cast<_uint>(sizeof(Vertex_Anim));
+            const _uint vertexStride = static_cast<_uint>(sizeof(Vertex_PNUTanSkin));
             const _uint vertexCount = static_cast<_uint>(meshData.verticesPNUTanSkin.size());
             WriteData(vertexStride);
             WriteData(vertexCount);
 
             if (vertexCount > 0)
-                outFile.write(reinterpret_cast<const char*>(meshData.verticesPNUTanSkin.data()), sizeof(Vertex_Anim) * vertexCount);
+                outFile.write(reinterpret_cast<const char*>(meshData.verticesPNUTanSkin.data()), sizeof(Vertex_PNUTanSkin) * vertexCount);
             break;
         }
 

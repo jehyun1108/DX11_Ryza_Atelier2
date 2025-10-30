@@ -14,8 +14,8 @@ namespace Importer
 		MESHTYPE type;
 		VertexLayoutID layoutID = VertexLayoutID::Unknown;
 
-		vector<Vertex_PNUTAN> verticesPNUTan;
-		vector<Vertex_Anim>   verticesPNUTanSkin;
+		vector<Vertex_PNUTAN>     verticesPNUTan;
+		vector<Vertex_PNUTanSkin> verticesPNUTanSkin;
 
 		vector<_uint> indices;
 		_uint materialIdx;
@@ -23,11 +23,11 @@ namespace Importer
 
 	struct ImportedData
 	{
-		unique_ptr<SkeletonInfo> skeleton;
-		vector<unique_ptr<AnimClip>> animations;
+		unique_ptr<SkeletonInfo>         skeleton;
+		vector<unique_ptr<AnimClip>>     animations;
 		vector<unique_ptr<MaterialData>> materials;
-		vector<unique_ptr<MeshData>> meshes;
+		vector<unique_ptr<MeshData>>     meshes;
 
-		bool hasSkeletonBlock = false;
+		bool isSkinned = false;
 	};
 }

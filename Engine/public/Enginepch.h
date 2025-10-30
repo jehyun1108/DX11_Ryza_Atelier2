@@ -17,9 +17,7 @@
 
 #include <nlohmann/json.hpp>
 
-//#ifdef _DEBUG
 #define USE_IMGUI
-//#endif
 
 //--------- ImGui ---------------------
 #ifdef USE_IMGUI 
@@ -35,9 +33,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #endif 
 
 #include <commdlg.h>
-
 #include "d3dcompiler.h"
-
 #include <nfd.h>
 #include <wrl.h>
 
@@ -76,6 +72,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #include <format>
 #include <unordered_set>
 #include <cstddef>
+#include <variant>
 
 using namespace DirectX;
 using namespace std;
@@ -89,13 +86,13 @@ using Microsoft::WRL::ComPtr;
 #include "Engine_Enum.h"
 #include "Engine_Macro.h"
 #include "Engine_Struct.h"
-#include "Engine_ShaderStruct.h"
+#include "Engine_InputLayout.h"
 #include "Engine_Colors.h"
 
 // ----------- Utility -------------
 #include "Utility.h"
-
 #include "Entity.h"
+#include "InputUtil.h"
 
 #include "SystemRegistry.h"
 #include "ComponentPool.h"
@@ -103,16 +100,23 @@ using Microsoft::WRL::ComPtr;
 #include "TagSystem.h"
 #include "EntityMgr.h"
 
+#include "MeshUtil.h"
+#include "MaterialUtil.h"
+
 // ------------ Data -------------------
 #include "RenderProxies.h"
 #include "RenderSystemData.h"
 #include "RenderScene.h"
-#include "RenderData.h"
+#include "NavMeshData.h"
+#include "BattleData.h"
 
 #include "RenderSystem.h"
 
 // ------------ System --------------
 #include "EntitySystem.h"
+
+#include "AnimDataSystem.h"
+#include "ActionAnimRegistry.h"
 
 #include "TransformSystem.h"
 #include "AnimatorSystem.h"
@@ -129,6 +133,40 @@ using Microsoft::WRL::ComPtr;
 #include "SelectionSystem.h"
 #include "CollisionSystem.h"
 #include "HighlightSystem.h"
+#include "MeshColliderSystem.h"
+#include "SkyboxSystem.h"
+#include "OrbitCamSystem.h"
+
+// Move 제어 System
+
+#include "JumpSystem.h"
+
+#include "MoveIntentSystem.h"
+#include "MoveProfileSystem.h"
+#include "MoveStateSystem.h"
+
+// Navmesh
+#include "NavMeshSystem.h"
+
+// AnimSys
+#include "FieldAnimSystem.h"
+#include "FacingSystem.h"
+#include "FacingForceService.h"
+#include "FacingBlockService.h"
+
+// Input 제어 
+#include "InputGate.h"
+#include "IntentCollector.h"
+#include "IntentMerger.h"
+
+#include "FieldControllerSystem.h"
+#include "BattleSessionSystem.h"
+#include "BattleTimelineSystem.h"
+#include "BattleExecutionSystem.h"
+#include "BattleControllerSystem.h"
+
+// BattleAnimSys
+#include "BattleIntroSystem.h"
 
 #include "EntitySpawner.h"
 
@@ -136,6 +174,12 @@ using Microsoft::WRL::ComPtr;
 #include "AssetCache.h"
 
 #include "AssetSystem.h"
+#include "CharacterDataSystem.h"
+
+#include "BattleEventBus.h"
+#include "FieldOrchestraSystem.h"
+#include "BattleOrchestraSystem.h"
+#include "GameModeDirectorSystem.h"
 
 // ---- Utility ---------------------
 
@@ -143,6 +187,7 @@ using Microsoft::WRL::ComPtr;
 #include "InputMgr.h"
 #include "PathMgr.h"
 #include "GameInstance.h"
+#include "InputService.h"
 #include "GuiPanel.h"
 
 // ---- EngineComponent ----------------
@@ -157,9 +202,6 @@ using Microsoft::WRL::ComPtr;
 #include "Shader.h"
 #include "Material.h"
 #include "Model.h"
-
-// --------- ResourceSystem ---------------
-
 
 // ------- Layer ----------------------
 #include "Level.h"

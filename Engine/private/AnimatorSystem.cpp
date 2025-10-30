@@ -42,7 +42,7 @@ Handle AnimatorSystem::Create(EntityID owner, Skeleton* skeleton, const ClipTabl
 
 void AnimatorSystem::Update(float dt, TransformSystem& transformSys)
 {
-    ForEachAlive([&](_uint, AnimData& anim)
+    ForEachAliveEx([&](Handle handle, EntityID owner, AnimData& anim)
         {
             // 1. Layer 시간/페이드
             for (auto& layer : anim.layers)
@@ -120,6 +120,68 @@ void AnimatorSystem::PlayFade(Handle handle, _uint layerIdx, const wstring& clip
     layer.targetWeight = Utility::Saturate(targetWeight);
     if (layer.fadeTime <= 0.f)
         layer.blendWeight = layer.targetWeight;
+}
+
+float AnimatorSystem::GetNormalizedTime(Handle handle, _uint layerIdx) const
+{
+    const AnimData* anim = Get(handle);
+    if (!anim || layerIdx >= anim->layers.size()) return 0.f;
+
+    const AnimLayerData& layer = anim->layers[layerIdx];
+    if (!layer.clip || layer.clip->duration <= 0.f) return 0.f;
+
+    const float durationTicks = static_cast<float>(layer.clip->duration);
+    const float normalized = layer.curTime / durationTicks;
+    return normalized;
+}
+
+float AnimatorSystem::GetRemainingTime(Handle handle, _uint layerIdx) const
+{
+    const AnimData* anim = Get(handle);
+    if (!anim || layerIdx >= anim->layers.size()) return 0.f;
+
+    const AnimLayerData& layer = anim->layers[layerIdx];
+    if (!layer.clip) return 0.f;
+
+    const float ticksPerSec = max(1.f, layer.clip->tickPerSec);
+    const float durationTicks = static_cast<float>(layer.clip->duration);
+    const float remainingTicks = (layer.playType == ANIMTYPE::LOOP) ? (durationTicks - fmod(layer.curTime, durationTicks))
+        : (max(0.f, durationTicks - layer.curTime));
+
+    return remainingTicks / ticksPerSec;
+}
+
+float AnimatorSystem::GetRemainingNormalized(Handle handle, _uint layerIdx) const
+{
+    const AnimData* anim = Get(handle);
+    if (!anim || layerIdx >= anim->layers.size()) return 0.f;
+
+    const AnimLayerData& layer = anim->layers[layerIdx];
+    if (!layer.clip || layer.clip->duration <= 0.f) return 0.f;
+
+    const float durationTicks = static_cast<float>(layer.clip->duration);
+    const float remaining = (layer.playType == ANIMTYPE::LOOP)? (durationTicks - fmod(layer.curTime, durationTicks)) 
+        : (max(0.f, durationTicks - layer.curTime));
+    return Utility::Saturate(remaining / durationTicks);
+}
+
+bool AnimatorSystem::IsPlaying(Handle handle, _uint layerIdx) const
+{
+    const AnimData* anim = Get(handle);
+    if (!anim || layerIdx >= anim->layers.size()) return false;
+    const AnimLayerData& layer = anim->layers[layerIdx];
+    return (layer.isEnabled && !layer.isPaused && layer.clip != nullptr);
+}
+
+bool AnimatorSystem::IsPlayingClip(Handle handle, _uint layerIdx, const wstring& clipName) const
+{
+    const AnimData* anim = Get(handle);
+    if (!anim || layerIdx >= anim->layers.size()) return false;
+    const AnimLayerData& layer = anim->layers[layerIdx];
+    if (!layer.clip) return false;
+
+    const AnimClip* target = FindClip(*anim, clipName);
+    return (target && target == layer.clip);
 }
 
 void AnimatorSystem::Pause(Handle handle, _uint layerIdx, bool toggle)

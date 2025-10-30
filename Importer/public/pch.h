@@ -1,7 +1,5 @@
 #pragma once
 
-#define USE_IMGUI
-
 #include "Enginepch.h"
 
 #include "assimp/scene.h"
@@ -10,5 +8,7 @@
 
 #include "Importer_Defines.h"
 #include "Importer_Struct.h"
+
+#include "NavMeshEditor.h"
 
 using namespace Importer;

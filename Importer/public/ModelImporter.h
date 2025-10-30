@@ -1,6 +1,5 @@
 #pragma once
 
-
 NS_BEGIN(Importer)
 
 class ModelImporter
@@ -11,18 +10,18 @@ public:
 private:
 	static _float4x4 ConvertAssimpMatrix(const aiMatrix4x4 aiMat);
 
-	void ParseAnimations(ImportedData& outData);
 	void ParseSkeletons(ImportedData& outData);
-	void ParseMeshes(ImportedData& outData);
-
-	void ParseMaterials(ImportedData& outData, const filesystem::path& fbxPath);
 	void ParseSkeleton_Recursive(aiNode* node, int parentIdx, SkeletonInfo& outSkeleton, unordered_set<string>& realBoneNames);
 
+	void ParseMeshes(ImportedData& outData);
+	void ParseWeights(const aiMesh* mesh, const SkeletonInfo& skeleton, vector<vector<pair<_uint, float>>>& outTempWeights);
+	void ParseIndices(const aiMesh* mesh, MeshData& outMesh);
+	
+	void ParseAnimations(ImportedData& outData);
 	void ParseVerticesPNUTanSkin(const aiMesh* mesh, MeshData& outMesh);
 	void ParseVerticesPNUTan(const aiMesh* mesh, MeshData& outMesh);
 
-	void ParseWeights(const aiMesh* mesh, const SkeletonInfo& skeleton, vector<vector<pair<_uint, float>>>& outTempWeights);
-	void ParseIndices(const aiMesh* mesh, MeshData& outMesh);
+	void ParseMaterials(ImportedData& outData, const filesystem::path& fbxPath);
 
 private:
 	template<typename T>

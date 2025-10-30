@@ -55,7 +55,7 @@ void FaceSystem::SetSpeed(Handle handle, float speed)
 void FaceSystem::Update(float dt)
 {
     auto& animSys = registry.Get<AnimatorSystem>();
-    ForEachAlive([&](_uint, FaceData& face)
+    ForEachAliveEx([&](Handle handle, EntityID owner, FaceData& face)
         {
             const float step = dt * face.speedScale;
 

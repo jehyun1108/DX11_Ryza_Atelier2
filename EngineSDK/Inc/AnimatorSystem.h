@@ -15,6 +15,12 @@ public:
 	void Play(Handle handle, _uint layerIdx, const wstring& clipName, ANIMTYPE type = ANIMTYPE::LOOP);
 	void PlayFade(Handle handle, _uint layerIdx, const wstring& clipName, float fadeSec, float targetWeight = 1.f, ANIMTYPE type = ANIMTYPE::LOOP);
 
+	float GetNormalizedTime(Handle handle, _uint layerIdx) const;
+	float GetRemainingTime(Handle handle, _uint layerIdx) const; // √ ¥‹¿ß
+	float GetRemainingNormalized(Handle handle, _uint layerIdx) const;
+	bool  IsPlaying(Handle handle, _uint layerIdx) const;
+	bool  IsPlayingClip(Handle handle, _uint layerIdx, const wstring& clipName) const;	 
+
 	void Pause(Handle handle, _uint layerIdx, bool toggle = true);
 	void Reset(Handle handle, _uint layerIdx);
 

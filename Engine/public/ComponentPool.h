@@ -19,11 +19,6 @@ public:
 	void DestroyOwned(_uint owner);
 
 	template<typename Func>
-	void ForEachAlive(Func&& func);
-	template<typename Func>
-	void ForEachAlive(Func&& func) const;
-	
-	template<typename Func>
 	void ForEachOwned(_uint owner, Func&& func);
 	template<typename Func>
 	void ForEachOwned(_uint owner, Func&& func) const;
@@ -33,28 +28,28 @@ public:
 	template<typename Func>
 	void ForEachAliveEx(Func&& func) const;
 
-	template<typename T1>
-	bool FindOwned(_uint owner, Handle& outHandle, T1*& outPtr);
-	template<typename T1>
-	bool FindOwned(_uint owner, Handle& outHandle, T1*& outPtr) const;
+	bool FindOwned(_uint owner, Handle& outHandle, T*& outPtr);
+	bool FindOwned(_uint owner, Handle& outHandle, const T*& outPtr) const;
 
 private:
 	vector<T>     data;
 	vector<_uint> generations;
 	vector<_uint> owners;
 	vector<_uint> freeList;
+
+	vector<_uint> aliveIndices; // Dense: 실제 살아있는 idx
+	vector<_uint> sparseIndices; // Sparse: idx -> aliveIndices 의 Idx 매핑
 };
 
 template<typename T>
 inline Handle ComponentPool<T>::CreateComp(_uint owner)
 {
+	assert(owner != invalidEntity && "CreapComp: owner is invalidEntity");
 	_uint idx;
 	if (!freeList.empty()) 
 	{
-		idx = freeList.back();         freeList.pop_back();
-		if (idx >= generations.size()) generations.resize(idx + 1, 0);
-		if (idx >= owners.size())      owners.resize(idx + 1, 0);
-		if (idx >= data.size())        data.resize(idx + 1);
+		idx = freeList.back();    
+		freeList.pop_back();
 		++generations[idx];
 	}
 	else 
@@ -63,9 +58,11 @@ inline Handle ComponentPool<T>::CreateComp(_uint owner)
 		data.emplace_back();
 		generations.push_back(0);
 		owners.push_back(0);
+		sparseIndices.push_back(0);
 	}
 	owners[idx] = owner;
-	assert(owners[idx] != 0 && "CreateSlot: owner is 0 (invalidEntity)");
+	sparseIndices[idx] = (_uint)aliveIndices.size();
+	aliveIndices.push_back(idx);
 	return Handle{ idx, generations[idx] };
 }
 
@@ -74,6 +71,13 @@ inline void ComponentPool<T>::DestroySlot(Handle handle)
 {
 	if (!Validate(handle)) return;
 	const _uint idx = handle.idx;
+	const _uint IdxtoRemove = sparseIndices[idx];
+	const _uint lastIdx = aliveIndices.back();
+
+	aliveIndices[IdxtoRemove] = lastIdx;
+	sparseIndices[lastIdx] = IdxtoRemove;
+	aliveIndices.pop_back();
+
 	owners[idx] = 0;
 	++generations[idx];
 	freeList.push_back(idx);
@@ -102,12 +106,12 @@ inline void ComponentPool<T>::DestroyOwned(_uint owner)
 {
 	vector<_uint> toKill;
 	toKill.reserve(16);
-	for (_uint i = 0; i < owners.size(); ++i)
+	for (const _uint idx : aliveIndices)
 	{
-		if (owners[i] == owner)
-			toKill.push_back(i);
+		if (owners[idx] == owner)
+			toKill.push_back(idx);
 	}
-	// 파괴 -> 새대수 증가 & freeList 처리
+
 	for (auto idx : toKill)
 		DestroySlot(Handle{ idx, generations[idx] });
 }
@@ -119,6 +123,8 @@ inline void ComponentPool<T>::Reserve(size_t n)
 	generations.reserve(n);
 	owners.reserve(n);
 	freeList.reserve(n);
+	aliveIndices.reserve(n);
+	sparseIndices.reserve(n);
 }
 
 template<typename T>
@@ -135,37 +141,12 @@ inline const T* ComponentPool<T>::Get(Handle handle) const
 
 template<typename T>
 template<typename Func>
-inline void ComponentPool<T>::ForEachAlive(Func&& func)
-{
-	for (_uint i = 0; i < (_uint)data.size(); ++i)
-	{
-		if (i < owners.size() && owners[i] != 0)
-			func(i, data[i]);
-	}
-}
-
-template<typename T>
-template<typename Func>
-inline void ComponentPool<T>::ForEachAlive(Func&& func) const
-{
-	for (_uint i = 0; i < (_uint)data.size(); ++i)
-	{
-		if (i < owners.size() && owners[i] != 0)
-			func(i, data[i]);
-	}
-}
-
-template<typename T>
-template<typename Func>
 inline void ComponentPool<T>::ForEachOwned(_uint owner, Func&& func)
 {
-	for (_uint i = 0; i < (_uint)data.size(); ++i)
+	for (const _uint idx : aliveIndices)
 	{
-		if (i < owners.size() && owners[i] == owner)
-		{
-			Handle handle{ i, generations[i] };
-			func(handle, data[i]);
-		}
+		if (owners[idx] == owner)
+			func(Handle{ idx, generations[idx] }, data[idx]);
 	}
 }
 
@@ -173,13 +154,10 @@ template<typename T>
 template<typename Func>
 inline void ComponentPool<T>::ForEachOwned(_uint owner, Func&& func) const
 {
-	for (_uint i = 0; i < (_uint)data.size(); ++i)
+	for (const _uint idx : aliveIndices)
 	{
-		if (i < owners.size() && owners[i] == owner)
-		{
-			Handle handle{ i, generations[i] };
-			func(handle, data[i]);
-		}
+		if (owners[idx] == owner)
+			func(Handle{ idx, generations[idx] }, data[idx]);
 	}
 }
 
@@ -187,53 +165,47 @@ template<typename T>
 template<typename Func>
 inline void ComponentPool<T>::ForEachAliveEx(Func&& func)
 {
-	for (_uint i = 0; i < (_uint)data.size(); ++i)
-	{
-		if (i < owners.size() && owners[i] != 0)
-			func(Handle{ i, generations[i] }, owners[i], data[i]);
-	}
+	for (const _uint idx : aliveIndices)
+		func(Handle{ idx, generations[idx] }, owners[idx], data[idx]);
 }
 
 template<typename T>
 template<typename Func>
 inline void ComponentPool<T>::ForEachAliveEx(Func&& func) const
 {
-	for (_uint i = 0; i < (_uint)data.size(); ++i)
-	{
-		if (i < owners.size() && owners[i] != 0)
-			func(Handle{ i, generations[i] }, owners[i], data[i]);
-	}
+	for (const _uint idx : aliveIndices)
+		func(Handle{ idx, generations[idx] }, owners[idx], data[idx]);
 }
 
 template<typename T>
-template<typename T1>
-inline bool ComponentPool<T>::FindOwned(_uint owner, Handle& outHandle, T1*& outPtr)
+inline bool ComponentPool<T>::FindOwned(_uint owner, Handle& outHandle, T*& outPtr)
 {
-	for (_uint i = 0; i < (_uint)data.size(); ++i)
+	for (const _uint idx : aliveIndices)
 	{
-		if (i < owners.size() && owners[i] == owner)
+		if (owners[idx] == owner)
 		{
-			outHandle = Handle{ i, generations[i] };
-			outPtr = &data[i];
+			outHandle = Handle{ idx, generations[idx] };
+			outPtr = &data[idx];
 			return true;
 		}
 	}
+	outPtr = nullptr;
 	return false;
 }
 
 template<typename T>
-template<typename T1>
-inline bool ComponentPool<T>::FindOwned(_uint owner, Handle& outHandle, T1*& outPtr) const
+inline bool ComponentPool<T>::FindOwned(_uint owner, Handle& outHandle, const T*& outPtr) const
 {
-	for (_uint i = 0; i < (_uint)data.size(); ++i)
+	for (const _uint idx : aliveIndices)
 	{
-		if (i < owners.size() && owners[i] == owner)
+		if (owners[idx] == owner)
 		{
-			outHandle = Handle{ i, generations[i] };
-			outPtr = &data[i];
+			outHandle = Handle{ idx, generations[idx] };
+			outPtr = &data[idx];
 			return true;
 		}
 	}
+	outPtr = nullptr;
 	return false;
 }
 

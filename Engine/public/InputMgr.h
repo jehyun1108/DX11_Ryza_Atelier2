@@ -1,6 +1,5 @@
+#include "InputService.h"
 #pragma once
-
-#include "InputUtil.h"
 
 NS_BEGIN(Engine)
 
@@ -13,7 +12,6 @@ public:
 
 	void BeginFrame();
 	void EndFrame();
-
 	void ProcessWinMsg(UINT msg, WPARAM wParam, LPARAM lParam);
 
 	KEY_STATE GetKeyState(KEY key) const { return keyStates[static_cast<size_t>(key)].state; }
@@ -26,11 +24,9 @@ public:
 
 private:
 	vector<KeyInfo> keyStates;
-
 	_float2 mousePos{};
 	_float2 mouseDelta{}; 
-
-	bool isActive = true;
+	bool    isActive = true;
 };
 
 NS_END

@@ -15,11 +15,6 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int nCmdShow)
 {
-#ifdef _DEBUG
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    //_CrtSetBreakAlloc(1776);
-#endif
-
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_CLIENT, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
@@ -27,20 +22,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
     if (!InitInstance(hInstance, nCmdShow)) return FALSE;
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CLIENT));
-    MSG msg;
 
     auto mainApp = MainApp::Create();
+    constexpr float fps = 1.f / 144.f;
+    constexpr float maxAcc = 0.25f;
 
-    _float timeAcc{};
-    _float dt{};
-
-    constexpr float fps = 1.f / 60;
+    MSG msg{};
+    float acc = 0.f;
 
     GameInstance& game = GameInstance::GetInstance();
 
-    while (true) // Non-Blocking 방식
-    { 
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) 
+    while (true)
+    {
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
             if (msg.message == WM_QUIT) break;
 
@@ -52,20 +46,25 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
         }
 
         game.UpdateDt(TIMER::DEFAULT);
-        timeAcc += game.GetDt(TIMER::DEFAULT);
+        float dt = game.GetDt(TIMER::DEFAULT);
+        acc += dt;
+        if (acc > maxAcc)
+            acc = maxAcc;
 
-        while (timeAcc >= fps)
+        game.BeginFrame(dt);
+
+        while (acc >= fps)
         {
             mainApp->Update(fps);
-            mainApp->Render();
-        
-            timeAcc -= fps;
+            acc -= fps;
         }
+
+        game.EndFrame();
+        mainApp->Render();
     }
 
     game.ReleaseEngine();
-
-    return (int) msg.wParam;
+    return (int)msg.wParam;
 }
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
@@ -92,20 +91,12 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    g_hInst = hInstance; 
-
-   // 주 모니터의 가로 해상도를 얻어온다.
    int monitorW = GetSystemMetrics(SM_CXSCREEN);
-
-   g_hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-       DefaultX, DefaultY,    
-       WinX, WinY,    
-       nullptr, nullptr, hInstance, nullptr);
-
+   g_hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, DefaultX, DefaultY, WinX, WinY, nullptr, nullptr, hInstance, nullptr);
    if (!g_hWnd) return FALSE;
 
    ShowWindow(g_hWnd, nCmdShow);
    UpdateWindow(g_hWnd);
-
    return TRUE;
 }
 
@@ -113,8 +104,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     GameInstance& game = GameInstance::GetInstance();
 
-    if (game.ImguiWndProcHandler(message, wParam, lParam))
-        return true;
+    if (game.IsInited())
+    {
+        game.ImguiWndProcHandler(message, wParam, lParam);
+        game.ProcessWinMsg(message, wParam, lParam);
+    }
 
     switch (message)
     {
@@ -129,36 +123,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
 
     case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        switch (wmId)
         {
-            int wmId = LOWORD(wParam);
-            switch (wmId)
-            {
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
         }
-        break;
-
-    case WM_INPUT:
-    case WM_KEYDOWN:
-    case WM_KEYUP:
-    case WM_LBUTTONDOWN:
-    case WM_LBUTTONUP:
-    case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP:
-        game.ProcessWinMsg(message, wParam, lParam);
-        break;
+    }
+    break;
 
     case WM_DESTROY:
         PostQuitMessage(0);
-        DestroyWindow(hWnd);
-
+        exit(0);
         break;
+
     default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        break;
     }
-    return 0;
+    return DefWindowProc(hWnd, message, wParam, lParam);
 }

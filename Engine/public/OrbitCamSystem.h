@@ -1,0 +1,17 @@
+#pragma once
+
+#include "OrbitCamData.h"
+
+NS_BEGIN(Engine)
+
+class ENGINE_DLL OrbitCamSystem : public EntitySystem<OrbitCamData>
+{
+public:
+	explicit OrbitCamSystem(SystemRegistry& registry) : EntitySystem(registry) {}
+
+	Handle Create(EntityID owner, Handle camHandle, Handle targetTf);
+
+	void Update(float dt);
+};
+
+NS_END

@@ -26,11 +26,7 @@ HRESULT Loader::Loading()
 	{
 	case LEVEL::LOGO:
 		Loading_Logo();
-		break;
-
-	case LEVEL::GAMEPLAY:
-		Loading_GamePlay();
-		break;
+		break;;
 	}
 
 	return S_OK;
@@ -38,7 +34,6 @@ HRESULT Loader::Loading()
 
 void Loader::Loading_Logo()
 {
-	lstrcpy(loadingtxt, L"텍스처를 로딩중입니다");
 
 	isFinished = true;
 }

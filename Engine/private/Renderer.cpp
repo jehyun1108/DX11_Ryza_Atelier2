@@ -15,11 +15,14 @@ HRESULT Renderer::Init()
 
 	cameraCBuffer = CBuffer::Create(sizeof(CameraProxy));
 	lightCBuffer  = CBuffer::Create(sizeof(LightProxy));
-	objCBuffer    = CBuffer::Create(sizeof(ObjData));
+	objCBuffer    = CBuffer::Create(sizeof(ObjCB));
 	boneCBuffer   = CBuffer::Create(sizeof(_float4x4) * MAX_BONES);
+	skyCBuffer    = CBuffer::Create(sizeof(SkyCB));
+	tsCBuffer     = CBuffer::Create(sizeof(TessellationCB));
 
 	auto& assets = game.GetAssetSystem();
 	gridShader = assets.GetShader(L"PC");
+	skyShader  = assets.GetShader(L"P");
 
 	// 1. Rasterizer 
 	{
@@ -69,6 +72,13 @@ HRESULT Renderer::Init()
 		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
 		desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 		HR(device->CreateBlendState(&desc, &blendStates[ENUM(BLENDSTATE::ADDITIVE)]));
+
+		// Premultiplied Alpha
+		desc.RenderTarget[0].SrcBlend       = D3D11_BLEND_ONE;           
+		desc.RenderTarget[0].DestBlend      = D3D11_BLEND_INV_SRC_ALPHA;  
+		desc.RenderTarget[0].SrcBlendAlpha  = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+		HR(device->CreateBlendState(&desc, &blendStates[ENUM(BLENDSTATE::PM_ALPHA)]));
 	}
 
 	// 3. Sampler 
@@ -166,13 +176,12 @@ HRESULT Renderer::Init()
 
 		HR(device->CreateDepthStencilState(&desc, &depthStencilStates[ENUM(DEPTHSTATE::DEPTHSTENCIL_NOEQUAL)]));
 	}
-
 	return S_OK;
 }
 
-HRESULT Renderer::DrawOpaque(const vector<DrawItem>& items)
+void Renderer::DrawOpaque(const vector<DrawItem>& items)
 {
-	if (items.empty()) return S_OK;
+	if (items.empty()) return;
 
 	SetDepthState(DEPTHSTATE::DEFAULT);
 	SetBlendState(BLENDSTATE::Opaque);
@@ -191,23 +200,23 @@ HRESULT Renderer::DrawOpaque(const vector<DrawItem>& items)
 
 		const bool isHovered = (hover.hovered != 0 && proxy.owner == hover.hovered);
 
-		// Skeletal
-		if (proxy.boneMatrices && proxy.boneMatrices->data && proxy.boneMatrices->count > 0)
+		if (proxy.isSkinned && proxy.boneMatrices && proxy.boneMatrices->data && proxy.boneMatrices->count > 0)
 		{
-			const auto& matrices = *proxy.boneMatrices;
-			boneCBuffer->SetData(matrices.data, size_t(matrices.count) * sizeof(_float4x4));
-			boneCBuffer->Update();
-			boneCBuffer->Bind(SHADER::VS, CBUFFERSLOT::BONE);
+			UpdateBoneCB(proxy.boneMatrices->data, proxy.boneMatrices->count);
+			boneCBuffer->Bind(SHADER::VS | SHADER::DS, CBUFFERSLOT::BONE);
+		}
+		else
+		{
+			ID3D11Buffer* nullCB[1] = {};
+			context->VSSetConstantBuffers(ENUM(CBUFFERSLOT::BONE), 1, nullCB);
 		}
 
-		ObjData obj{};
+		ObjCB obj{};
 		obj.world = proxy.world;
 		XMStoreFloat4x4(&obj.invWorld, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&proxy.world))));
 		obj.vpSize = { vp.Width, vp.Height };
 
-		objCBuffer->SetData(&obj, sizeof(obj));
-		objCBuffer->Update();
-		objCBuffer->Bind(SHADER::VS, CBUFFERSLOT::OBJ);
+		objCBuffer->UpdateAndBind(obj, SHADER::VS | SHADER::DS, CBUFFERSLOT::OBJ);
 
 		// Hovered -> Stencil 1 마킹
 		if (isHovered)
@@ -217,6 +226,11 @@ HRESULT Renderer::DrawOpaque(const vector<DrawItem>& items)
 		}
 		else
 			SetDepthState(DEPTHSTATE::DEFAULT);
+
+		if (proxy.material->HasTesellation())
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		else
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		proxy.material->Bind(context);
 		proxy.mesh->Bind(context);
@@ -238,45 +252,46 @@ HRESULT Renderer::DrawOpaque(const vector<DrawItem>& items)
 		{
 			if (!proxy || !proxy->mesh || !proxy->material || !proxy->mesh->IsRenderable()) continue;
 
-			if (proxy->boneMatrices && proxy->boneMatrices->data && proxy->boneMatrices->count > 0)
+			if (proxy->isSkinned && proxy->boneMatrices && proxy->boneMatrices->data && proxy->boneMatrices->count > 0)
 			{
-				const auto& matrices = *proxy->boneMatrices;
-				boneCBuffer->SetData(matrices.data, size_t(matrices.count) * sizeof(_float4x4));
-				boneCBuffer->Update();
-				//원호 왔다감
-				boneCBuffer->Bind(SHADER::VS, CBUFFERSLOT::BONE);
+				UpdateBoneCB(proxy->boneMatrices->data, proxy->boneMatrices->count);
+				boneCBuffer->Bind(SHADER::VS | SHADER::DS, CBUFFERSLOT::BONE);
+			}
+			else
+			{
+				ID3D11Buffer* nullCB[1] = {};
+				context->VSSetConstantBuffers(ENUM(CBUFFERSLOT::BONE), 1, nullCB);
 			}
 
-			ObjData outline{};
+			ObjCB outline{};
 			outline.world = proxy->world;
 			XMStoreFloat4x4(&outline.invWorld, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&proxy->world))));
 			outline.vpSize = { vp.Width, vp.Height };
 			outline.color = _float4(1, 0, 0, 1); 
 			outline.outLinePixels = 2.0f;           
 
-			objCBuffer->SetData(&outline, sizeof(outline));
-			objCBuffer->Update();
-			objCBuffer->Bind(SHADER::VS | SHADER::PS, CBUFFERSLOT::OBJ);
+			objCBuffer->UpdateAndBind(outline, SHADER::VS | SHADER::DS | SHADER::PS, CBUFFERSLOT::OBJ);
+
+			if (proxy->material->HasTesellation())
+				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+			else
+				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			proxy->material->Bind(context);
 			proxy->mesh->Bind(context);
 			proxy->mesh->Draw(context);
 			proxy->material->UnBind(context);
 		}
-
 		// 상태 복구
 		SetRasterizerState(RASTERIZER::CULLBACK);
 		SetBlendState(BLENDSTATE::Opaque);
 		SetDepthState(DEPTHSTATE::DEFAULT);
 	}
-
-
-	return S_OK;
 }
 
-HRESULT Renderer::DrawTransparent(const vector<DrawItem>& items)
+void Renderer::DrawTransparent(const vector<DrawItem>& items)
 {
-	if (items.empty()) return S_OK;
+	if (items.empty()) return;
 
 	SetDepthState(DEPTHSTATE::NO_DEPTHWRITE);
 	SetBlendState(BLENDSTATE::ALPHABLEND);
@@ -289,22 +304,28 @@ HRESULT Renderer::DrawTransparent(const vector<DrawItem>& items)
 		const RenderProxy& proxy = it.proxy;
 		if (!proxy.mesh || !proxy.material || !proxy.mesh->IsRenderable()) continue;
 
-		if (proxy.boneMatrices && proxy.boneMatrices->data && proxy.boneMatrices->count > 0)
+		if (proxy.isSkinned && proxy.boneMatrices && proxy.boneMatrices->data && proxy.boneMatrices->count > 0)
 		{
-			const auto& matrices = *proxy.boneMatrices;
-			boneCBuffer->SetData(matrices.data, static_cast<size_t>(matrices.count) * sizeof(_float4x4));
-			boneCBuffer->Update();
-			boneCBuffer->Bind(SHADER::VS, CBUFFERSLOT::BONE);
+			UpdateBoneCB(proxy.boneMatrices->data, proxy.boneMatrices->count);
+			boneCBuffer->Bind(SHADER::VS | SHADER::DS, CBUFFERSLOT::BONE);
+		}
+		else
+		{
+			ID3D11Buffer* nullCB[1] = {};
+			context->VSSetConstantBuffers(ENUM(CBUFFERSLOT::BONE), 1, nullCB);
 		}
 
-		ObjData obj{};
+		ObjCB obj{};
 		obj.world = proxy.world;
 		XMStoreFloat4x4(&obj.invWorld, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&proxy.world))));
 		obj.vpSize = { vp.Width, vp.Height };
 
-		objCBuffer->SetData(&obj, sizeof(obj));
-		objCBuffer->Update();
-		objCBuffer->Bind(SHADER::VS, CBUFFERSLOT::OBJ);
+		objCBuffer->UpdateAndBind(obj, SHADER::VS | SHADER::DS, CBUFFERSLOT::OBJ);
+
+		if (proxy.material->HasTesellation())
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		else
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		proxy.material->Bind(context);
 		proxy.mesh->Bind(context);
@@ -314,53 +335,125 @@ HRESULT Renderer::DrawTransparent(const vector<DrawItem>& items)
 
 	SetBlendState(BLENDSTATE::Opaque);
 	SetDepthState(DEPTHSTATE::DEFAULT);
-
-	return S_OK;
 }
 
-
-HRESULT Renderer::Draw(const RenderScene& scene)
+void Renderer::DrawSkyBox(const RenderScene& scene)
 {
-	HR(UpdateCBuffers(scene));
-	HR(DrawOpaque(scene.queues.opaque)); // Model 그리는중
-	HR(DrawTransparent(scene.queues.transparent));
+	const SkyboxProxy& proxy = scene.skybox;
+	if (!proxy.enabled || proxy.submeshes.empty()) return;
+
+	SetDepthState(DEPTHSTATE::NO_DEPTHWRITE_LESSEQUAL);
+
+	const _float3 camPos = _float3{ scene.cam.camPos.x, scene.cam.camPos.y, scene.cam.camPos.z };
+	const float theta = proxy.baseYawRad + proxy.phaseRad + (proxy.hasTfYaw ? proxy.tfYawRad : 0.f);
+
+	const _mat mRot   = XMMatrixRotationY(theta);
+	const _mat mScale = XMMatrixScaling(proxy.uniformScale, proxy.uniformScale, proxy.uniformScale);
+	const _mat mTrans = XMMatrixTranslation(camPos.x, camPos.y, camPos.z);
+	
+	_float4x4 skyWorld{};
+	XMStoreFloat4x4(&skyWorld, XMMatrixMultiply(XMMatrixMultiply(mRot, mScale), mTrans));
+
+	ObjCB obj{};
+	obj.world = skyWorld;
+	XMStoreFloat4x4(&obj.invWorld, XMMatrixInverse(nullptr, XMLoadFloat4x4(&skyWorld)));
+	objCBuffer->UpdateAndBind(obj, SHADER::VS | SHADER::DS, CBUFFERSLOT::OBJ);
+
+	// Draw Queue 구성 (불투명 -> 반투명)
+	const SkyDrawLists lists = BuildSkyDrawLists(proxy.submeshes);
+
+	auto drawList = [&](const vector<const SkySubmesh*>& list)
+		{
+			for (const SkySubmesh* submesh : list)
+			{
+				ApplySkyCull(submesh->cull);
+				ApplySkyBlend(submesh->transparent, submesh->premultiplied);
+
+				SkyCB sky{};
+				sky.theta           = theta;
+				sky.opacity         = submesh->opacity;
+				sky.isPremultiplied = submesh->premultiplied ? 1 : 0;
+
+				skyCBuffer->UpdateAndBind(sky, SHADER::PS, CBUFFERSLOT::SKY);
+
+				submesh->material->Bind(context);
+
+				objCBuffer->Bind(SHADER::VS, CBUFFERSLOT::OBJ);
+
+				submesh->mesh->Bind(context);
+				context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				submesh->mesh->Draw(context);
+				submesh->material->UnBind(context);
+			}
+		};
+	drawList(lists.opaque);
+	drawList(lists.alpha);
+
+	SetBlendState(BLENDSTATE::Opaque);
+	SetDepthState(DEPTHSTATE::DEFAULT);
+	SetRasterizerState(RASTERIZER::CULLBACK);
+}
+
+void Renderer::Draw(const RenderScene& scene)
+{
+	UpdateCBuffers(scene);
+	DrawOpaque(scene.queues.opaque); // Model 그리는중
+	DrawSkyBox(scene);
+	DrawTransparent(scene.queues.transparent);
 
 	DrawGrid(); // 땅바닥에 깔린 Grid
 
-	if (!scene.colliders.empty())  DrawColliders(scene.colliders); // Collider
-
-	return S_OK;
+	if (!scene.colliders.empty()) 
+		DrawColliders(scene.colliders); // Collider
 }
 
-HRESULT Renderer::UpdateCBuffers(const RenderScene& scene)
+void Renderer::UpdateCBuffers(const RenderScene& scene)
 {
 	// Camera 
-	cameraCBuffer->SetData(&scene.cam, sizeof(scene.cam));
-	cameraCBuffer->Update();
-	cameraCBuffer->Bind(SHADER::VS | SHADER::PS, CBUFFERSLOT::CAMERA);
+	cameraCBuffer->UpdateAndBind(scene.cam, SHADER::VS | SHADER::DS | SHADER::PS, CBUFFERSLOT::CAMERA);
 
 	// Light
 	if (!scene.lights.empty())
 	{
 		const LightProxy& light = scene.lights[0];
-		lightCBuffer->SetData(&light, sizeof(LightProxy));
-		lightCBuffer->Update();
-		lightCBuffer->Bind(SHADER::PS, CBUFFERSLOT::LIGHT);
+		lightCBuffer->UpdateAndBind(light, SHADER::PS, CBUFFERSLOT::LIGHT);
 	}
-	return S_OK;
+	// TS
+	TessellationCB tsData{};
+	tsData.tsMinDist = 10.f;
+	tsData.tsMaxDist = 50.f;
+	tsData.tsMinFactor = 1.f;
+	tsData.tsMaxFactor = 16.f;
+
+	tsCBuffer->UpdateAndBind(tsData, SHADER::HS, CBUFFERSLOT::TS);
+}
+
+void Renderer::UpdateBoneCB(const _float4x4* sourceMatrices, _uint sourceCount)
+{
+	if (!sourceMatrices || sourceCount == 0) return;
+
+	const _uint clampedCount = min(sourceCount, MAX_BONES);
+	static thread_local vector<_float4x4> uploadBuffer;
+	uploadBuffer.resize(MAX_BONES);
+
+	memcpy(uploadBuffer.data(), sourceMatrices, sizeof(_float4x4) * clampedCount);
+
+	const size_t bytes = sizeof(_float4x4) * clampedCount;
+	boneCBuffer->SetData(uploadBuffer.data(), bytes);
+	boneCBuffer->Update();
 }
 
 void Renderer::BindGridState()
 {
 	gridShader->Bind(context);
 
-	ObjData objData{};
+	ObjCB objData{};
 	_mat identity = XMMatrixIdentity();
 
 	XMStoreFloat4x4(&objData.world, identity);
 	XMStoreFloat4x4(&objData.invWorld, XMMatrixTranspose(identity));
 
-	objCBuffer->SetData(&objData, sizeof(ObjData));
+	objCBuffer->SetData(&objData, sizeof(ObjCB));
 	objCBuffer->Update();
 	objCBuffer->Bind(SHADER::VS, CBUFFERSLOT::OBJ);
 
@@ -422,8 +515,6 @@ void Renderer::BindSamplers(SHADER stage, TEXSLOT slot, SAMPLER type)
 	if (stage & SHADER::VS) context->VSSetSamplers(slotIdx, 1, &sampler);
 	if (stage & SHADER::PS) context->PSSetSamplers(slotIdx, 1, &sampler);
 }
-
-
 
 HRESULT Renderer::DrawLineList(const vector<VertexColor>& vertexColor)
 {
@@ -534,6 +625,41 @@ void Renderer::DrawColliders(const vector<ColliderProxy>& list)
 	SetDepthState(DEPTHSTATE::DEFAULT);
 	SetBlendState(BLENDSTATE::Opaque);
 	SetRasterizerState(RASTERIZER::CULLBACK);
+}
+
+void Renderer::ApplySkyCull(SkyCull cullMode)
+{
+	switch (cullMode)
+	{
+	case SkyCull::Back:  SetRasterizerState(RASTERIZER::CULLBACK);  break;
+	case SkyCull::Front: SetRasterizerState(RASTERIZER::CULLFRONT); break;
+	case SkyCull::None:  SetRasterizerState(RASTERIZER::CULLNONE);  break;
+	}
+}
+
+void Renderer::ApplySkyBlend(bool transparent, bool premultiplied)
+{
+	if (!transparent)
+	{
+		SetBlendState(BLENDSTATE::Opaque);
+		return;
+	}
+	SetBlendState(premultiplied ? BLENDSTATE::PM_ALPHA : BLENDSTATE::ALPHABLEND);
+}
+
+SkyDrawLists Renderer::BuildSkyDrawLists(const vector<SkySubmesh>& submeshes)
+{
+	SkyDrawLists lists{};
+	lists.opaque.reserve(submeshes.size());
+	lists.alpha.reserve(submeshes.size());
+
+	for (const SkySubmesh& submesh : submeshes)
+	{
+		if (!submesh.mesh || !submesh.material || !submesh.mesh->IsRenderable()) continue;
+		if (submesh.queue == SkyQueue::Alpha) lists.alpha.push_back(&submesh);
+		else                                  lists.opaque.push_back(&submesh);
+	}
+	return lists;
 }
 
 void Renderer::DrawGrid()

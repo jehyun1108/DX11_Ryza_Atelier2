@@ -1,14 +1,12 @@
 #pragma once
 
 NS_BEGIN(Engine)
-
+// 매 프레임 호출: ECS 수집 -> 큐 구성 -> 씬 스냅샷 채우기
 class ENGINE_DLL RenderSystem
 {
 public:
 	explicit RenderSystem(SystemRegistry& registry) : registry(registry) {}
-
-	// 매 프레임 호출: ECS 수집 -> 큐 구성 -> 씬 스냅샷 채우기
-	void BuildScene(RenderScene& out);
+	void     BuildScene(RenderScene& out);
 
 private:
 	bool  FrustumCulling(const BoundingBox& worldAABB, const CameraProxy& cam) const;

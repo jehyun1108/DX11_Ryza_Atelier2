@@ -12,6 +12,17 @@ public:
 	virtual void Render() override;
 
 private:
+	EntityHandles SpawnPatricia();
+	EntityHandles SpawnKlaudia();
+	EntityHandles SpawnRyza();
+
+	void SetUp();
+
+	void UpdateGrid();
+	void DrawSkyBox(bool isNight = true);
+
+private:
+	Handle fieldCtrlHandle{};
 };
 
 NS_END

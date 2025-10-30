@@ -13,22 +13,10 @@ unique_ptr<Logo> Logo::Create()
 
 HRESULT Logo::Init()
 {
-	LoadResources();
-	AddMaterials();
-
-
 	return S_OK;
 }
 
-void Logo::LoadResources()
-{
-	
-}
 
-void Logo::AddMaterials()
-{
-
-}
 
 void Logo::Update(float dt)
 {			

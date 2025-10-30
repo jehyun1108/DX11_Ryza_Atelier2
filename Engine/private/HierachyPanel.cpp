@@ -7,10 +7,11 @@ void HierachyPanel::Draw()
 	ImGui::InputText("Filter", filter, sizeof(filter));
 	ImGui::Separator();
 
-	string sFilter = filter;
-	transform(sFilter.begin(), sFilter.end(), sFilter.begin(), ::tolower);
+	string loweredFilter = filter;
+	transform(loweredFilter.begin(), loweredFilter.end(), loweredFilter.begin(), ::tolower);
 
 	auto& layerSys = registry.Get<LayerSystem>();
+	auto& modelSys = registry.Get<ModelSystem>();
 
 	for (_uint i = 0; i < ENUM(LAYER::END); ++i)
 	{
@@ -21,21 +22,39 @@ void HierachyPanel::Draw()
 		const _uint mask = LayerUtil::LayerBit(eLayer);
 
 		vector<pair<EntityID, string>> items;
+		items.reserve(64);
+
 		layerSys.ForEachByMask(mask, [&](EntityID owner, Handle handle, const LayerData& layer)
 			{
-				char label[64];
-				sprintf_s(label, "Entity %u", owner);
+				char baseLabel[64];
+				sprintf_s(baseLabel, "Entity %u", owner);
+				string displayLabel = baseLabel;
 
-				string lowered = label;
+				Handle modelHandle{};
+				const ModelData* modelComp = modelSys.GetByOwner(owner, &modelHandle);
+				if (modelComp && modelComp->model)
+				{
+					const wstring& logicalKey = modelComp->model->GetLogicalKey();
+					if (!logicalKey.empty())
+					{
+						string str = Utility::StrPathStem(logicalKey);
+						if (!str.empty())
+						{
+							displayLabel += " (";
+							displayLabel += str;
+							displayLabel += ")";
+						}
+					}
+				}
+
+				string lowered = displayLabel;
 				transform(lowered.begin(), lowered.end(), lowered.begin(), ::tolower);
-				if (!sFilter.empty() && lowered.find(sFilter) == string::npos)
-					return;
+				if (!loweredFilter.empty() && lowered.find(loweredFilter) == string::npos) return;
 
-				items.emplace_back(owner, string(label));
+				items.emplace_back(owner, move(displayLabel));
 			});
 
-		if (items.empty())
-			continue;
+		if (items.empty()) continue;
 
 		if (ImGui::TreeNode(nodeLabel.c_str()))
 		{
@@ -44,8 +63,7 @@ void HierachyPanel::Draw()
 				const bool isSelected = (selected && *selected == owner);
 				if (ImGui::Selectable(label.c_str(), isSelected))
 				{
-					if (selected)
-						*selected = owner;
+					if (selected) *selected = owner;
 				}
 			}
 			ImGui::TreePop();

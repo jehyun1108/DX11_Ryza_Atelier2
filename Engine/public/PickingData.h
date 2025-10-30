@@ -23,20 +23,21 @@ struct PickingHit
 	float    distance = FLT_MAX;
 	EntityID entity = 0;
 	_float3  point{};
+
+	// NavMesh 
+	_uint triangleIdx = UINT32_MAX;
+	_float2 uv{};
+	_float3 normal{};
 };
 
 struct PickingData
 {
 	Handle      transform;
-	BoundingBox localBox{ _float3{}, _float3{ 0.5f, 0.5f, 0.5f } };
-	BoundingBox worldBox{};
-
 	_uint       layerMask = 0xFFFFFFFFu;
 	bool        enabled    = true;
 
 	bool        lastHit   = false;
 	float       lastDist = FLT_MAX;
-
 	_float4x4   cacheWorld{};
 };
 

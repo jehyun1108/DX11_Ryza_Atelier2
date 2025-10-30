@@ -10,6 +10,8 @@ struct ShaderMeta
 	InputLayoutBuilder layout;
 	wstring vsCsoPath;
 	wstring psCsoPath;
+	wstring hsCsoPath;
+	wstring dsCsoPath;
 };
 
 struct ShaderCreateDesc
@@ -18,6 +20,8 @@ struct ShaderCreateDesc
 	InputLayoutBuilder layout;
 	ComPtr<ID3DBlob> vsBlob;
 	ComPtr<ID3DBlob> psBlob;
+	ComPtr<ID3DBlob> hsBlob;
+	ComPtr<ID3DBlob> dsBlob;
 };
 
 NS_END

@@ -77,11 +77,19 @@ InputLayoutBuilder InputLayoutBuilder::MakeInstancedPNUTan()
 	return builder;
 }
 
-InputLayoutBuilder InputLayoutBuilder::MakeVertexColor()
+InputLayoutBuilder InputLayoutBuilder::MakePC()
 {
 	InputLayoutBuilder builder;
 	builder.Add(VtxAttribute::Pos)
 		   .Add(VtxAttribute::Color);
+	return builder;
+}
+
+InputLayoutBuilder InputLayoutBuilder::MakePU()
+{
+	InputLayoutBuilder builder;
+	builder.Add(VtxAttribute::Pos)
+		   .Add(VtxAttribute::TexCoord);
 	return builder;
 }
 

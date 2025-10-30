@@ -15,7 +15,7 @@ void LightSystem::Update(float dt)
 {
 	auto& tfSys = registry.Get<TransformSystem>();
 
-	ForEachAlive([&](_uint, LightData& light) 
+	ForEachAliveEx([&](Handle handle, EntityID owner, LightData& light) 
 		{
 			if (!light.enabled) return;
 

@@ -139,6 +139,26 @@ public:
 	static BoundingOrientedBox ToOBBFromAABB(const BoundingBox& aabb);
 
 	static _mat MakeWorldMat(const TransformData& tf);
+
+	static _float2 Clamp2D(_float2 vecXY, float maxLength);
+	static _float2 Normalize(_float2 v);
+	static void WrapToTwoPi(float& radians);
+	static float ExtractYawFromWorld(const _float4x4& mat);
+	static _mat RemoveScaleKeepRotTrans(_mat M);
+	static string StrPathStem(const wstring& wstr);
+
+	static struct SkyRule GetSkyRuleByIdx(_uint submeshIdx);
+	static bool FileExists(const filesystem::path& candidatePath);
+	static filesystem::path MakeNormalMapPath(const filesystem::path& diffuseFullPath);
+	static _vec BuildLookRot(const _vec& forward, const _vec& worldUp);
+	static float WrapToPi(float rad);
+	static _uint ComputeIdxStride(DXGI_FORMAT fmt);
+
+	// ------------------------------------------------------
+	static float Clamp(float v, float lo, float hi);
+	static float SignedAngRad2D(const _float2& a, const _float2& b);
+	static _float2 Rotate2D(const _float2& v, float ang);
+	static _float2 Normalize(float x, float z);
 };
 
 NS_END

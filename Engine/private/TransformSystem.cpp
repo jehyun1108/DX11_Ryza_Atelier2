@@ -3,7 +3,7 @@
 static void ImGui_ShowMatrix4x4(const char* label, const _float4x4& m)
 {
 #ifdef USE_IMGUI
-	if (ImGui::TreeNodeEx(label,ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_AllowItemOverlap))
+	if (ImGui::TreeNodeEx(label,ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_AllowItemOverlap))
 	{
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.6f);
@@ -27,22 +27,6 @@ static void ImGui_ShowMatrix4x4(const char* label, const _float4x4& m)
 
 namespace
 {
-	struct MoveInfo { _uint axis; float sign; };
-	constexpr MoveInfo moveDir[(size_t)MOVE::END] = 
-	{
-		{0,  1.f}, {0, -1.f}, // Forward, Back
-		{1, -1.f}, {1,  1.f}, // Left, Right
-		{2,  1.f}, {2, -1.f}, // Up , Down
-	};
-
-	inline _vec GetAxisVec(const TransformData& tf, _uint axis)
-	{
-		const _vec quat = XMLoadFloat4(&tf.rot);
-		if (axis == 0) return XMVector3Rotate(Utility::Look(),  quat);
-		if (axis == 1) return XMVector3Rotate(Utility::Right(), quat);
-		               return XMVector3Rotate(Utility::Up(),    quat);
-	}
-	
 	inline _vec MakeYawPitchQuat(float yawRad, float pitchRad)
 	{
 		// 1. Yaw/Pitch로 부터 Look 벡터 직접 생성
@@ -89,6 +73,14 @@ namespace
 			return XMQuaternionIdentity();
 		return XMQuaternionNormalize(quat);
 	}
+
+	static float ComputeYawRadWorldForward(const _float3& worldForward)
+	{
+		// +Z가 0rad, +X가 +90°가 되도록 atan2(x, z) 사용
+		return atan2f(worldForward.x, worldForward.z);
+	}
+
+	static constexpr int modelForwardSign = -1; // +Z ? -Z?
 }
 
 Handle TransformSystem::Create(EntityID owner, const TransformDesc& desc)
@@ -103,7 +95,6 @@ Handle TransformSystem::Create(EntityID owner, const TransformDesc& desc)
 	if (desc.pos)      tf.pos = desc.pos.value();
 	if (desc.scale)    tf.scale = desc.scale.value();
 	if (desc.rot)      tf.rot = desc.rot.value();
-	if (desc.speed)    tf.speed = desc.speed.value();
 	if (desc.rotSpeed) tf.rotSpeed = desc.rotSpeed.value();
 
 	return handle;
@@ -111,7 +102,7 @@ Handle TransformSystem::Create(EntityID owner, const TransformDesc& desc)
 
 void TransformSystem::Update(float dt)
 {
-	ForEachAlive([&](_uint, TransformData& tf) 
+	ForEachAliveEx([&](Handle handle, EntityID owner, TransformData& tf)
 		{
 			if (tf.dirty)
 				UpdateWorld(tf);
@@ -150,6 +141,22 @@ void TransformSystem::SetPos(Handle handle, float x, float y, float z)
 	}
 }
 
+void TransformSystem::SetPos(Handle handle, _float3 pos)
+{
+	if (auto tf = Get(handle))
+	{
+		tf->pos = pos;
+		tf->dirty = true;
+	}
+}
+
+_float3 TransformSystem::GetPos(Handle handle) const
+{
+	if (auto tf = Get(handle))
+		return tf->pos;
+	return {};
+}
+
 void TransformSystem::SetScale(Handle handle, _fvec scale)
 {
 	if (auto tf = Get(handle))
@@ -172,7 +179,7 @@ void TransformSystem::SetEuler(Handle handle, float pitch, float yaw, float roll
 {
 	if (auto tf = Get(handle))
 	{
-		const float rPitch = XMConvertToRadians(pitch);
+     	const float rPitch = XMConvertToRadians(pitch);
 		const float rYaw   = XMConvertToRadians(yaw);
 		const float rRoll  = XMConvertToRadians(roll);
 		
@@ -203,52 +210,134 @@ void TransformSystem::SetQuat(Handle handle, _fvec quat)
 	}
 }
 
-void TransformSystem::AddRotation(Handle handle, _fvec axis, float radian)
+void TransformSystem::SetForwardXZ(Handle handle, const _float3& worldPos)
 {
 	if (auto tf = Get(handle))
 	{
-		_vec vAxis = axis;
-		const float len2 = XMVectorGetX(XMVector3LengthSq(vAxis));
+		_float3 forwardXZ{ worldPos.x, 0.f, worldPos.z };
+		const float lenSq = forwardXZ.x * forwardXZ.x + forwardXZ.z * forwardXZ.z;
+		if (lenSq < 1e-8f) return;
+		const float invLen = 1.f / sqrtf(lenSq);
+		forwardXZ = { forwardXZ.x * invLen, 0.f, forwardXZ.z * invLen };
 
-		if (len2 < 1e-20f || !isfinite(radian)) return;
+		const _float3 upWorld{ 0.f, 1.f, 0.f };
 
-		vAxis      = XMVector3Normalize(vAxis);
-		_vec delta = XMQuaternionRotationAxis(vAxis, radian);
+		_vec vForward = XMLoadFloat3(&forwardXZ);
+		vForward = XMVectorScale(vForward, static_cast<float>(modelForwardSign));
+		_vec vUp = XMLoadFloat3(&upWorld);
+		_vec vRight = XMVector3Normalize(XMVector3Cross(vUp, vForward));
 
-		_vec cur = QuatNormalize(XMLoadFloat4(&tf->rot));
-		_vec out = XMQuaternionNormalize(XMQuaternionMultiply(delta, cur)); 
-		XMStoreFloat4(&tf->rot, out);
+		if (XMVectorGetX(XMVector3LengthSq(vRight)) < 1e-12f)
+		{
+			_vec vAlt = Utility::Right();
+			vRight = XMVector3Normalize(XMVector3Cross(vAlt, vForward));
+		}
+		_vec vUpOrtho = XMVector3Normalize(XMVector3Cross(vForward, vRight));
+
+		_mat rotMat = XMMatrixIdentity();
+		rotMat.r[0] = vRight;
+		rotMat.r[1] = vUpOrtho;
+		rotMat.r[2] = vForward;
+
+		_vec quat = XMQuaternionNormalize(XMQuaternionRotationMatrix(rotMat));
+		XMStoreFloat4(&tf->rot, quat);
 		tf->dirty = true;
 	}
 }
 
-void TransformSystem::AddRotation(Handle handle, _fvec deltaQuat)
+void TransformSystem::SetForward(Handle handle, const _float3& worldPos, const _float3& upWorld)
 {
 	if (auto tf = Get(handle))
 	{
-		_vec quat = QuatNormalize(deltaQuat);
-		_vec cur = QuatNormalize(XMLoadFloat4(&tf->rot));
-		_vec out = XMQuaternionNormalize(XMQuaternionMultiply(quat, cur));
-		XMStoreFloat4(&tf->rot, out);
+		_vec vForward = XMLoadFloat3(&const_cast<_float3&>(worldPos));
+		vForward = XMVectorScale(vForward, static_cast<float>(modelForwardSign));
+		const float fLen = XMVectorGetX(XMVector3Length(vForward));
+		if (fLen < 1e-8f) return;
+		vForward = XMVectorScale(vForward, 1.f / fLen);
+
+		_vec vUp = XMLoadFloat3(&const_cast<_float3&>(upWorld));
+		const float uLen = XMVectorGetX(XMVector3Length(vUp));
+		vUp = (uLen < 1e-8f) ? Utility::Up() : XMVectorScale(vUp, 1.f / uLen);
+
+		_vec vRight = XMVector3Normalize(XMVector3Cross(vUp, vForward));
+		if (XMVectorGetX(XMVector3LengthSq(vRight)) < 1e-12f)
+		{
+			_vec vAlt = Utility::Right();
+			vRight = XMVector3Normalize(XMVector3Cross(vAlt, vForward));
+		}
+		_vec vUpOrtho = XMVector3Normalize(XMVector3Cross(vForward, vRight));
+
+		_mat rotMat = XMMatrixIdentity();
+		rotMat.r[0] = vRight;
+		rotMat.r[1] = vUpOrtho;
+		rotMat.r[2] = vForward;
+
+		_vec quat = XMQuaternionNormalize(XMQuaternionRotationMatrix(rotMat));
+		XMStoreFloat4(&tf->rot, quat);
 		tf->dirty = true;
 	}
 }
 
-void TransformSystem::SetSpeed(Handle handle, float speed)
+_float2 TransformSystem::GetForwardXZ(Handle handle) const
 {
-	if (auto tf = Get(handle))
-		tf->speed = speed;
+	const _float3 fwd = GetForward(handle);
+	_float2 fwdXZ{ fwd.x, fwd.z };
+
+	const float lenSq = fwdXZ.x * fwdXZ.x + fwdXZ.y * fwdXZ.y;
+	if (lenSq < 1e-8f)
+		return _float2(0.f, 1.f); 
+
+	const float invLen = 1.f / sqrtf(lenSq);
+	return _float2{ fwdXZ.x * invLen, fwdXZ.y * invLen };
 }
 
-void TransformSystem::Move(Handle handle, MOVE move, float dt)
+_float3 TransformSystem::GetForward(Handle handle) const
+{
+	const auto tf = Get(handle);
+	if (!tf)
+		return _float3(0.f, 0.f, 1.f);
+
+	const _vec quat = XMLoadFloat4(&tf->rot);
+	_vec worldLook = XMVector3Rotate(Utility::Look(), quat);
+	worldLook = XMVectorScale(worldLook, static_cast<float>(modelForwardSign));
+
+	_float3 forward{};
+	XMStoreFloat3(&forward, worldLook);
+	return forward; 
+}
+
+_float4 TransformSystem::GetRot(Handle handle) const
+{
+	if (auto tf = Get(handle))
+		return tf->rot;
+	return {};
+}
+
+void TransformSystem::AddWorldOffset(Handle handle, const _float3& dtWorld)
 {
 	if (auto tf = Get(handle))
 	{
-		const auto info = moveDir[(size_t)move];
-		const _vec dir = GetAxisVec(*tf, info.axis);
 		_vec pos = XMLoadFloat3(&tf->pos);
-		pos = XMVectorMultiplyAdd(dir, XMVectorReplicate(tf->speed * dt * info.sign), pos);
+		_vec deltaVec = XMLoadFloat3(&dtWorld);
+		pos = XMVectorAdd(pos, deltaVec);
 		XMStoreFloat3(&tf->pos, pos);
+		tf->dirty = true;
+	}
+}
+
+void TransformSystem::AddLocalOffset(Handle handle, const _float3& dtLocal)
+{
+	if (auto tf = Get(handle))
+	{
+		// LocalDt 를 현재 회전에 맞춰 월드dt 로 회전
+		_vec vLocalDt = XMLoadFloat3(&const_cast<_float3&>(dtLocal));
+		_vec vRot = XMLoadFloat4(&tf->rot);
+		_vec vWorldDt = XMVector3Rotate(vLocalDt, vRot);
+
+		_vec vPos = XMLoadFloat3(&tf->pos);
+		vPos = XMVectorAdd(vPos, vWorldDt);
+
+		XMStoreFloat3(&tf->pos, vPos);
 		tf->dirty = true;
 	}
 }
@@ -315,6 +404,48 @@ const _float4x4* TransformSystem::GetWorld(Handle handle) const
 {
 	auto tf = Get(handle);
 	return tf ? &tf->world : nullptr;
+}
+
+PlanarBasisXZ TransformSystem::GetPlanarBasisXZ(Handle handle) const
+{
+	PlanarBasisXZ out{};
+	const auto tf = Get(handle);
+	if (!tf) return out;
+
+	const _vec vRot = XMLoadFloat4(&tf->rot);
+	_vec vRight = XMVector3Rotate(Utility::Right(), vRot);
+	_vec vLook  = XMVector3Rotate(Utility::Look(), vRot);
+
+	_float3 right, forward;
+	XMStoreFloat3(&right, vRight);
+	XMStoreFloat3(&forward, vLook);
+
+	// y = 0 평면 투영 -> (x,z)
+	_float2 rightXZ   = { right.x, right.z };
+	_float2 forwardXZ = { forward.x, forward.z };
+
+	rightXZ   = Utility::Normalize(rightXZ);
+	forwardXZ = Utility::Normalize(forwardXZ);
+
+	// 카메라가 거의 수직일 때 look.xz 가 0에 가까울수 있음 -> right 기반으로 forward 재구성
+	if (forwardXZ.x * forwardXZ.x + forwardXZ.y * forwardXZ.y <= 1e-12f)
+		forwardXZ = _float2{ -rightXZ.y, rightXZ.x };
+
+	{
+		// forward를 right에 직교화(2D 기준) 후 다시 정규화 (하면 깔끔함)
+		const float dot2 = forwardXZ.x * rightXZ.x + forwardXZ.y * rightXZ.y;
+		forwardXZ = _float2{ forwardXZ.x - dot2 * rightXZ.x, forwardXZ.y - dot2 * rightXZ.y };
+		forwardXZ = Utility::Normalize(forwardXZ);
+
+		// 만약 여전히 0이라면, 다시 right 에서 직교 생성
+		if (forwardXZ.x * forwardXZ.x + forwardXZ.y * forwardXZ.y <= 1e-12f)
+			forwardXZ = _float2{ -rightXZ.y, rightXZ.x };
+	}
+
+	out.rightXZ   = rightXZ;
+	out.forwardXZ = forwardXZ;
+	
+	return out;
 }
 
 _vec TransformSystem::GetRight(Handle handle) const

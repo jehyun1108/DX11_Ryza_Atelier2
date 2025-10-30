@@ -3,6 +3,7 @@
 #include "IOwnsEntities.h"
 #include "IGuiRenderable.h"
 #include "IReservable.h"
+#include "IModeOrchestra.h"
 
 NS_BEGIN(Engine)
 

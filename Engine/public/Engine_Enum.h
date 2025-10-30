@@ -2,20 +2,21 @@
 
 namespace Engine
 {
-    enum class LAYER            { CAMERA, TERRAIN, MAPOBJ, PLAYER, SOCKET, MONSTER, EFFECT, UI, END};
+    enum class LAYER            { SKYBOX, CAMERA, TERRAIN, MAPOBJ, PLAYER, SOCKET, MONSTER, EFFECT, UI, END};
 	enum class TIMER            { DEFAULT, FPS60, FPS144, COUNT };
 	enum class WINMODE          { FULL, WIN, END};
 	enum class STATE            { RIGHT, UP, LOOK,  END };
 	enum class MOVE             { FORWARD, BACK, LEFT, RIGHT, UP, DOWN, END };
-    enum class CBUFFERSLOT      { CAMERA, OBJ, LIGHT, BONE, END};
+    enum class CBUFFERSLOT      { CAMERA, OBJ, LIGHT, BONE, SKY, TS, END};
     enum class RASTERIZER       { CULLBACK, CULLFRONT, CULLNONE, WIREFRAME, END};
-    enum class BLENDSTATE       { Opaque, ALPHABLEND, ADDITIVE, END };
+    enum class BLENDSTATE       { Opaque, ALPHABLEND, ADDITIVE, PM_ALPHA, END };
     enum class DEPTHSTATE       { DEFAULT, DEPTHSTENCILWRITE, DEPTHSTENCIL_NOEQUAL, NO_DEPTHTEST, NO_DEPTHWRITE, NO_DEPTHWRITE_LESSEQUAL, END};
     enum class SAMPLER          { POINT, LINEAR, ANISOTROPIC, SHADOW, END};
     enum class LIGHT            { DIRECTIONAL, POINT, SPOT, END};
     enum class INTERPOLATION    { LINEAR, STEP, CUBICSPLINE, END };
     enum class ANIMTYPE         { ONCE, LOOP, PINGPONG, END };
     enum class ANIMBLEND        { OVERRIDE, ADDITIVE, END};
+    enum class SkyTextureType   { CubeMap, Equirect2D };
     enum class TextureColorSpace
     {
         sRGB, // Albedo, UI, Sky 등 "눈에 보이는 색"

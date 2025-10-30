@@ -21,7 +21,7 @@ public:
 	EntityID                       GetHovered()            const { return hovered; }
 
 	// Control
-	void ClearSelection();
+	void ClearSelection() { selected.clear(); }
 	void SelectOnly(EntityID id);
 	void ToggleSelect(EntityID id);
 
@@ -37,7 +37,6 @@ private:
 	// Util
 	static bool RayPlaneIntersect(const _float3& origin, const _float3& dir, const _float3& pos, const _float3& normal, _float3& outHit);
 	static float Snap(float v, float step, float origin = 0.f);
-
 
 private:
 	SelectionContext        context{};

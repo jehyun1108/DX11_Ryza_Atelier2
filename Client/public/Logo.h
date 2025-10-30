@@ -12,10 +12,7 @@ public:
 	virtual void Render() override;
 
 private:
-	void LoadResources();
-	void AddMaterials();
 
-private:
 };
 
 NS_END

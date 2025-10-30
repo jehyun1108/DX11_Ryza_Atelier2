@@ -3,7 +3,7 @@
 Level::Level()
 	:registry(game.GetRegistry()), 
 	entityMgr(game.GetEntityMgr()), 
-	spawner(registry, entityMgr), 
+	spawner(registry, entityMgr, game.GetAssetSystem()), 
 	assets(game.GetAssetSystem()),
 	gridSys(registry.Get<GridSystem>()),
 	camSys(registry.Get<CameraSystem>()),
@@ -13,8 +13,12 @@ Level::Level()
 	modelSys(registry.Get<ModelSystem>()),
 	pickSys(registry.Get<PickingSystem>()),
 	selectSys(registry.Get<SelectionSystem>()),
-	collisionSys(registry.Get<CollisionSystem>())
-
+	collisionSys(registry.Get<CollisionSystem>()),
+	inputSerivce(game.GetInputService()),
+	fieldAnimSys(registry.Get<FieldAnimSystem>()),
+	faceAnimSys(registry.Get<FacingSystem>()),
+	fieldCtrlSys(registry.Get<FieldControllerSystem>()),
+	charaDataSys(registry.Get<CharacterDataSystem>())
 {
 	device = game.GetDevice();
 	context = game.GetContext();

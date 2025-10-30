@@ -28,6 +28,5 @@ void InspectorPanel::Draw()
 		system->RenderGui(id);
 		ImGui::PopID();
 	}
-	//ImGui::PopID();
 #endif
 }

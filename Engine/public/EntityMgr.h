@@ -14,23 +14,26 @@ public:
 	void     FlushDestroy();
 
 	// 유틸
-	bool IsAlive(EntityID id) const { return alive.count(id) > 0; }
-	void Reserve(size_t n)          { freeList.reserve(n); }
+	bool IsAlive(EntityID id) const;
+	void Reserve(size_t n);
 
 	template<typename Func>
 	void ForEachAlive(Func&& func) const
 	{
-		for (auto id : alive) 
+		for (auto id : aliveIndices)
 			func(id);
 	}
 
 	void Clear();
 
 private:
-	vector<EntityID>        freeList;
-	unordered_set<EntityID> alive;
-	vector<EntityID>        deferred; // 지연 파괴목록			      	   
-	EntityID                nextID = 1;
+	static constexpr _uint invalidIdx = 0xFFFFFFFFu;
+	EntityID          nextID = 1;
+	
+	vector<EntityID>  freeList;
+	vector<EntityID>  deferred;	      	   
+	vector<EntityID> aliveIndices;
+	vector<_uint>    sparseIndices;
 
 	SystemRegistry&         registry;
 };

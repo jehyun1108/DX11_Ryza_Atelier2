@@ -1,27 +1,26 @@
 #include "Enginepch.h"
 
-Handle SocketSystem::Create(EntityID owner, Handle childTf, Handle parentAnim, const string& boneName, const _float3& offsetPos, const _float3& offsetRot)
+Handle SocketSystem::Create(EntityID owner, Handle childTf, Handle parentAnim, Handle parentTf, const string& boneName, const _float3& offsetPos, const _float3& offsetRot)
 {
 	auto& animSys = registry.Get<AnimatorSystem>();
 	const _uint boneIdx = animSys.GetBoneIdxByName(parentAnim, boneName);
 	assert(boneIdx != static_cast<_uint>(-1) && "SocketSystem: bone name not found");
 	if (boneIdx == static_cast<_uint>(-1)) return {};
 
-	return Create(owner, childTf, parentAnim, boneIdx, offsetPos, offsetRot);
+	return Create(owner, childTf, parentAnim, parentTf, boneIdx, offsetPos, offsetRot);
 }
 
-Handle SocketSystem::Create(EntityID owner, Handle childTf, Handle parentAnim, _uint boneIdx, const _float3& offsetPos, const _float3& offsetRot)
+Handle SocketSystem::Create(EntityID owner, Handle childTf, Handle parentAnim, Handle parentTf, _uint boneIdx, const _float3& offsetPos, const _float3& offsetRot)
 {
 	auto handle        = CreateComp(owner);
 	auto& socket       = *Get(handle);
 	socket             = {};
 	socket.childTf     = childTf;
 	socket.parentAnim  = parentAnim;
+    socket.parentTf    = parentTf;
 	socket.boneIdx     = boneIdx;
-
     socket.offsetPos   = offsetPos;
     socket.offsetRot   = offsetRot;
-
     RebuildOffset(socket);
 	return handle;
 }
@@ -55,7 +54,7 @@ void SocketSystem::SetOffsetPos(Handle handle, _float3 pos)
 
 void SocketSystem::SetOffsetRot(Handle handle, _float3 euler)
 {
-	if (auto socket = pool.Get(handle))
+	if (auto socket = Get(handle))
 	{
 		socket->offsetRot = euler;
 		socket->offsetDirty = true;
@@ -67,20 +66,27 @@ void SocketSystem::Update(float dt)
 	auto& animSys = registry.Get<AnimatorSystem>();
 	auto& tfSys   = registry.Get<TransformSystem>();
 
-	ForEachAlive([&](auto, SocketData& socket)
+	ForEachAliveEx([&](Handle handle, EntityID owner, SocketData& socket)
 		{
 			if (socket.offsetDirty) RebuildOffset(socket);
 
-			const auto pBoneWorld = animSys.GetBoneWorld(socket.parentAnim, socket.boneIdx);
+			const _float4x4* pBoneWorld = animSys.GetBoneWorld(socket.parentAnim, socket.boneIdx);
 			if (!pBoneWorld) return;
 
-			const _mat boneWorld = XMLoadFloat4x4(pBoneWorld);
-			const _mat offset    = XMLoadFloat4x4(&socket.offsetMat);
+            const _float4x4* pParentWorld = tfSys.GetWorld(socket.parentTf);
+            if (!pParentWorld) return;
 
-			const _float3 vScale = tfSys.GetScale(socket.childTf);
-			const _mat scale     = XMMatrixScaling(vScale.x, vScale.y, vScale.z);
+			const _mat boneWorld   = XMLoadFloat4x4(pBoneWorld);
+            const _mat parentWorld = XMLoadFloat4x4(pParentWorld);
+			const _mat offset      = XMLoadFloat4x4(&socket.offsetMat);
 
-			const _mat world = scale * offset * boneWorld;
+            const bool removeScale = true;
+            const _mat boneMat = removeScale ? Utility::RemoveScaleKeepRotTrans(boneWorld) : boneWorld;
+            
+            const _float3 vScale = tfSys.GetScale(socket.childTf);
+            const _mat mScale = XMMatrixScaling(vScale.x, vScale.y, vScale.z);
+
+            const _mat world = mScale * offset * boneMat * parentWorld;
 			tfSys.SetWorld(socket.childTf, world);
 		});
 }

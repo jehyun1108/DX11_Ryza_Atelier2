@@ -16,7 +16,8 @@ public:
 	static InputLayoutBuilder MakePNUTan();
 	static InputLayoutBuilder MakePNUTanSkin();
 	static InputLayoutBuilder MakeInstancedPNUTan();
-	static InputLayoutBuilder MakeVertexColor();
+	static InputLayoutBuilder MakePC();
+	static InputLayoutBuilder MakePU();
 
 private:
 	static void FillElement(VtxAttribute attr, _uint semanticIdx, _uint slot, _uint stepRate, D3D11_INPUT_ELEMENT_DESC& out);

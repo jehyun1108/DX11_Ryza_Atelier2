@@ -18,20 +18,28 @@ public:
 protected:
 	ID3D11Device*    device{};
 	ID3D11DeviceContext* context{};
-	GameInstance&    game = GameInstance::GetInstance();
-	SystemRegistry&  registry;
-	EntityMgr&       entityMgr;
-	EntitySpawner    spawner;
-	AssetSystem&     assets;
-	GridSystem&      gridSys;
-	CameraSystem&    camSys;
-	TagSystem&       tagSys;
-	LayerSystem&     layerSys;
-	TransformSystem& tfSys;
-	ModelSystem&     modelSys;
-	PickingSystem&   pickSys;
-	SelectionSystem& selectSys;
-	CollisionSystem& collisionSys;
+	GameInstance&     game = GameInstance::GetInstance();
+	SystemRegistry&   registry;
+	EntityMgr&        entityMgr;
+	EntitySpawner     spawner;
+	AssetSystem&      assets;
+	GridSystem&       gridSys;
+	CameraSystem&     camSys;
+	TagSystem&        tagSys;
+	LayerSystem&      layerSys;
+	TransformSystem&  tfSys;
+	ModelSystem&      modelSys;
+	PickingSystem&    pickSys;
+	SelectionSystem&  selectSys;
+	CollisionSystem&  collisionSys;
+	InputService&     inputSerivce;
+	FieldAnimSystem&  fieldAnimSys;
+	FacingSystem& faceAnimSys;
+	FieldControllerSystem& fieldCtrlSys;
+	CharacterDataSystem&   charaDataSys;
+
+	EntityID      playerID{};
+	EntityHandles playerHandle{};
 };
 
 NS_END

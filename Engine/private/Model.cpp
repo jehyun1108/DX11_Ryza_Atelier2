@@ -34,11 +34,11 @@ HRESULT Model::InitFromFile(const wstring& fullPath)
 
     filesystem::path modelDir = filesystem::path(fullPath).parent_path();
 
-    Utility::ReadData(inFile, isSkeletalModel);
+    Utility::ReadData(inFile, isSkinned);
     ReadMaterials(inFile, modelDir);
     ReadMeshes(inFile);
 
-    if (isSkeletalModel)
+    if (isSkinned)
     {
         ReadSkeletons(inFile);
         ReadAnimations(inFile);
@@ -224,6 +224,64 @@ void Model::ReadAnimations(ifstream& inFile)
     }
 }
 
+void Model::TryNormalFromDiffuseMap(Material& targetMaterial, const wstring& diffuseFullPath, const wstring& baseKey)
+{
+    if (diffuseFullPath.empty()) return;
+
+    const filesystem::path sibling = Utility::MakeNormalMapPath(diffuseFullPath);
+    if (sibling.empty()) return;
+    if (Utility::FileExists(sibling)) return;
+
+    auto& assets = game.GetAssetSystem();
+
+    const wstring normalStem = Utility::Normalize(sibling.stem().wstring());
+    const wstring normalKey = baseKey + L"/" + normalStem;
+
+    assets.RegisterTexture(normalKey, { sibling.wstring(), TextureColorSpace::Linear });
+    targetMaterial.SetTextureKey(TEXSLOT::NORMAL, normalKey, SHADER::PS);
+}
+
+void Model::BuildBindPose(const Skeleton& skeleton, vector<_float4x4>& out)
+{
+    const size_t boneCount = skeleton.bonesByIdx.size();
+    out.resize(boneCount);
+
+    vector<_float4x4> combinedBind(boneCount);
+    for (size_t i = 0; i < boneCount; ++i)
+        XMStoreFloat4x4(&combinedBind[i], XMMatrixIdentity());
+
+    function<void(Bone*, const _float4x4&)> dfs;
+    dfs = [&](Bone* curBone, const _float4x4& parentCombined)
+        {
+            _mat parentMat   = XMLoadFloat4x4(&parentCombined);
+            _mat localMat    = XMLoadFloat4x4(&curBone->bindLocal);
+            _mat combinedMat = XMMatrixMultiply(parentMat, localMat);
+
+            XMStoreFloat4x4(&combinedBind[curBone->idx], combinedMat);
+
+            for (Bone* child : curBone->children)
+                dfs(child, combinedBind[curBone->idx]);
+        };
+
+    _float4x4 identityMat{};
+    XMStoreFloat4x4(&identityMat, XMMatrixIdentity());
+
+    if (skeleton.rootBone)
+        dfs(skeleton.rootBone, identityMat);
+
+    for (size_t i = 0;  i < boneCount; ++i)
+    {
+        const _float4x4& combinedBindMat = combinedBind[i];
+        const _float4x4& invBindPose     = skeleton.bonesByIdx[i]->invBindPose;
+
+        const _mat combinedMat = XMLoadFloat4x4(&combinedBindMat);
+        const _mat invBindMat  = XMLoadFloat4x4(&invBindPose);
+        const _mat skinMat     = XMMatrixMultiply(combinedMat, invBindMat);
+
+        XMStoreFloat4x4(&out[i], skinMat);
+    }
+}
+
 void Model::FinalSetUp()
 {
     // Shader Á¤¸®
@@ -233,7 +291,7 @@ void Model::FinalSetUp()
         if (!mesh) continue;
 
         const VertexLayoutID layout = mesh->GetLayoutID();
-        const wchar_t* shaderKey = (layout == VertexLayoutID::PNUTanSkin) ? L"PNUTanSkin" : L"PNUTan";
+        const wchar_t* shaderKey = (layout == VertexLayoutID::PNUTanSkin) ? L"PNUTanSKin_TS" : L"PNUTan";
 
         auto mtrl = part.material ? part.material->Clone() : make_shared<Material>();
         mtrl->SetShaderKey(shaderKey);
@@ -267,7 +325,7 @@ void Model::FinalSetUp()
 
     // AnimClip
     clipTable.clear();
-    if (isSkeletalModel)
+    if (isSkinned)
     {
         for (auto& clip : animClips)
         {
@@ -275,4 +333,6 @@ void Model::FinalSetUp()
             clipTable[name] = clip.get();
         }
     }
+    if (skeleton)
+        BuildBindPose(*skeleton, bindPoseMatrices);
 }

@@ -48,7 +48,7 @@
     <ClInclude Include="..\public\Logo.h">
       <Filter>01. Levels\Logo</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\GamePlay.h">
+    <ClInclude Include="..\public\Central.h">
       <Filter>01. Levels\GamePlay</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Loading.h">
@@ -79,7 +79,7 @@
     <ClCompile Include="..\private\Logo.cpp">
       <Filter>01. Levels\Logo</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\GamePlay.cpp">
+    <ClCompile Include="..\private\Central.cpp">
       <Filter>01. Levels\GamePlay</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Loading.cpp">

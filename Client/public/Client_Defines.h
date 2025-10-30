@@ -1,17 +1,21 @@
 #pragma once
 
-// WINX/ WINY : (720/480) , (1280/720), (1920/1080)
-// DefaultX/DefaultY : 2300 / 100 ,       
+// WinX: 1920, 2560, 1440
+// WinY: 1080, 1440, 720
 
 namespace Client
 {
-	static constexpr int WinX = 1920;
-	static constexpr int WinY = 1080;
+	static constexpr int WinX = 2560;
+	static constexpr int WinY = 1440;
+	static constexpr int DefaultX = 1920;
+	static constexpr int DefaultY = 0;
 
-	static constexpr int DefaultX = 2300;
-	static constexpr int DefaultY = 100;
+	//static constexpr int WinX = 1920;
+	//static constexpr int WinY = 1080;
+	//static constexpr int DefaultX = 0;
+	//static constexpr int DefaultY = 0;
 
-	enum class LEVEL {STATIC, LOADING, LOGO, GAMEPLAY, END};
+	enum class LEVEL {STATIC, LOADING, LOGO, CENTRAL, END};
 }
 
 extern HINSTANCE g_hInst;
