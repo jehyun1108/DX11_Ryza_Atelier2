@@ -3,76 +3,75 @@
 NS_BEGIN(Engine)
 struct TimelineActionIntent;
 
-enum class ControllerMode
+enum class CommandMenuPage { Hidden, Primary, Skill };
+enum class SubmitPolicy    { QueueOnly, AutoCommitIfReady };
+
+struct CommandMenuModel
 {
-	Idle, BasicAttack, Skill, Defend, Escape, SwapLeader
+	bool canDefend = true;
+	bool canAttack = true;
+	bool canItemRush = true;
+	bool canFlee = true;
 };
 
-enum class SubmitPolicy
+struct CommandMenuRuntime
 {
-	QueueOnly, AutoCommitIfReady 
+	CommandMenuPage page = CommandMenuPage::Hidden;
 };
 
-enum class PrimaryCommand
+struct PrimaryKeymap
 {
-	None, BasicAttack, Defend, Escape
+	KEY defend = KEY::RBUTTON;
+	KEY item   = KEY::S;
+	KEY flee   = KEY::E;
+	KEY attack = KEY::LBUTTON;
 };
 
-struct PrimaryCommandBindings
+struct SkillKeymap
 {
-	KEY basicAttackKey   = KEY::LBUTTON;
-	KEY defendKey        = KEY::RBUTTON;
-	KEY escapeKey        = KEY::E;
-	KEY openSkillMenuKey = KEY::SPACE;
+	KEY openHold = KEY::SPACE;
+	array<KEY, 4> skillKeys = { KEY::LBUTTON, KEY::RBUTTON, KEY::S, KEY::E };
 };
 
-struct QuickSkillBindings
+struct ControllerKeymap
 {
-	KEY key    = KEY::W;
-	SpecialAnimTag tag = SpecialAnimTag::SkillA;
-	int apCost = 0;
+	PrimaryKeymap primary{};
+	SkillKeymap   skill{};
+};
+
+struct ControllerTuning
+{
+	double escapeHoldNeedSec = 1.0;
 };
 
 struct ControllerConfig
 {
-	SubmitPolicy                 submitPolicy = SubmitPolicy::AutoCommitIfReady;
-	PrimaryCommandBindings       primary{};
-	array<QuickSkillBindings, 4> quickSkills = { {
-		{ KEY::W, SpecialAnimTag::SkillA, 0 },
-		{ KEY::A, SpecialAnimTag::SkillB, 0 },
-		{ KEY::S, SpecialAnimTag::SkillC, 0 },
-		{ KEY::D, SpecialAnimTag::SkillD, 0 },
-		} };
-	int   preBufferCapacity   = 1;
+	SubmitPolicy              submitPolicy = SubmitPolicy::AutoCommitIfReady;
+	array<SpecialAnimTag, 4>  skillTags = { SpecialAnimTag::SkillA, SpecialAnimTag::SkillB, SpecialAnimTag::SkillC, SpecialAnimTag::SkillD };
+	int                       preBufferCapacity = 1;
+	ControllerKeymap          keymap{};
+	ControllerTuning          tuning{};
 }; 
 
-struct BufferedIntent
-{
-	bool hasValue = false;
-	TimelineActionIntent intent{};
-};
+struct BufferedIntent { bool hasValue = false; TimelineActionIntent intent{}; };
 
 struct TurnConstraints
 {
 	unordered_set<SpecialAnimTag> usedTagsThisTurn;
-
-	void ResetForThisTurn()
-	{
-		usedTagsThisTurn.clear();
-	}
+	void ResetForThisTurn() { usedTagsThisTurn.clear();}
 };
 
 struct ControllerRuntime
 {
-	EntityID leaderEntity           = invalidEntity;
-	ControllerMode  mode            = ControllerMode::Idle;
-	PrimaryCommand  selectedPrimary = PrimaryCommand::None;
-
+	EntityID leaderEntity = invalidEntity;
+	CommandMenuModel   menuModel{};
+	CommandMenuRuntime menu{};
 	array<bool, 4> queuedSkillSlotFlags = { false, false, false, false };
-
 	BufferedIntent  buffered{};
 	bool            isExecuting = false;
 	bool            isDefendingHold = false;
+	bool            isEscapeHolding = false;
+	double          escapeHoldStartSec = 0.0;
 	TurnConstraints turn{};
 };
 

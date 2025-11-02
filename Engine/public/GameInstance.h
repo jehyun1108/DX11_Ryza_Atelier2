@@ -154,6 +154,16 @@ private:
 	BattleSessionSystem    battleSessionSys;
 	BattleTimelineSystem   battleTimelineSys;
 	BattleExecutionSystem  battleExecSys;
+	BattleAIControllerSystem battleAICtrlSys;
+
+	// UI
+	UISystem               uiSys;
+	UIRegistry             uiRegistry;
+	UIAnimSystem           uiAnimSys;
+	FieldUIOrchestrator    fieldUIOrchestrator;
+
+	// GameModeDirector
+	GameModeDirectorSystem director;
 };
 
 NS_END

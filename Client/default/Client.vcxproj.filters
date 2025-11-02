@@ -28,6 +28,9 @@
     <Filter Include="01. Levels\Loading\Loader">
       <UniqueIdentifier>{3037183e-5d94-462c-a37e-54051d067575}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AssetData">
+      <UniqueIdentifier>{faae5fa2-c809-41ef-a829-80d7891cfb02}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -56,6 +59,15 @@
     </ClInclude>
     <ClInclude Include="..\public\Loader.h">
       <Filter>01. Levels\Loading\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UILoader.h">
+      <Filter>AssetData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIArchetypeLoader.h">
+      <Filter>AssetData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CharacterUILoader.h">
+      <Filter>AssetData</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

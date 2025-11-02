@@ -4,6 +4,8 @@
 
 NS_BEGIN(Engine)
 
+#ifdef USE_IMGUI
+
 enum class PanelMode {Fixed, Lines, Fill};
 
 class ENGINE_DLL GuiUtility
@@ -16,5 +18,7 @@ public:
 private:
 	static float HeightFromLines(float lines);
 };
+
+#endif
 
 NS_END

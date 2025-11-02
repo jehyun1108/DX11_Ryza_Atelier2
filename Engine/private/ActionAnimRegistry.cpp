@@ -1,6 +1,6 @@
 #include "Enginepch.h"
 
-static constexpr float kFadeDur = 0.1f;
+static constexpr float kFadeDur = 0.05f;
 
 const ActionAnimSpec* ActionAnimRegistry::TryGet(CharacterID character) const
 {
@@ -77,7 +77,10 @@ void ActionAnimRegistry::RegisterPatriciaAnim()
 
 	// 4. Intro
 	RegisterSpecial(CharacterID::Patricia, SpecialAnimTag::Intro, { AnimKey::Battle_StartA, AnimKey::Battle_StartB, AnimKey::Battle_StartC },
-		ActionStage::Preparation, true, kFadeDur);
+		ActionStage::Active, true, kFadeDur);
+
+	// 5. AttackFinished
+	RegisterSpecial(CharacterID::Patricia, SpecialAnimTag::AttackFinished, { AnimKey::Battle_Attack_FinishedA, AnimKey::Battle_Attack_FinishedB, AnimKey::Battle_Attack_FinishedC }, ActionStage::Active, true, kFadeDur);
 }
 
 void ActionAnimRegistry::RegisterRyzaAnim()
@@ -103,35 +106,42 @@ void ActionAnimRegistry::RegisterRyzaAnim()
 		  ActionStage::Active, true, kFadeDur);
 
 	// 4) Intro
-	RegisterSpecial(CharacterID::Ryza, SpecialAnimTag::Intro, { AnimKey::Battle_StartA, AnimKey::Battle_StartB, AnimKey::Battle_StartC }, ActionStage::Preparation,  true, kFadeDur);
+	RegisterSpecial(CharacterID::Ryza, SpecialAnimTag::Intro, 
+		{ AnimKey::Battle_StartA, AnimKey::Battle_StartB, AnimKey::Battle_StartC }, ActionStage::Active,  true, kFadeDur);
+
+	// 5. AttackFinished
+	RegisterSpecial(CharacterID::Ryza, SpecialAnimTag::AttackFinished, { AnimKey::Battle_Attack_FinishedA, AnimKey::Battle_Attack_FinishedB, AnimKey::Battle_Attack_FinishedC }, ActionStage::Active, true, kFadeDur);
 }
 
 void ActionAnimRegistry::RegisterKlaudiaAnim()
 {
 	// 1) Basic
-	RegisterSpecial(CharacterID::Kluadia, SpecialAnimTag::BasicAttack, {AnimKey::Battle_AttackA, AnimKey::Battle_AttackB, AnimKey::Battle_AttackC},
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::BasicAttack, {AnimKey::Battle_AttackA, AnimKey::Battle_AttackB, AnimKey::Battle_AttackC},
 		ActionStage::Active, true, kFadeDur, 0);
 
 	// 2) Skill 
-	RegisterSpecial(CharacterID::Kluadia, SpecialAnimTag::SkillA, { AnimKey::Battle_Skill_A1, AnimKey::Battle_Skill_A2, AnimKey::Battle_Skill_A3 },
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::SkillA, { AnimKey::Battle_Skill_A1, AnimKey::Battle_Skill_A2, AnimKey::Battle_Skill_A3 },
 		ActionStage::Active, true, kFadeDur);
-	RegisterSpecial(CharacterID::Kluadia, SpecialAnimTag::SkillB, { AnimKey::Battle_Skill_B1, AnimKey::Battle_Skill_B2, AnimKey::Battle_Skill_B3 },
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::SkillB, { AnimKey::Battle_Skill_B1, AnimKey::Battle_Skill_B2, AnimKey::Battle_Skill_B3 },
 		ActionStage::Active, true, kFadeDur);
-	RegisterSpecial(CharacterID::Kluadia, SpecialAnimTag::SkillC, { AnimKey::Battle_Skill_C1, AnimKey::Battle_Skill_C2, AnimKey::Battle_Skill_C3 },
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::SkillC, { AnimKey::Battle_Skill_C1, AnimKey::Battle_Skill_C2, AnimKey::Battle_Skill_C3 },
 		ActionStage::Active, true, kFadeDur);
-	RegisterSpecial(CharacterID::Kluadia, SpecialAnimTag::SkillD, { AnimKey::Battle_Skill_D1, AnimKey::Battle_Skill_D2, AnimKey::Battle_Skill_D3 },
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::SkillD, { AnimKey::Battle_Skill_D1, AnimKey::Battle_Skill_D2, AnimKey::Battle_Skill_D3 },
 		ActionStage::Active, true, kFadeDur);
 
 	// 3) Ultimate
-	RegisterSpecial(CharacterID::Kluadia, SpecialAnimTag::Ultimate,
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::Ultimate,
 		{ AnimKey::Battle_Ultimate_Klaudia1, AnimKey::Battle_Ultimate_Klaudia2, AnimKey::Battle_Ultimate_Klaudia3, AnimKey::Battle_Ultimate_Klaudia4,
 		  AnimKey::Battle_Ultimate_Klaudia5, AnimKey::Battle_Ultimate_Klaudia6, AnimKey::Battle_Ultimate_Klaudia7, AnimKey::Battle_Ultimate_Klaudia8,
 		  AnimKey::Battle_Ultimate_Klaudia9 },
 		  ActionStage::Active, true, kFadeDur);
 
 	// 4) Intro
-	RegisterSpecial(CharacterID::Kluadia, SpecialAnimTag::Intro, { AnimKey::Battle_StartA, AnimKey::Battle_StartB, AnimKey::Battle_StartC },
-		ActionStage::Preparation, true, kFadeDur);
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::Intro,  
+		{ AnimKey::Battle_StartA, AnimKey::Battle_StartB, AnimKey::Battle_StartC }, ActionStage::Active, true, kFadeDur);
+
+	// 5. AttackFinished
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::AttackFinished, { AnimKey::Battle_Attack_FinishedA, AnimKey::Battle_Attack_FinishedB, AnimKey::Battle_Attack_FinishedC }, ActionStage::Active, true, kFadeDur);
 }
 
 void ActionAnimRegistry::RegisterAngelAnim()

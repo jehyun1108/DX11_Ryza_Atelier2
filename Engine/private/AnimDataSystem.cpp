@@ -32,6 +32,9 @@ void AnimDataSystem::RegisterDefaultClips()
         { AnimKey::Battle_Attack_FinishedA, L"PC20A_01080" },
         { AnimKey::Battle_Attack_FinishedB, L"PC20A_01081" },
         { AnimKey::Battle_Attack_FinishedC, L"PC20A_01082" },
+        { AnimKey::Battle_Defend_Ready,     L"PC20A_01090" },
+        { AnimKey::Battle_Defending,        L"PC20A_01091" },
+        { AnimKey::Battle_Defend_Finished,  L"PC20A_01092" },
         { AnimKey::Battle_Skill_A1,         L"PC20A_01110" },
         { AnimKey::Battle_Skill_A1,         L"PC20A_01111" },
         { AnimKey::Battle_Skill_A1,         L"PC20A_01112" },
@@ -58,7 +61,7 @@ void AnimDataSystem::RegisterDefaultClips()
     klaudiaField.nameByKey = {
 
     };
-    Register(CharacterID::Kluadia, AnimContext::Field, klaudiaField);
+    Register(CharacterID::Klaudia, AnimContext::Field, klaudiaField);
     // Kluadia Battle
     ClipSet klaudiaBattle{};
     klaudiaBattle.nameByKey = {
@@ -73,6 +76,9 @@ void AnimDataSystem::RegisterDefaultClips()
         { AnimKey::Battle_Attack_FinishedA,   L"PC21A_01080" },
         { AnimKey::Battle_Attack_FinishedB,   L"PC21A_01081" },
         { AnimKey::Battle_Attack_FinishedC,   L"PC21A_01082" },
+        { AnimKey::Battle_Defend_Ready,       L"PC21A_01090" },
+        { AnimKey::Battle_Defending,          L"PC21A_01091" },
+        { AnimKey::Battle_Defend_Finished,    L"PC21A_01092" },
         { AnimKey::Battle_Skill_A1,           L"PC21A_01110" },
         { AnimKey::Battle_Skill_A1,           L"PC21A_01111" },
         { AnimKey::Battle_Skill_A1,           L"PC21A_01112" },
@@ -101,7 +107,7 @@ void AnimDataSystem::RegisterDefaultClips()
         { AnimKey::Battle_StartB,             L"PC21A_03031" },
         { AnimKey::Battle_StartC,             L"PC21A_03032" },
     };
-    Register(CharacterID::Kluadia, AnimContext::Battle, klaudiaBattle);
+    Register(CharacterID::Klaudia, AnimContext::Battle, klaudiaBattle);
     // Patricia Field
     ClipSet patriciaField{};
     patriciaField.nameByKey = {
@@ -122,6 +128,9 @@ void AnimDataSystem::RegisterDefaultClips()
         { AnimKey::Battle_Attack_FinishedA,   L"PC24A_01080" },
         { AnimKey::Battle_Attack_FinishedB,   L"PC24A_01081" },
         { AnimKey::Battle_Attack_FinishedC,   L"PC24A_01082" },
+        { AnimKey::Battle_Defend_Ready,       L"PC24A_01090" },
+        { AnimKey::Battle_Defending,          L"PC24A_01091" },
+        { AnimKey::Battle_Defend_Finished,    L"PC24A_01092" },
         { AnimKey::Battle_Skill_A1,           L"PC24A_01110" },
         { AnimKey::Battle_Skill_A1,           L"PC24A_01111" },
         { AnimKey::Battle_Skill_A1,           L"PC24A_01112" },
@@ -159,6 +168,26 @@ void AnimDataSystem::RegisterDefaultClips()
         { AnimKey::Battle_Skill_A3,  L"MOB02A_01042" },
     };
     Register(CharacterID::Angel, AnimContext::Battle, angelBattle);
+
+    SetDefaultTunings();
+}
+
+void AnimDataSystem::SetDefaultTunings()
+{
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackA, ClipTuning{. startNormalized = 0.05f, .endNormalized = 0.4f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.f, .endNormalized = 0.5f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.f, .endNormalized = 1.f });
+    
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_AttackA, ClipTuning{ .startNormalized = 0.1f, .endNormalized = 0.5f,
+        .playbackSpeed = 1.2f});
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.1f, .endNormalized = 0.5f, 
+        .playbackSpeed = 0.8f});
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.1f, .endNormalized = 1.f,
+        .playbackSpeed = 1.2f});
+
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackA, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 0.6f });
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 0.6f });
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 1.f });
 }
 
 const ClipSet* AnimDataSystem::GetClipSet(CharacterID character, AnimContext context) const
@@ -173,4 +202,18 @@ const wstring& AnimDataSystem::GetClipName(CharacterID character, AnimContext co
     if (const ClipSet* set = GetClipSet(character, context))
         return set->Require(key);
     return empty;
+}
+
+void AnimDataSystem::SetClipTuning(CharacterID character, AnimContext context, AnimKey key, const ClipTuning& tuning)
+{
+    auto it = catalog.find(Key{ character, context });
+    if (it == catalog.end()) return;
+    it->second.tuningByKey[key] = NormalizedTuning(tuning);
+}
+
+ClipTuning AnimDataSystem::GetClipTuning(CharacterID character, AnimContext context, AnimKey key) const
+{
+    if (const ClipSet* set = GetClipSet(character, context))
+        return set->ResolveTuning(key);
+    return ClipTuning{};
 }

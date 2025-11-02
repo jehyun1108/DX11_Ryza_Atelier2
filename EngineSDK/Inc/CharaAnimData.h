@@ -2,7 +2,7 @@
 
 NS_BEGIN(Engine)
 
-enum class CharacterID { Ryza, Kluadia, Patricia, Angel, Unknown };
+enum class CharacterID { Ryza, Klaudia, Patricia, Angel, Unknown };
 enum class AnimContext { Field, Battle };
 enum class AnimKey
 {
@@ -16,10 +16,16 @@ enum class AnimKey
 	// Battle
 	Battle_Idle,
 	Battle_StartA,           Battle_StartB,           Battle_StartC,
+
 	Battle_RunStart,         Battle_RunLoop,          Battle_RunEnd,
+
 	Battle_AttackA,          Battle_AttackB,          Battle_AttackC,
+
+	Battle_Defend_Ready,     Battle_Defending,        Battle_Defend_Finished,
+
 	Battle_Celemony_1A,      Battle_Celemony_1B,
 	Battle_Celemony_2A,      Battle_Celemony_2B,
+
 	Battle_Attack_FinishedA, Battle_Attack_FinishedB, Battle_Attack_FinishedC,
 
 	Battle_Skill_A1, Battle_Skill_A2, Battle_Skill_A3,
@@ -39,15 +45,31 @@ enum class AnimKey
 	Battle_Ultimate_Patricia6, Battle_Ultimate_Patricia7
 };
 
+struct ClipTuning
+{
+	float startNormalized = 0.f;
+	float endNormalized   = 1.f;
+	float playbackSpeed   = 1.f;
+	bool  useRootMotion   = false;
+};
+
 struct ClipSet
 {
-	unordered_map<AnimKey, wstring> nameByKey;
+	unordered_map<AnimKey, wstring>    nameByKey;
+	unordered_map<AnimKey, ClipTuning> tuningByKey;
 
 	const wstring& Require(AnimKey key) const
 	{
 		static const wstring empty = L"";
 		auto it = nameByKey.find(key);
 		return (it != nameByKey.end()) ? it->second : empty;
+	}
+	ClipTuning ResolveTuning(AnimKey key) const
+	{
+		auto it = tuningByKey.find(key);
+		if (it != tuningByKey.end())
+			return it->second;
+		return ClipTuning{};
 	}
 };
 

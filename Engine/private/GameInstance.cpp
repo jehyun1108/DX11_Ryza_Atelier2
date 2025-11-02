@@ -5,7 +5,7 @@ bool GameInstance::inited = false;
 HWND g_hWnd;
 
 GameInstance::GameInstance(PassKey)
-	:entityMgr(registry), tfSys(registry), animatorSys(registry), camSys(registry), lightSys(registry), freeCamSys(registry), faceSys(registry), mouthSys(registry), socketSys(registry), modelSys(registry), layerSys(registry), gridSys(registry), pickingSys(registry), selectionSys(registry), collisionSys(registry), renderSys(registry), moveStateSys(registry), moveProfileSys(registry), moveIntentSys(registry), meshColliderSys(registry), skySys(registry), fieldAnimSys(registry), facingSys(registry),  orbitCamSys(registry), fieldCtrlSys(registry), battleIntroSys(registry), animDataSys(registry), jumpSys(registry), battleSessionSys(registry), fieldSys(registry), battleSys(registry), battleCtrlSys(registry) ,charaDataSys(registry), battleTimelineSys(registry), battleExecSys(registry) {
+	:entityMgr(registry), tfSys(registry), animatorSys(registry), camSys(registry), lightSys(registry), freeCamSys(registry), faceSys(registry), mouthSys(registry), socketSys(registry), modelSys(registry), layerSys(registry), gridSys(registry), pickingSys(registry), selectionSys(registry), collisionSys(registry), renderSys(registry), moveStateSys(registry), moveProfileSys(registry), moveIntentSys(registry), meshColliderSys(registry), skySys(registry), fieldAnimSys(registry), facingSys(registry),  orbitCamSys(registry), fieldCtrlSys(registry), battleIntroSys(registry), animDataSys(registry), jumpSys(registry), battleSessionSys(registry), fieldSys(registry), battleCtrlSys(registry) ,charaDataSys(registry), battleTimelineSys(registry), battleExecSys(registry), uiRegistry(assetSys), uiAnimSys(uiRegistry), uiSys(registry, assetSys,uiRegistry, uiAnimSys), battleSys(registry), fieldUIOrchestrator(registry, uiRegistry, uiSys, uiAnimSys), director(registry, 1), battleAICtrlSys(registry) {
 }
 GameInstance::~GameInstance() = default;
 HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
@@ -56,6 +56,14 @@ HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
 	registry.Register(battleCtrlSys);
 	registry.Register(battleTimelineSys);
 	registry.Register(battleExecSys);
+	registry.Register(uiSys);
+	registry.Register(uiRegistry);
+	registry.Register(uiAnimSys);
+	registry.Register(director);
+	registry.Register(fieldUIOrchestrator);
+	registry.Register(battleAICtrlSys);
+
+	levelMgr = LevelMgr::Create();
 	
 	animDataSys.RegisterDefaultClips();
 	animRegistry.RegisterDefaultAnim();
@@ -65,13 +73,9 @@ HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
 	registry.Register(highlightSys);
 	registry.Register(inputService);
 
-	static GameModeDirectorSystem director{ registry, 1 };
-	registry.Register(director);
-
 	// ----------------------------------
 	registry.Reserve(1024);
-
-	levelMgr    = LevelMgr::Create();
+	
 	input       = InputMgr::Create();
 	renderer    = Renderer::Create();
 	guiMgr      = GuiMgr::Create(registry, entityMgr);
@@ -91,7 +95,7 @@ void GameInstance::UpdateEngine(float dt)
 	levelMgr->Update(dt);
 	// 1. Input Frame 시작 (쿨다운 등 시간 경과)
 	inputService.BeginFrame(dt);
-	registry.Get<GameModeDirectorSystem>().Update(dt);
+	director.Update(dt);
 	// 3. Frame 말에 "한번만" Intent Merge & 적용 -> Collector 비움
 	inputService.EndFrameAndApply(registry);
 	jumpSys.Priority_Update(dt);

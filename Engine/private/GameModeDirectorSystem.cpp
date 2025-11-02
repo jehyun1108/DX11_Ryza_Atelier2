@@ -1,10 +1,7 @@
 #include "Enginepch.h"
 
 GameModeDirectorSystem::GameModeDirectorSystem(SystemRegistry& registry, EntityID fieldLeaderEntity)
-	:registry(registry), fieldSys(registry), battleSys(registry), curMode(GameMode::Field), playerLeader(fieldLeaderEntity)
-{
-	fieldSys.Enter();
-}
+	:registry(registry), fieldSys(registry), battleSys(registry), curMode(GameMode::Field), playerLeader(fieldLeaderEntity){}
 
 void GameModeDirectorSystem::Update(float dt)
 {
@@ -22,9 +19,9 @@ void GameModeDirectorSystem::RequestSwitch(GameMode nextMode)
 
 	switch (curMode)
 	{
-	case GameMode::Field:  fieldSys.Exit();	 break;
-	case GameMode::Battle: battleSys.Exit(); break;
-	case GameMode::Menu:                     break;
+	case GameMode::Field:  fieldSys.Exit();	  break;
+	case GameMode::Battle: battleSys.Exit();  break;
+	case GameMode::Menu:                      break;
 	}
 
 	curMode = nextMode;

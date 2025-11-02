@@ -24,6 +24,12 @@ public:
 	bool            TryGetParams(EntityID entity, CharacterParams& outParams) const;
 	CharacterParams GetParams(EntityID entity) const;
 
+	// UI Textures
+	void                       RegisterUITextures(CharacterID characterId, const CharacterUITextures& textures);
+	const CharacterUITextures* FindUITexturesByCharacter(CharacterID characterId) const;
+	const wstring*             TryGetTextureKey(EntityID entity, UITextureSlot texSlot) const;
+	const CharacterUITextures* FindUITexturesByEntity(EntityID entity) const;
+
 private:
 	SystemRegistry& registry;
 
@@ -31,6 +37,8 @@ private:
 	unordered_map<CharacterID, vector<EntityID>> entitiesByCharacters;
 	unordered_map<CharacterID, EntityID>         entityByCharacter;
 	unordered_map<EntityID, CharacterParams>     paramsByEntity;
+	
+	unordered_map<CharacterID, CharacterUITextures> uiTexturesByCharacter;
 };
 
 NS_END

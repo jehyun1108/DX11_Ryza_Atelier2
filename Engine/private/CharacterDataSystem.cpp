@@ -101,3 +101,32 @@ CharacterParams CharacterDataSystem::GetParams(EntityID entity) const
 		return CharacterParams{};
 	return it->second;
 }
+
+void CharacterDataSystem::RegisterUITextures(CharacterID characterId, const CharacterUITextures& textures)
+{
+	uiTexturesByCharacter[characterId] = textures;
+}
+
+const CharacterUITextures* CharacterDataSystem::FindUITexturesByCharacter(CharacterID characterId) const
+{
+	auto it = uiTexturesByCharacter.find(characterId);
+	return (it == uiTexturesByCharacter.end()) ? nullptr : &it->second;
+}
+
+const wstring* CharacterDataSystem::TryGetTextureKey(EntityID entity, UITextureSlot texSlot) const
+{
+	const CharacterID characterId = GetCharacterID(entity);
+	if (characterId == CharacterID::Unknown) return nullptr;
+
+	const CharacterUITextures* textures = FindUITexturesByCharacter(characterId);
+	if (!textures) return nullptr;
+
+	return textures->TryGet(texSlot);
+}
+
+const CharacterUITextures* CharacterDataSystem::FindUITexturesByEntity(EntityID entity) const
+{
+	const CharacterID characterId = GetCharacterID(entity);
+	if (characterId == CharacterID::Unknown) return nullptr;
+	return FindUITexturesByCharacter(characterId);
+}

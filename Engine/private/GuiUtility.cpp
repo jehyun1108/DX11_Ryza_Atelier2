@@ -1,5 +1,7 @@
 #include "Enginepch.h"
 
+#ifdef USE_IMGUI
+
 void GuiUtility::Badge(const char* text, const ImVec4& color)
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.f);
@@ -41,3 +43,5 @@ float GuiUtility::HeightFromLines(float lines)
     const ImGuiStyle& style = ImGui::GetStyle();
     return lines * ImGui::GetTextLineHeightWithSpacing() + style.WindowPadding.y * 2.f;
 }
+
+#endif

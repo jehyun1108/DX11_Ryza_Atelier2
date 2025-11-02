@@ -33,6 +33,7 @@ private:
 	void    DrawOBBLines(const BoundingOrientedBox& worldOBB, const _float4& color);
 	void    DrawSphere(const _float3& center, float radius, const _float4& color, int segments = 48);
 	void    DrawColliders(const vector<ColliderProxy>& list);
+	void    DrawUI(const vector<UIDrawItem>& items);
 
 	// Skybox
 	void  ApplySkyCull(SkyCull cullMode);
@@ -42,6 +43,7 @@ private:
 private:
 	GameInstance&   game     = GameInstance::GetInstance();
 	SystemRegistry& registry = game.GetRegistry();
+	AssetSystem&    assets   = game.GetAssetSystem();
 	
 	ID3D11Device*        device{};
 	ID3D11DeviceContext* context{};
@@ -59,12 +61,16 @@ private:
 	shared_ptr<CBuffer> boneCBuffer{};
 	shared_ptr<CBuffer> skyCBuffer{};
 	shared_ptr<CBuffer> tsCBuffer{};
+	shared_ptr<CBuffer> uiCBuffer{};
 
 	vector<_float4x4>   identityBones;
 
 	// VertexColor
 	shared_ptr<Shader>   gridShader;
 	shared_ptr<Shader>   skyShader;
+	shared_ptr<Shader>   uiShader;
+
+	unique_ptr<UIMesh> uiMesh;
 
 	// Debug
 	ComPtr<ID3D11Buffer> aabbVB{};

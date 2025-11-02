@@ -13,6 +13,9 @@ public:
 	DXGI_FORMAT        GetBaseFormat() const { return baseFormat; }
 	TextureColorSpace  GetColorSpace() const { return colorSpace; }
 
+	_uint GetWidth()  const { return width; }
+	_uint GetHeight() const { return height; }
+
 private:
 	HRESULT InitFromFile(const wstring& fullPath, TextureColorSpace colorSpace);
 
@@ -22,6 +25,9 @@ private:
 
 	DXGI_FORMAT       baseFormat = DXGI_FORMAT_UNKNOWN;
 	TextureColorSpace colorSpace = TextureColorSpace::sRGB;
+
+	_uint width  = 0;
+	_uint height = 0;
 };
 
 NS_END

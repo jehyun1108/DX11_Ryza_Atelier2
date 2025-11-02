@@ -12,6 +12,8 @@ HRESULT Renderer::Init()
 {
 	device = game.GetDevice();
 	context = game.GetContext();
+	uiMesh = make_unique<UIMesh>();
+	uiMesh->Create(device, 1024);
 
 	cameraCBuffer = CBuffer::Create(sizeof(CameraProxy));
 	lightCBuffer  = CBuffer::Create(sizeof(LightProxy));
@@ -19,10 +21,11 @@ HRESULT Renderer::Init()
 	boneCBuffer   = CBuffer::Create(sizeof(_float4x4) * MAX_BONES);
 	skyCBuffer    = CBuffer::Create(sizeof(SkyCB));
 	tsCBuffer     = CBuffer::Create(sizeof(TessellationCB));
+	uiCBuffer     = CBuffer::Create(sizeof(UICB));
 
-	auto& assets = game.GetAssetSystem();
 	gridShader = assets.GetShader(L"PC");
 	skyShader  = assets.GetShader(L"P");
+	uiShader   = assets.GetShader(L"UI");
 
 	// 1. Rasterizer 
 	{
@@ -47,6 +50,13 @@ HRESULT Renderer::Init()
 		desc.FillMode = D3D11_FILL_SOLID;
 		desc.CullMode = D3D11_CULL_FRONT;
 		HR(device->CreateRasterizerState(&desc, &rasterizerStates[ENUM(RASTERIZER::CULLFRONT)]));
+
+		// UI_Scissor
+		desc.FillMode        = D3D11_FILL_SOLID;
+		desc.CullMode        = D3D11_CULL_NONE;
+		desc.ScissorEnable   = TRUE;
+		desc.DepthClipEnable = TRUE;
+		HR(device->CreateRasterizerState(&desc, &rasterizerStates[ENUM(RASTERIZER::UI_SCISSOR)]));
 	}
 
 	// 2. Blend
@@ -405,6 +415,8 @@ void Renderer::Draw(const RenderScene& scene)
 
 	if (!scene.colliders.empty()) 
 		DrawColliders(scene.colliders); // Collider
+
+	DrawUI(scene.ui.drawItems);
 }
 
 void Renderer::UpdateCBuffers(const RenderScene& scene)
@@ -453,9 +465,7 @@ void Renderer::BindGridState()
 	XMStoreFloat4x4(&objData.world, identity);
 	XMStoreFloat4x4(&objData.invWorld, XMMatrixTranspose(identity));
 
-	objCBuffer->SetData(&objData, sizeof(ObjCB));
-	objCBuffer->Update();
-	objCBuffer->Bind(SHADER::VS, CBUFFERSLOT::OBJ);
+	objCBuffer->UpdateAndBind(objData, SHADER::VS, CBUFFERSLOT::OBJ);
 
 	// ----------------------------------------
 	SetRasterizerState(RASTERIZER::CULLNONE);
@@ -625,6 +635,44 @@ void Renderer::DrawColliders(const vector<ColliderProxy>& list)
 	SetDepthState(DEPTHSTATE::DEFAULT);
 	SetBlendState(BLENDSTATE::Opaque);
 	SetRasterizerState(RASTERIZER::CULLBACK);
+}
+
+void Renderer::DrawUI(const vector<UIDrawItem>& items)
+{
+	if (items.empty()) return;
+
+	SetDepthState(DEPTHSTATE::NO_DEPTHTEST);
+	SetBlendState(BLENDSTATE::ALPHABLEND);
+	SetRasterizerState(RASTERIZER::UI_SCISSOR);
+	
+	const auto& vp = game.GetViewport();
+	const D3D11_RECT fullRect = 
+	{
+		static_cast<LONG>(0),
+		static_cast<LONG>(0),
+		static_cast<LONG>(vp.Width),
+		static_cast<LONG>(vp.Height)
+	};
+	context->RSSetScissorRects(1, &fullRect);
+
+	UICB uiCB{};
+	uiCB.screenW    = vp.Width;
+	uiCB.screenH    = vp.Height;
+	uiCB.invScreenW = 1.f / max(1.f, uiCB.screenW);
+	uiCB.invScreenH = 1.f / max(1.f, uiCB.screenH);
+
+	uiMesh->Bind(context, *uiShader, *uiCBuffer, uiCB);
+	
+	auto resolveTexture = [&](const wstring& textureKey) -> const Texture*
+		{
+			return assets.GetTexture(textureKey).get();
+		};
+
+	uiMesh->Draw(context, items, resolveTexture);
+
+	SetRasterizerState(RASTERIZER::CULLBACK);
+	SetBlendState(BLENDSTATE::Opaque);
+	SetDepthState(DEPTHSTATE::DEFAULT);
 }
 
 void Renderer::ApplySkyCull(SkyCull cullMode)

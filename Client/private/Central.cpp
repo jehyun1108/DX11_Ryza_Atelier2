@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "Central.h"
+#include "UILoader.h"
+#include "CharacterUILoader.h"
 
 unique_ptr<Central> Central::Create()
 {
@@ -25,6 +27,13 @@ HRESULT Central::Init()
 	assets.RegisterModel(L"nightsky", { L"../bin/Resources/Models/Skybox/NightSky/NightSky.model", true });
 
 	assets.RegisterModel(L"angel", { L"../bin/Resources/Models/Angel/Angel.model", true });
+
+	auto& uiRegistry = registry.Get<UIRegistry>();
+	UILoader::RegisterUIResources(assets);
+	UIArchetypeLoader::RegisterUIArchetypes(uiRegistry);
+	CharacterUILoader::RegisterCharacterUIMappings(charaDataSys);
+
+	auto tex = assets.GetTexture(L"patricia_fataldrive");
 	// --------------------------------------------------------------------------------------------------
 	auto ryza = SpawnRyza();
 	playerHandle = ryza;
@@ -63,12 +72,7 @@ HRESULT Central::Init()
 		.WithTag("grid")
 		.Build();
 
-	inputSerivce.SetActiveEntity(playerID);
-	inputSerivce.SetContext(InputContext::Field);
-	inputSerivce.SetFocus(FocusState::None);
-	inputSerivce.ReleaseLock(LockTag::MenuLock);
-	inputSerivce.ReleaseLock(LockTag::CutScene);
-	inputSerivce.SetManualTime(0.f);
+	registry.Get<GameModeDirectorSystem>().Start();
 
 	return S_OK;
 }
@@ -92,10 +96,6 @@ EntityHandles Central::SpawnPatricia()
 		//.WithFace(L"PC24A_Face_Eye_UP", L"PC24A_Face_CloseEye_down")
 		//.WithMouth(L"PC24A_Face_pronunciation")
 		.WithTag("patricia")
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable(LayerUtil::LayerBit(LAYER::PLAYER))
-		.WithSelectable(LayerUtil::LayerBit(LAYER::PLAYER))
 		.WithPlayerMovement()
 		.Build();
 	
@@ -107,10 +107,6 @@ EntityHandles Central::SpawnPatricia()
 		.WithTag("patricia_weapon")
 		.WithModel(L"patricia_weapon")
 		.WithSocket("patricia", "bone_71", _float3(3.f, 3.f, 0.f), _float3(-13.f, 86.f, -1.4f))
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable(LayerUtil::LayerBit(LAYER::PLAYER))
-		.WithSelectable(LayerUtil::LayerBit(LAYER::PLAYER))
 		.Build();
 	
 	return patricia;
@@ -125,14 +121,10 @@ EntityHandles Central::SpawnKlaudia()
 		.WithTag("klaudia")
 		//.WithFace(L"PC21A_Face_Eye_UP", L"PC21A_Face_CloseEye_down")
 		//.WithMouth(L"PC21A_Face_pronunciation")
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable()
-		.WithSelectable()
 		.WithPlayerMovement()
 		.Build();
 
-	charaDataSys.BindEntity(klaudia.entity, CharacterID::Kluadia);
+	charaDataSys.BindEntity(klaudia.entity, CharacterID::Klaudia);
 
 	auto weapon = spawner.NewEntity()
 		.WithTf()
@@ -140,10 +132,6 @@ EntityHandles Central::SpawnKlaudia()
 		.WithModel(L"klaudia_weapon_2")
 		.WithTag("kluadia_weapon_2")
 		.WithSocket("klaudia", "bone_62", _float3(2.f, 2.5f, 0.f), _float3(-103.f, 45.f, 30.f))
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable(LayerUtil::LayerBit(LAYER::PLAYER))
-		.WithSelectable(LayerUtil::LayerBit(LAYER::PLAYER))
 		.Build();
 
 	return klaudia;
@@ -158,10 +146,6 @@ EntityHandles Central::SpawnRyza()
 		//.WithFace(L"", L"")
 		//.WithMouth(L"PC21A_Face_pronunciation")
 		.WithTag("ryza")
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable()
-		.WithSelectable()
 		.WithPlayerMovement()
 		.Build();
 
@@ -173,10 +157,6 @@ EntityHandles Central::SpawnRyza()
 		.WithModel(L"ryza_weapon_4")
 		.WithTag("ryza_weapon_4")
 		.WithSocket("ryza", "bone_63", _float3(1.f, 3.f, 0.f), _float3(0.f, 90.f, 0.f))
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable(LayerUtil::LayerBit(LAYER::SOCKET))
-		.WithSelectable(LayerUtil::LayerBit(LAYER::SOCKET))
 		.Build();
 
 	auto ryza_cap = spawner.NewEntity()
@@ -185,10 +165,6 @@ EntityHandles Central::SpawnRyza()
 		.WithModel(L"ryza_cap")
 		.WithTag("ryza_cap")
 		.WithSocket("ryza", "bone_961", _float3(-4.f, -153.f, 0.f), _float3(0, -90.f, 0.f))
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable(LayerUtil::LayerBit(LAYER::SOCKET))
-		.WithSelectable(LayerUtil::LayerBit(LAYER::SOCKET))
 		.Build();
 
 	return ryza;
@@ -203,7 +179,6 @@ EntityHandles Central::SpawnAngel()
 			.WithTf(TransformDesc{ .pos = initPos[i] }).WithEuler(0.f, 180.f, 0.f).WithScale(3.f, 3.f, 3.f)
 			.WithLayer(LayerUtil::LayerBit(LAYER::MONSTER))
 			.WithModel(L"angel")
-			.WithColliderFromModel()
 			.Build();
 		charaDataSys.BindEntity(angel.entity, CharacterID::Angel);
 	}

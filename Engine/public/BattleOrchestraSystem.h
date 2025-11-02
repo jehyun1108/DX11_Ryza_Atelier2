@@ -3,6 +3,7 @@
 #include "BattleOrchestraData.h"
 
 NS_BEGIN(Engine)
+class BattleUIOrchestrator;
 
 class ENGINE_DLL BattleOrchestraSystem : public IModeOrchestrator
 {
@@ -16,8 +17,8 @@ public:
 	bool BeginBattle(const BattleStartParams& Inparams);
 
 private:
-	void WireSubscriptions();    // 구독 배선
-	void UnwireSubscriptions(); // 구독 해지
+	void WireSubscriptions();   
+	void UnwireSubscriptions(); 
 	void PumpSessionEventsToBus();
 	void PumpTimelineEventsToBus();
 	void TickExecutions(float dt);
@@ -33,6 +34,7 @@ private:
 	vector<BattleEventListenerId> listenerIds;
 
 	unordered_map<EntityID, ExecutionUnitRunTime> execRuntimeByEntity;
+	unique_ptr<BattleUIOrchestrator> uiOrchestrator{};
 };
 
 NS_END

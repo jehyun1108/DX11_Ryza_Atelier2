@@ -2,6 +2,8 @@
 
 NS_BEGIN(Engine)
 
+#ifdef USE_IMGUI
+
 struct ScopedCompact
 {
     explicit ScopedCompact(bool forTable = false,
@@ -29,5 +31,6 @@ struct ScopedCompact
     int count{};
 };
 
+#endif
 
 NS_END

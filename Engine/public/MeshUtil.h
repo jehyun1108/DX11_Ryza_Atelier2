@@ -20,7 +20,6 @@ struct MeshMeta
 	VertexLayoutID           layout        = VertexLayoutID::Unknown;
 	DXGI_FORMAT              idxFmt        = DXGI_FORMAT_R16_UINT;
 	D3D_PRIMITIVE_TOPOLOGY   topology      = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-    D3D_PRIMITIVE_TOPOLOGY   patchTopology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
 
 	// Skeletal Only
 	_uint                    maxBones = 0;

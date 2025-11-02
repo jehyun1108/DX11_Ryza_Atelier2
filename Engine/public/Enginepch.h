@@ -93,6 +93,8 @@ using Microsoft::WRL::ComPtr;
 #include "Utility.h"
 #include "Entity.h"
 #include "InputUtil.h"
+#include "UIData_Enum.h"
+#include "UIData_Struct.h"
 
 #include "SystemRegistry.h"
 #include "ComponentPool.h"
@@ -165,6 +167,7 @@ using Microsoft::WRL::ComPtr;
 #include "BattleTimelineSystem.h"
 #include "BattleExecutionSystem.h"
 #include "BattleControllerSystem.h"
+#include "BattleAIControllerSystem.h"
 
 // BattleAnimSys
 #include "BattleIntroSystem.h"
@@ -182,6 +185,14 @@ using Microsoft::WRL::ComPtr;
 #include "BattleOrchestraSystem.h"
 #include "GameModeDirectorSystem.h"
 
+// UI
+#include "UIMesh.h"
+#include "UIRegistry.h"
+#include "UIAnimSystem.h"
+#include "UISystem.h"
+
+#include "BattleUIOrchestrator.h"
+#include "FieldUIOrchestrator.h"
 // ---- Utility ---------------------
 
 #include "GuiMgr.h"

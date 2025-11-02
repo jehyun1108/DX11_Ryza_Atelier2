@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -193,6 +193,8 @@
     <ClInclude Include="..\public\AssetCache.h" />
     <ClInclude Include="..\public\AssetRegistry.h" />
     <ClInclude Include="..\public\AssetSystem.h" />
+    <ClInclude Include="..\public\BattleAIControllerSystem.h" />
+    <ClInclude Include="..\public\BattleAIData.h" />
     <ClInclude Include="..\public\BattleControllerData.h" />
     <ClInclude Include="..\public\BattleControllerSystem.h" />
     <ClInclude Include="..\public\BattleData.h" />
@@ -208,6 +210,7 @@
     <ClInclude Include="..\public\BattleSessionSystem.h" />
     <ClInclude Include="..\public\BattleTimelineData.h" />
     <ClInclude Include="..\public\BattleTimelineSystem.h" />
+    <ClInclude Include="..\public\BattleUIOrchestrator.h" />
     <ClInclude Include="..\public\BinaryUtil.h" />
     <ClInclude Include="..\public\CBufferTypes.h" />
     <ClInclude Include="..\public\CharaAnimData.h" />
@@ -223,6 +226,7 @@
     <ClInclude Include="..\public\FieldAnimData.h" />
     <ClInclude Include="..\public\FieldAnimSystem.h" />
     <ClInclude Include="..\public\FieldOrchestraSystem.h" />
+    <ClInclude Include="..\public\FieldUIOrchestrator.h" />
     <ClInclude Include="..\public\GameModeDirectorSystem.h" />
     <ClInclude Include="..\public\GpuUtil.h" />
     <ClInclude Include="..\public\GridData.h" />
@@ -331,6 +335,7 @@
     <ClInclude Include="..\public\Singleton.h" />
     <ClInclude Include="..\public\SkyboxData.h" />
     <ClInclude Include="..\public\SkyboxSystem.h" />
+    <ClInclude Include="..\public\TimelineBarPresenter.h" />
     <ClInclude Include="..\public\SocketData.h" />
     <ClInclude Include="..\public\SocketSystem.h" />
     <ClInclude Include="..\public\SystemRegistry.h" />
@@ -338,12 +343,18 @@
     <ClInclude Include="..\public\TagUtil.h" />
     <ClInclude Include="..\public\Texture.h" />
     <ClInclude Include="..\public\TextureUtil.h" />
+    <ClInclude Include="..\public\TimelinePresenterData.h" />
     <ClInclude Include="..\public\TimeMgr.h" />
     <ClInclude Include="..\public\Timer.h" />
     <ClInclude Include="..\public\TransformData.h" />
     <ClInclude Include="..\public\InputLayoutBuilder.h" />
     <ClInclude Include="..\public\TransformSystem.h" />
-    <ClInclude Include="..\public\UIData.h" />
+    <ClInclude Include="..\public\UIAnimSystem.h" />
+    <ClInclude Include="..\public\UIData_Enum.h" />
+    <ClInclude Include="..\public\UIData_Struct.h" />
+    <ClInclude Include="..\public\UIMesh.h" />
+    <ClInclude Include="..\public\UIRegistry.h" />
+    <ClInclude Include="..\public\UIRegistryData.h" />
     <ClInclude Include="..\public\UISystem.h" />
     <ClInclude Include="..\public\Utility.h" />
     <ClInclude Include="..\public\WorldInstanceData.h" />
@@ -356,6 +367,7 @@
     <ClCompile Include="..\private\AnimatorSystem.cpp" />
     <ClCompile Include="..\private\AnimDataSystem.cpp" />
     <ClCompile Include="..\private\AssetSystem.cpp" />
+    <ClCompile Include="..\private\BattleAIControllerSystem.cpp" />
     <ClCompile Include="..\private\BattleControllerSystem.cpp" />
     <ClCompile Include="..\private\BattleEventBus.cpp" />
     <ClCompile Include="..\private\BattleExecutionSystem.cpp" />
@@ -363,6 +375,7 @@
     <ClCompile Include="..\private\BattleOrchestraSystem.cpp" />
     <ClCompile Include="..\private\BattleSessionSystem.cpp" />
     <ClCompile Include="..\private\BattleTimelineSystem.cpp" />
+    <ClCompile Include="..\private\BattleUIOrchestrator.cpp" />
     <ClCompile Include="..\private\BinaryUtil.cpp" />
     <ClCompile Include="..\private\Bone.cpp" />
     <ClCompile Include="..\private\CameraSystem.cpp" />
@@ -378,6 +391,7 @@
     <ClCompile Include="..\private\FacingSystem.cpp" />
     <ClCompile Include="..\private\FieldAnimSystem.cpp" />
     <ClCompile Include="..\private\FieldOrchestraSystem.cpp" />
+    <ClCompile Include="..\private\FieldUIOrchestrator.cpp" />
     <ClCompile Include="..\private\FpsPanel.cpp" />
     <ClCompile Include="..\private\FreeCamSystem.cpp" />
     <ClCompile Include="..\private\GameInstance.cpp" />
@@ -465,12 +479,16 @@
     <ClCompile Include="..\private\Renderer.cpp" />
     <ClCompile Include="..\private\Shader.cpp" />
     <ClCompile Include="..\private\SkyboxSystem.cpp" />
+    <ClCompile Include="..\private\TimelineBarPresenter.cpp" />
     <ClCompile Include="..\private\SocketSystem.cpp" />
     <ClCompile Include="..\private\TagSystem.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />
     <ClCompile Include="..\private\TimeMgr.cpp" />
     <ClCompile Include="..\private\Timer.cpp" />
     <ClCompile Include="..\private\TransformSystem.cpp" />
+    <ClCompile Include="..\private\UIAnimSystem.cpp" />
+    <ClCompile Include="..\private\UIMesh.cpp" />
+    <ClCompile Include="..\private\UIRegistry.cpp" />
     <ClCompile Include="..\private\UISystem.cpp" />
     <ClCompile Include="..\private\Utility.cpp" />
     <ClCompile Include="..\private\WorldSerializer.cpp" />
@@ -568,6 +586,22 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNU_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PUC_PS_UI.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PUC_VS_UI.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

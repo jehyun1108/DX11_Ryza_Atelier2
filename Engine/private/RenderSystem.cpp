@@ -42,7 +42,7 @@ float RenderSystem::CalcCamDist(const _float4x4& world, const CameraProxy& cam) 
 void RenderSystem::BuildScene(RenderScene& out)
 {
 	out.Clear();
-	// 1. Camera SnapShot
+	// 0. Camera SnapShot
 	{
 		auto& camSys = registry.Get<CameraSystem>();
 		Handle mainCam = camSys.GetMainCamHandle();
@@ -50,18 +50,24 @@ void RenderSystem::BuildScene(RenderScene& out)
 		camSys.ExtractCameraProxy(mainCam, cam);
 		out.cam = cam;
 	}
-	// 2. Light SnapShot
+	// 1. Light SnapShot
 	{
 		auto& lightSys = registry.Get<LightSystem>();
 		vector<LightProxy> lights;
 		lightSys.ExtractLightProxies(lights);
 		out.lights = move(lights);
 	}
-	// 2.5 Skybox
+	// 1.5 Skybox
 	{
 		auto& skySys = registry.Get<SkyboxSystem>();
 		skySys.ExtractSkyboxProxies(out.skybox);
 	}
+	// 2. UI
+	{
+		auto& uiSys = registry.Get<UISystem>();
+		uiSys.ExtractUIProxies(out.ui);
+	}
+
 	// 3. ModelParts
 	vector<RenderProxy> proxies;
 	proxies.reserve(1024);

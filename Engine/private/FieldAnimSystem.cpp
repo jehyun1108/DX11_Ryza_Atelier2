@@ -380,8 +380,9 @@ void FieldAnimSystem::PlayKey(LocomotionAnim& loco, AnimKey key, ANIMTYPE type, 
     loco.curClipName = clipName;
     loco.stateElapsed = 0.f;
 
-    if (fadeSec > 0.f)
-        animSys.PlayFade(loco.animHandle, loco.layerIdx, clipName, fadeSec, 1.f, type);
+    const float fadeSeconds = max(0.f, fadeSec);
+    if (fadeSeconds > 0.f)
+        animSys.CrossFade(loco.animHandle, 0, 1, clipName, fadeSeconds, type);
     else
-        animSys.Play(loco.animHandle, loco.layerIdx, clipName, type);
+        animSys.Play(loco.animHandle, 0, clipName, type);
 }

@@ -93,6 +93,14 @@ InputLayoutBuilder InputLayoutBuilder::MakePU()
 	return builder;
 }
 
+InputLayoutBuilder InputLayoutBuilder::MakeUI()
+{
+	InputLayoutBuilder builder;
+	builder.Add(VtxAttribute::PosUI)
+		   .Add(VtxAttribute::TexCoord);
+	return builder;
+}
+
 void InputLayoutBuilder::FillElement(VtxAttribute attr, _uint semanticIdx, _uint slot, _uint stepRate, D3D11_INPUT_ELEMENT_DESC& out)
 {
 	out.InputSlot            = slot;
@@ -106,6 +114,10 @@ void InputLayoutBuilder::FillElement(VtxAttribute attr, _uint semanticIdx, _uint
 		out.SemanticName = "POSITION";
 		out.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 		break;
+	case VtxAttribute::PosUI: 
+		out.SemanticName = "POSITION";
+		out.Format = DXGI_FORMAT_R32G32_FLOAT; 
+		break; 
 	case VtxAttribute::Color:
 		out.SemanticName = "COLOR";
 		out.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -140,6 +152,7 @@ _uint InputLayoutBuilder::SizeOf(VtxAttribute attr)
 	switch (attr)
 	{
 	case VtxAttribute::Pos:          return 12; 
+	case VtxAttribute::PosUI:        return 8;
 	case VtxAttribute::Color:        return 16;
 	case VtxAttribute::TexCoord:     return 8; 
 	case VtxAttribute::Normal:       return 12; 

@@ -13,6 +13,7 @@ enum class VtxAttribute : _uint
 	World        = 1 << 5,
 	BlendIndices = 1 << 6,
 	BlendWeights = 1 << 7,
+	PosUI        = 1 << 8,
 };
 
 inline bool Has(VtxAttribute mask, VtxAttribute bit)

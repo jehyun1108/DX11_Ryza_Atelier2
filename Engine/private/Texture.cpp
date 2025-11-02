@@ -1,7 +1,5 @@
 #include "Enginepch.h"
 
-// CreateTextureFromFileEx 로 flag 를 직접 설정하면서 세밀한 제어가능.
-
 shared_ptr<Texture> Texture::LoadFromFile(const wstring& fullPath, TextureColorSpace colorSpace)
 {
 	auto instance = make_shared<Texture>();
@@ -35,6 +33,8 @@ shared_ptr<Texture> Texture::CreateSolidColor(uint8_t r, uint8_t g, uint8_t b, u
 
 	texture->resource   = tex2D;
 	texture->baseFormat = desc.Format;
+	texture->width      = desc.Width;
+	texture->height     = desc.Height;
 
 	HR(DEVICE->CreateShaderResourceView(texture->resource.Get(), nullptr, texture->srv.GetAddressOf()));
 	return texture;
@@ -57,38 +57,30 @@ HRESULT Texture::InitFromFile(const wstring& fullPath, TextureColorSpace colorSp
 	transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 	const bool perceptualSRGB = (colorSpace == TextureColorSpace::sRGB);
-	HRESULT hr = E_FAIL;
 
 	if (ext == L"dds")
 	{
 		DDS_LOADER_FLAGS ddsFlags = perceptualSRGB ? DDS_LOADER_FORCE_SRGB : DDS_LOADER_DEFAULT;
-
-		hr = CreateDDSTextureFromFileEx(DEVICE, fullPath.c_str(), 0, D3D11_USAGE_DEFAULT, 
-			D3D11_BIND_SHADER_RESOURCE, 0, 0, ddsFlags, resource.GetAddressOf(), nullptr);
+		HR(CreateDDSTextureFromFileEx(DEVICE, fullPath.c_str(), 0, D3D11_USAGE_DEFAULT,  D3D11_BIND_SHADER_RESOURCE, 0, 0, ddsFlags, resource.GetAddressOf(), nullptr));
 	}
 	else
 	{
 		WIC_LOADER_FLAGS wicFlags = perceptualSRGB ? WIC_LOADER_FORCE_SRGB : WIC_LOADER_IGNORE_SRGB;
-
-		hr = CreateWICTextureFromFileEx(DEVICE, DC, fullPath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, wicFlags, resource.GetAddressOf(), nullptr);
-	}
-
-	if (FAILED(hr))
-	{
-		assert(false && "Texture Loading failed!");
-		return hr;
+		HR(CreateWICTextureFromFileEx(DEVICE, DC, fullPath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, wicFlags, resource.GetAddressOf(), nullptr));
 	}
 
 	// 리소스 실제 포맷 기록 (디버그 정보용)
 	baseFormat = Utility::GetResourceFormat(resource.Get());
 
-	// SRV는 '리소스 포맷 그대로' 생성
-	hr = DEVICE->CreateShaderResourceView(resource.Get(), nullptr, srv.GetAddressOf());
-	if (FAILED(hr))
+	if (ComPtr<ID3D11Texture2D> tex2D; SUCCEEDED(resource.As(&tex2D)))
 	{
-		assert(false && "Texture SRV creation failed");
-		return hr;
+		D3D11_TEXTURE2D_DESC desc{};
+		tex2D->GetDesc(&desc);
+		width  = desc.Width;
+		height = desc.Height;
 	}
 
+	// SRV는 '리소스 포맷 그대로' 생성
+	HR(DEVICE->CreateShaderResourceView(resource.Get(), nullptr, srv.GetAddressOf()));
 	return S_OK;
 }

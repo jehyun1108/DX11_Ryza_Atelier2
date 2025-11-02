@@ -247,5 +247,12 @@ void AssetSystem::Init()
 		meta.psCsoPath   = L"../bin/Shaders/Skybox_PS.cso";
 		RegisterShader(L"Skybox", meta);
 	}
-	
+	{
+		ShaderMeta meta{};
+		meta.shaderTypes = SHADER::VS | SHADER::PS;
+		meta.layout = InputLayoutBuilder::MakeUI();
+		meta.vsCsoPath = L"../bin/Shaders/PUC_VS_UI.cso";
+		meta.psCsoPath = L"../bin/Shaders/PUC_PS_UI.cso";
+		RegisterShader(L"UI", meta);
+	}
 }

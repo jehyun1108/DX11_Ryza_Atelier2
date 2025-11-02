@@ -83,7 +83,7 @@ bool BattleExecutionSystem::PlayStage(EntityID entity, ExecutionUnitRunTime& run
 
 	const AnimStageSpec& stageSpec = chain.stages[runtime.cursor.curStageIdx];
 
-	const auto&    animData = registry.Get<AnimDataSystem>();
+	const auto& animData = registry.Get<AnimDataSystem>();
 	const wstring& clipName = animData.GetClipName(runtime.character, runtime.context, stageSpec.clipKey);
 	if (clipName.empty())
 	{
@@ -91,6 +91,14 @@ bool BattleExecutionSystem::PlayStage(EntityID entity, ExecutionUnitRunTime& run
 		timelineSys.NotifyActionFinished(entity, runtime.activeIntent);
 		return false;
 	}
+
+	ClipTuning tuning = animData.GetClipTuning(runtime.character, runtime.context, stageSpec.clipKey);
+
+	if (stageSpec.startNormalizedOverride)
+		tuning.startNormalized = *stageSpec.startNormalizedOverride;
+	if (stageSpec.endNormalizedOverride)
+		tuning.endNormalized   = *stageSpec.endNormalizedOverride;
+
 
 	auto& animator = registry.Get<AnimatorSystem>();
 	Handle animHandle = ResolveAnimHandle(entity);
@@ -101,11 +109,12 @@ bool BattleExecutionSystem::PlayStage(EntityID entity, ExecutionUnitRunTime& run
 		return false;
 	}
 
-	const float fadeDuration = max(0.f, stageSpec.fadeDur);
-	if (fadeDuration > 0.f)
-		animator.PlayFade(animHandle, 0, clipName, fadeDuration, 1.f, ANIMTYPE::ONCE);
-	else                 
-		animator.Play    (animHandle, 0, clipName, ANIMTYPE::ONCE);
+	const float fadeSeconds = max(0.f, stageSpec.fadeDur);
+	animator.SetPlaybackSpeed(animHandle, 0, tuning.playbackSpeed);
+	if (fadeSeconds > 0.f)
+		animator.CrossFade(animHandle, 0, 1, clipName, fadeSeconds, ANIMTYPE::ONCE, tuning.startNormalized, tuning.endNormalized);
+	else
+		animator.PlaySection(animHandle, 0, clipName, ANIMTYPE::ONCE, tuning.startNormalized, tuning.endNormalized);
 
 	return true;
 }
@@ -126,14 +135,11 @@ bool BattleExecutionSystem::IsCurStageFinished(EntityID entity, const ExecutionU
 	if (!animHandle.IsValid()) return true;
 	if (!animator.IsPlaying(animHandle, 0)) return true;
 
+	if (animator.IsCrossFading(animHandle)) return false;
+
 	const float remainingSeconds = animator.GetRemainingTime(animHandle, 0);
-	const float transitionLead = max(stageSpec.fadeDur, stageSpec.minOverlapDur);
-	if (remainingSeconds <= transitionLead) return true; 
-
-    const float normalized = animator.GetNormalizedTime(animHandle, 0); 
-    if (normalized >= stageSpec.endNormalized) return true;
-
-	return false;
+	const float transitionWindow = max(stageSpec.fadeDur, stageSpec.minOverlapDur);
+	return (remainingSeconds <= transitionWindow);
 }
 
 Handle BattleExecutionSystem::ResolveAnimHandle(EntityID entity) const

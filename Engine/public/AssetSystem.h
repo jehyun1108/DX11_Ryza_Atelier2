@@ -19,15 +19,8 @@ using ModelCache      = AssetCache<shared_ptr<Model>,    ModelMeta,    ModelRegi
 using MeshCache       = AssetCache<shared_ptr<Mesh>,     MeshMeta,     MeshRegistry>;
 using MaterialCache   = AssetCache<shared_ptr<Material>, MaterialMeta, MaterialRegistry>;
 
-
 class ENGINE_DLL AssetSystem
 {
-public:
-	AssetSystem(const AssetSystem&) = delete;
-	AssetSystem& operator=(const AssetSystem&) = delete;
-	AssetSystem(AssetSystem&&) = delete;
-	AssetSystem& operator=(AssetSystem&&) = delete;
-
 public:
 	explicit AssetSystem();
 	void Init();

@@ -127,9 +127,6 @@
     <Filter Include="03. EntitySystem\06. Layer">
       <UniqueIdentifier>{a61a664e-59bc-4674-bf3a-92b433026c5a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="02. Resources\00. Asset">
-      <UniqueIdentifier>{04715722-b9d2-4929-8c1d-57c0770df6f0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02. Resources\01. Mesh">
       <UniqueIdentifier>{9417051a-6b0b-4b2d-9c26-6fba5bc8b45d}</UniqueIdentifier>
     </Filter>
@@ -241,9 +238,6 @@
     <Filter Include="03. EntitySystem\03. Camera\02. OribitCamSystem">
       <UniqueIdentifier>{de359756-9ed2-4b31-a843-5458e3e54cfc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="03. EntitySystem\16. UISystem">
-      <UniqueIdentifier>{bd45593e-22e5-4114-b488-e3a5519e7936}</UniqueIdentifier>
-    </Filter>
     <Filter Include="100.. ShaderFiles\01. HS">
       <UniqueIdentifier>{d077f3f8-bc8f-4d0a-838b-453675f80368}</UniqueIdentifier>
     </Filter>
@@ -298,9 +292,6 @@
     <Filter Include="04. IntentPipeLine\08. FieldControllerSystem">
       <UniqueIdentifier>{ac8f7911-9c4a-4ac6-917d-0fb5a41d8281}</UniqueIdentifier>
     </Filter>
-    <Filter Include="04. IntentPipeLine\99. AnimDataSystem">
-      <UniqueIdentifier>{45653875-c433-46f0-8b2e-2459674ea6be}</UniqueIdentifier>
-    </Filter>
     <Filter Include="05. Battle\03. BattleSessionSystem">
       <UniqueIdentifier>{d634bc1d-35f1-4b56-918b-a036c15bb546}</UniqueIdentifier>
     </Filter>
@@ -310,17 +301,8 @@
     <Filter Include="05. Battle\06. BattleAIController">
       <UniqueIdentifier>{da4ed136-b5a3-4dd2-898e-835a6c235e2e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05. Battle\08. BattleUISystem">
-      <UniqueIdentifier>{f6fa5565-438a-489d-9705-41794790079c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="04. IntentPipeLine\98. ActionAnimRegistry">
-      <UniqueIdentifier>{b5c2c75e-eef8-42fc-bc83-412002a03fd4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="05. Battle\05. BattleExecutionSystem">
       <UniqueIdentifier>{24d05f91-8319-433c-a7c0-acd29b968682}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="0">
-      <UniqueIdentifier>{776c3500-4a56-4e8d-a80d-2a317d480581}</UniqueIdentifier>
     </Filter>
     <Filter Include="06. GameMode">
       <UniqueIdentifier>{d8e92a86-54be-4227-88c6-781c0c51017b}</UniqueIdentifier>
@@ -334,11 +316,47 @@
     <Filter Include="06. GameMode\00. GameModeDirectorSystem">
       <UniqueIdentifier>{c314950c-1af4-4585-8120-e5bc5441a320}</UniqueIdentifier>
     </Filter>
-    <Filter Include="04. IntentPipeLine\97. CharacterDataSystem">
-      <UniqueIdentifier>{87486a52-9232-481c-849b-34aaf0d0c05d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="05. Battle\00. BattleEventBus">
       <UniqueIdentifier>{0b2c4d58-f3f1-48e4-8a3b-76b4675adc12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem">
+      <UniqueIdentifier>{e6225a8e-3d71-4379-9d13-571e53cb4b15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem\00. Asset">
+      <UniqueIdentifier>{04715722-b9d2-4929-8c1d-57c0770df6f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem\01. CharacterDataSystem">
+      <UniqueIdentifier>{87486a52-9232-481c-849b-34aaf0d0c05d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem\03. ActionAnimRegistry">
+      <UniqueIdentifier>{b5c2c75e-eef8-42fc-bc83-412002a03fd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem\02. AnimDataSystem">
+      <UniqueIdentifier>{45653875-c433-46f0-8b2e-2459674ea6be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI">
+      <UniqueIdentifier>{cb1ccfd6-cc4c-4b85-b355-03b7862033fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\00. UISystem">
+      <UniqueIdentifier>{56dca34a-2df1-4837-bf30-ca03b6a2851a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\01. UIMesh">
+      <UniqueIdentifier>{883f53a3-c8b9-4de7-ba3e-538d038fb99d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\02. UIRegistry">
+      <UniqueIdentifier>{c7ace1e7-8d59-48e2-a8cf-aaa9084ed0da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\03. FieldUIOrchestrator">
+      <UniqueIdentifier>{0c26a679-bde7-43cf-851b-797984e1c8fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\04. BattleUIOrchestrator">
+      <UniqueIdentifier>{f265d902-b04b-47ef-ae6f-f23b2651414f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\03. UIAnimSystem">
+      <UniqueIdentifier>{a8f1f88e-75aa-4b10-ba19-8435e91e90bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\04. SlotUIPresenter">
+      <UniqueIdentifier>{baa10096-736b-4249-be69-00a23f5a8f90}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -563,13 +581,13 @@
       <Filter>02. Resources\01. Material</Filter>
     </ClInclude>
     <ClInclude Include="..\public\AssetCache.h">
-      <Filter>02. Resources\00. Asset</Filter>
+      <Filter>07. DataSystem\00. Asset</Filter>
     </ClInclude>
     <ClInclude Include="..\public\AssetRegistry.h">
-      <Filter>02. Resources\00. Asset</Filter>
+      <Filter>07. DataSystem\00. Asset</Filter>
     </ClInclude>
     <ClInclude Include="..\public\AssetSystem.h">
-      <Filter>02. Resources\00. Asset</Filter>
+      <Filter>07. DataSystem\00. Asset</Filter>
     </ClInclude>
     <ClInclude Include="..\public\ModelUtil.h">
       <Filter>02. Resources\05. Model</Filter>
@@ -733,12 +751,6 @@
     <ClInclude Include="..\public\OrbitCamSystem.h">
       <Filter>03. EntitySystem\03. Camera\02. OribitCamSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\UIData.h">
-      <Filter>03. EntitySystem\16. UISystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\UISystem.h">
-      <Filter>03. EntitySystem\16. UISystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\BattleControllerData.h">
       <Filter>05. Battle\02. BattleControllerSystem</Filter>
     </ClInclude>
@@ -746,10 +758,10 @@
       <Filter>05. Battle\02. BattleControllerSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\AnimDataSystem.h">
-      <Filter>04. IntentPipeLine\99. AnimDataSystem</Filter>
+      <Filter>07. DataSystem\02. AnimDataSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\CharaAnimData.h">
-      <Filter>04. IntentPipeLine\99. AnimDataSystem</Filter>
+      <Filter>07. DataSystem\02. AnimDataSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\BattleIntroSystem.h">
       <Filter>05. Battle\01. BattleIntroSystem</Filter>
@@ -794,10 +806,10 @@
       <Filter>05. Battle\04. BattleTimelineSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\ActionAnimRegistry.h">
-      <Filter>04. IntentPipeLine\98. ActionAnimRegistry</Filter>
+      <Filter>07. DataSystem\03. ActionAnimRegistry</Filter>
     </ClInclude>
     <ClInclude Include="..\public\ActionAnimData.h">
-      <Filter>04. IntentPipeLine\98. ActionAnimRegistry</Filter>
+      <Filter>07. DataSystem\03. ActionAnimRegistry</Filter>
     </ClInclude>
     <ClInclude Include="..\public\BattleExecutionSystem.h">
       <Filter>05. Battle\05. BattleExecutionSystem</Filter>
@@ -821,10 +833,10 @@
       <Filter>06. GameMode\02. BattleOrchestraSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\CharacterDataSystem.h">
-      <Filter>04. IntentPipeLine\97. CharacterDataSystem</Filter>
+      <Filter>07. DataSystem\01. CharacterDataSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\CharacterData.h">
-      <Filter>04. IntentPipeLine\97. CharacterDataSystem</Filter>
+      <Filter>07. DataSystem\01. CharacterDataSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\BattleEventBusData.h">
       <Filter>05. Battle\00. BattleEventBus</Filter>
@@ -834,6 +846,45 @@
     </ClInclude>
     <ClInclude Include="..\public\BattleData.h">
       <Filter>05. Battle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIData_Enum.h">
+      <Filter>08. UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIData_Struct.h">
+      <Filter>08. UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UISystem.h">
+      <Filter>08. UI\00. UISystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIMesh.h">
+      <Filter>08. UI\01. UIMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIRegistry.h">
+      <Filter>08. UI\02. UIRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIRegistryData.h">
+      <Filter>08. UI\02. UIRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleUIOrchestrator.h">
+      <Filter>06. GameMode\04. BattleUIOrchestrator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldUIOrchestrator.h">
+      <Filter>06. GameMode\03. FieldUIOrchestrator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIAnimSystem.h">
+      <Filter>08. UI\03. UIAnimSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TimelineBarPresenter.h">
+      <Filter>08. UI\04. SlotUIPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TimelinePresenterData.h">
+      <Filter>08. UI\04. SlotUIPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleAIControllerSystem.h">
+      <Filter>05. Battle\06. BattleAIController</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleAIData.h">
+      <Filter>05. Battle\06. BattleAIController</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -970,7 +1021,7 @@
       <Filter>01. Utility\03. TagSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\private\AssetSystem.cpp">
-      <Filter>02. Resources\00. Asset</Filter>
+      <Filter>07. DataSystem\00. Asset</Filter>
     </ClCompile>
     <ClCompile Include="..\private\InputLayoutBuilder.cpp">
       <Filter>01. Utility\98. InputLayout</Filter>
@@ -1050,14 +1101,11 @@
     <ClCompile Include="..\private\OrbitCamSystem.cpp">
       <Filter>03. EntitySystem\03. Camera\02. OribitCamSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\UISystem.cpp">
-      <Filter>03. EntitySystem\16. UISystem</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\BattleControllerSystem.cpp">
       <Filter>05. Battle\02. BattleControllerSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\private\AnimDataSystem.cpp">
-      <Filter>04. IntentPipeLine\99. AnimDataSystem</Filter>
+      <Filter>07. DataSystem\02. AnimDataSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\private\BattleIntroSystem.cpp">
       <Filter>05. Battle\01. BattleIntroSystem</Filter>
@@ -1081,7 +1129,7 @@
       <Filter>05. Battle\04. BattleTimelineSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\private\ActionAnimRegistry.cpp">
-      <Filter>04. IntentPipeLine\98. ActionAnimRegistry</Filter>
+      <Filter>07. DataSystem\03. ActionAnimRegistry</Filter>
     </ClCompile>
     <ClCompile Include="..\private\BattleExecutionSystem.cpp">
       <Filter>05. Battle\05. BattleExecutionSystem</Filter>
@@ -1096,10 +1144,34 @@
       <Filter>06. GameMode\00. GameModeDirectorSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\private\CharacterDataSystem.cpp">
-      <Filter>04. IntentPipeLine\97. CharacterDataSystem</Filter>
+      <Filter>07. DataSystem\01. CharacterDataSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\private\BattleEventBus.cpp">
       <Filter>05. Battle\00. BattleEventBus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UISystem.cpp">
+      <Filter>08. UI\00. UISystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIMesh.cpp">
+      <Filter>08. UI\01. UIMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIRegistry.cpp">
+      <Filter>08. UI\02. UIRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleUIOrchestrator.cpp">
+      <Filter>06. GameMode\04. BattleUIOrchestrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FieldUIOrchestrator.cpp">
+      <Filter>06. GameMode\03. FieldUIOrchestrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIAnimSystem.cpp">
+      <Filter>08. UI\03. UIAnimSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TimelineBarPresenter.cpp">
+      <Filter>08. UI\04. SlotUIPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleAIControllerSystem.cpp">
+      <Filter>05. Battle\06. BattleAIController</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1150,6 +1222,12 @@
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_DS.hlsl">
       <Filter>100.. ShaderFiles\02. DS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PUC_VS_UI.hlsl">
+      <Filter>100.. ShaderFiles\00. VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\PUC_PS_UI.hlsl">
+      <Filter>100.. ShaderFiles\03. PS</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,12 +1,12 @@
 #pragma once
 
 NS_BEGIN(Engine)
+class FieldUIOrchestrator;
 
 class ENGINE_DLL FieldOrchestraSystem : public IModeOrchestrator
 {
 public:
-	explicit FieldOrchestraSystem(SystemRegistry& registry) 
-		: registry(registry) {}
+	explicit FieldOrchestraSystem(SystemRegistry& registry) : registry(registry) {}
 
 	void Enter() override;
 	void Update(float dt) override;

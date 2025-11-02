@@ -29,4 +29,12 @@ struct TessellationCB
 	float tsMaxFactor = 16.f;
 };
 
+struct UICB
+{
+	float screenW;
+	float screenH;
+	float invScreenW;
+	float invScreenH;
+};
+
 NS_END

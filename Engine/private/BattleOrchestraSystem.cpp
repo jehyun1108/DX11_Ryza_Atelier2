@@ -2,6 +2,8 @@
 
 void BattleOrchestraSystem::Enter()
 {
+	uiOrchestrator = make_unique<BattleUIOrchestrator>(registry, eventBus);
+
 	auto& input = registry.Get<InputService>();
 	input.SetContext(InputContext::Battle);
 	input.SetFocus(FocusState::UI);
@@ -9,35 +11,39 @@ void BattleOrchestraSystem::Enter()
 
 	eventBus.ReserveQueue(256);
 	WireSubscriptions();
+
+	uiOrchestrator->Enter();
 }
 
 void BattleOrchestraSystem::Update(float dt)
 {
-	auto& sessionSys  = registry.Get<BattleSessionSystem>();
-	auto& intro       = registry.Get<BattleIntroSystem>();
-	auto& controller  = registry.Get<BattleControllerSystem>();
-	auto& timelineSys = registry.Get<BattleTimelineSystem>();
+	auto& sessionSys   = registry.Get<BattleSessionSystem>();
+	auto& intro        = registry.Get<BattleIntroSystem>();
+	auto& controller   = registry.Get<BattleControllerSystem>();
+	auto& timelineSys  = registry.Get<BattleTimelineSystem>();
+	auto& aiController = registry.Get<BattleAIControllerSystem>();
 
 	sessionSys.Update(dt);
 	intro.Update(dt);
-
-	// Session Event -> BusEvent 
 	PumpSessionEventsToBus();
 
 	if (sessionSys.GetPhase() == BattlePhase::Active)
 	{
 		controller.Update(sessionSys.GetLeader(), dt);
+		aiController.Update(dt);
 		timelineSys.Tick(dt);
 		TickExecutions(dt);
 		PumpTimelineEventsToBus();
 	}
-
+	uiOrchestrator->Tick(dt);
 	eventBus.DispatchAll();
 	eventBus.ClearQueue();
 }
 
 void BattleOrchestraSystem::Exit()
 {
+	uiOrchestrator->Exit();
+
 	UnwireSubscriptions();
 	execRuntimeByEntity.clear();
 

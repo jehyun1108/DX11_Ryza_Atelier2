@@ -4,7 +4,7 @@ NS_BEGIN(Engine)
 
 enum class SpecialAnimTag
 {
-	Intro, Ultimate, BasicAttack, SkillA, SkillB, SkillC, SkillD,
+	Intro, Ultimate, BasicAttack, SkillA, SkillB, SkillC, SkillD, ItemRush, AttackFinished, AttackStarted
 };
 
 struct AnimStageSpec
@@ -14,8 +14,11 @@ struct AnimStageSpec
 	float       fadeDur    = 0.f;
 	bool        rootMotion = false;
 
-	float minOverlapDur = 0.1f;
-	float endNormalized = 1.f;
+	float minOverlapDur = 0.05f;
+
+	optional<float> startNormalizedOverride; 
+	optional<float> endNormalizedOverride;   
+	optional<float> playbackSpeedOverride;
 };
 
 struct AnimChainSpec

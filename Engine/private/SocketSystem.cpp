@@ -38,7 +38,7 @@ void SocketSystem::SetOffsetMat(Handle handle, const _float4x4& mat)
 {
 	if (auto socket = Get(handle))
 	{
-		socket->offsetMat = mat;
+		socket->offsetMat   = mat;
 		socket->offsetDirty = false;
 	}
 }
@@ -47,7 +47,7 @@ void SocketSystem::SetOffsetPos(Handle handle, _float3 pos)
 {
 	if (auto socket = Get(handle))
 	{
-		socket->offsetPos = pos;
+		socket->offsetPos   = pos;
 		socket->offsetDirty = true;
 	}
 }
@@ -56,7 +56,7 @@ void SocketSystem::SetOffsetRot(Handle handle, _float3 euler)
 {
 	if (auto socket = Get(handle))
 	{
-		socket->offsetRot = euler;
+		socket->offsetRot   = euler;
 		socket->offsetDirty = true;
 	}
 }

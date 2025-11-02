@@ -237,7 +237,7 @@ HRESULT Mesh::BuildPrimitive(const MeshMeta& meta, vector<uint8_t>& outVtx, vect
 			for (int j = 0; j < 4; ++j)
 			{
 				const _float2 uv = UVs[j];
-				writeVertex(outVtx.data() + (i * 4 + j) * outVtxStride, vertex[i], face.normal, uv, face.tangent);
+				writeVertex(outVtx.data() + (i * 4 + j) * outVtxStride, vertex[j], face.normal, uv, face.tangent);
 			}
 		}
 
@@ -257,7 +257,7 @@ HRESULT Mesh::BuildPrimitive(const MeshMeta& meta, vector<uint8_t>& outVtx, vect
 
 		if (outIdxFmt == DXGI_FORMAT_R16_UINT)
 		{
-			auto indice16 = reinterpret_cast<uint16_t*>(outIdx.size());
+			auto indice16 = reinterpret_cast<uint16_t*>(outIdx.data());
 			int cur = 0;
 			for (int i = 0; i < 6; ++i)
 				emitFace(i * 4, indice16, nullptr, cur);

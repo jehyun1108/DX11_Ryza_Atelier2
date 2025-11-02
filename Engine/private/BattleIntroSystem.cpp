@@ -154,10 +154,20 @@ const wstring& BattleIntroSystem::ResolveClip(const AnimProfile& profile, AnimKe
 bool BattleIntroSystem::IsCurClipFinished(const BattleIntroState& state) const
 {
     auto& animSys = registry.Get<AnimatorSystem>();
-    Handle  animHandle = state.animHandle;
-    if (!animSys.IsPlaying(animHandle, 0)) return true;
-    const float remaining = animSys.GetRemainingTime(animHandle, 0);
-    return (remaining <= 0.01f);
+    const Handle handle = state.animHandle;
+
+    if (animSys.IsCrossFading(handle))
+        return false;
+
+    const _uint activeLayer = 0;
+
+    if (!animSys.IsPlaying(handle, activeLayer))
+        return true;
+
+    if (!state.curClipName.empty() && !animSys.IsPlayingClip(handle, activeLayer, state.curClipName)) return false;
+
+    const float remainSec = animSys.GetRemainingTime(handle, activeLayer);
+    return (remainSec <= 0.01f);
 }
 
 void BattleIntroSystem::PlayKey(BattleIntroState& state, AnimKey key, ANIMTYPE type, float fadeDur)
@@ -166,8 +176,12 @@ void BattleIntroSystem::PlayKey(BattleIntroState& state, AnimKey key, ANIMTYPE t
     const wstring& clip = ResolveClip(state.profile, key);
     state.curClipName   = clip;
     state.elapsed       = 0.f;
-    if (fadeDur > 0.f) animSys.PlayFade(state.animHandle, 0, clip, fadeDur, 1.f, type);
-    else               animSys.Play(state.animHandle, 0, clip, type);
+
+    const float fadeSeconds = max(0.f, fadeDur);
+    if (fadeSeconds > 0.f)
+        animSys.CrossFade(state.animHandle, 0, 1, clip, fadeSeconds, type);
+    else
+        animSys.Play(state.animHandle, 0, clip, type);
 }
 
 void BattleIntroSystem::NextStage(BattleIntroState& state, AnimKey nextKey, BattleIntroStage nextStage, ANIMTYPE type, float fadeDur)

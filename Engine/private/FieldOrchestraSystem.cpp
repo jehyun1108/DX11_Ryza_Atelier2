@@ -2,21 +2,28 @@
 
 void FieldOrchestraSystem::Enter()
 {
+	auto& uiOrchestrator = registry.Get<FieldUIOrchestrator>();
+
 	auto& input = registry.Get<InputService>();
 	input.SetContext(InputContext::Field);
 	input.SetFocus(FocusState::None);
 	input.SetManualTime(0.f);
+
+	uiOrchestrator.Enter();
 }
 
 void FieldOrchestraSystem::Update(float dt)
 {
-	auto& fieldCtrlSys = registry.Get<FieldControllerSystem>();
-	auto& sessionSys   = registry.Get<BattleSessionSystem>();
-	auto& fieldAnimSys = registry.Get<FieldAnimSystem>();
-	auto& input        = registry.Get<InputService>();
+	auto& fieldCtrlSys   = registry.Get<FieldControllerSystem>();
+	auto& sessionSys     = registry.Get<BattleSessionSystem>();
+	auto& fieldAnimSys   = registry.Get<FieldAnimSystem>();
+	auto& input          = registry.Get<InputService>();
+	auto& uiOrchestrator = registry.Get<FieldUIOrchestrator>();
 
 	fieldCtrlSys.Update(1, dt);
 	fieldAnimSys.Update(dt);
+
+	uiOrchestrator.Tick(dt);
 
 	const bool isDown = input.KeyPressing(KEY::NUM1);
 	const bool isEdge = (isDown && !prevBattleKeyDown);
@@ -28,7 +35,8 @@ void FieldOrchestraSystem::Update(float dt)
 
 void FieldOrchestraSystem::Exit()
 {
-
+	auto& uiOrchestrator = registry.Get<FieldUIOrchestrator>();
+	uiOrchestrator.Exit();
 }
 
 void FieldOrchestraSystem::BeginBattle()
@@ -37,7 +45,7 @@ void FieldOrchestraSystem::BeginBattle()
 
 	BattleStartParams start{};
 	start.allies.members[0]  = dataSys.GetEntityID(CharacterID::Ryza);
-	start.allies.members[1]  = dataSys.GetEntityID(CharacterID::Kluadia);
+	start.allies.members[1]  = dataSys.GetEntityID(CharacterID::Klaudia);
 	start.allies.members[2]  = dataSys.GetEntityID(CharacterID::Patricia);
 	start.allies.memberCount = 0;
 	for (int i = 0; i < 3; ++i)

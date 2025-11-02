@@ -30,7 +30,10 @@ void SelectionSystem::Update(float dt)
 	GameInstance& game   = GameInstance::GetInstance();
 	const _float2& mouse = game.GetMousePos();
 
+#ifdef USE_IMGUI
 	context.wantCaptureMouse = ImGui::GetIO().WantCaptureMouse;
+#endif
+
 	context.fromScreen       = true;
 	context.screenPos        = { mouse.x, mouse.y };
 	context.viewport         = game.GetViewport();

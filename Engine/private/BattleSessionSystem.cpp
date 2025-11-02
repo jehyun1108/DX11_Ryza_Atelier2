@@ -4,17 +4,17 @@ static inline vector<float> ComputeAnglesDeg(int memberCount, float startDeg)
 {
 	vector<float> angles;
 	angles.reserve(memberCount);
-	if (memberCount == 1) angles.push_back(startDeg);
+	if      (memberCount == 1) angles.push_back(startDeg);
 	else if (memberCount == 2) angles = { startDeg, startDeg - 120.f };
-	else angles = { startDeg, startDeg - 120.f, startDeg + 120.f };
+	else                       angles = { startDeg, startDeg - 120.f, startDeg + 120.f };
 	return angles;
 }
 
 static inline _float3 ComputeRingSlot(const _float3& center, float angleDeg, float radius)
 {
 	const float rad = XMConvertToRadians(angleDeg);
-	const float x = sinf(rad) * radius;
-	const float z = cosf(rad) * radius;
+	const float x   = sinf(rad) * radius;
+	const float z   = cosf(rad) * radius;
 	return _float3{ center.x + x, center.y, center.z + z };
 }
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------

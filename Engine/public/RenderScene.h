@@ -1,6 +1,13 @@
 #pragma once
 
 NS_BEGIN(Engine)
+struct UIDrawItem;
+
+struct UISnapShot
+{
+	vector<UIDrawItem> drawItems;
+	void Clear() { drawItems.clear(); }
+};
 
 struct RenderScene
 {
@@ -18,13 +25,17 @@ struct RenderScene
 	// Skybox
 	SkyboxProxy skybox{};
 
+	// UI
+	UISnapShot ui{};
+
 	void Clear()
 	{
 		lights.clear();
 		queues.Clear();
 		drawColliders = false;
 		colliders.clear();
-		skybox = {};
+		skybox        = {};
+		ui.Clear();
 	}
 };
 
