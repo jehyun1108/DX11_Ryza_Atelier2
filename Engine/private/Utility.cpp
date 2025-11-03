@@ -636,3 +636,24 @@ _float2 Utility::Normalize(float x, float z)
 	if (len < 1e-6f) return _float2{ 0.f, -1.f };
 	return _float2{ x / len, z / len };
 }
+
+_float3 Utility::NormalizeXZ(const _float3& v)
+{
+	const float len = sqrtf(v.x * v.x + v.z * v.z);
+	if (len <= 1e-6f) return _float3{ 0.f, 0.f, 0.f };
+	const float inv = 1.f / len;
+	return _float3{ v.x * inv, 0.f, v.z * inv };
+}
+
+_float2 Utility::Normalize(const _float3& v)
+{
+	const float len = sqrtf(v.x * v.x + v.z * v.z);
+	if (len <= 1e-6f) return _float2{ 0.f, 0.f };
+	const float inv = 1.f / len;
+	return _float2{ v.x * inv, v.z * inv };
+}
+
+_float3 Utility::Normalize3(const _float2& xz)
+{
+	return _float3{ xz.x, 0.f, xz.y };
+}

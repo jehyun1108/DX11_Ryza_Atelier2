@@ -19,21 +19,17 @@ public:
 private:
 	void WireSubscriptions();   
 	void UnwireSubscriptions(); 
+	
 	void PumpSessionEventsToBus();
 	void PumpTimelineEventsToBus();
-	void TickExecutions(float dt);
 
-	// Timeline Event -> BusEvent, 의도/현재AP 조회
 	bool TryFillIntentFromTimeline(EntityID entity, TimelineActionIntent& outIntent) const;
 	bool TryFillApSnapShot(EntityID entity, int& outCurAp, int& outMaxAp) const;
 
 private:
 	SystemRegistry& registry;
-
 	BattleEventBus eventBus;
 	vector<BattleEventListenerId> listenerIds;
-
-	unordered_map<EntityID, ExecutionUnitRunTime> execRuntimeByEntity;
 	unique_ptr<BattleUIOrchestrator> uiOrchestrator{};
 };
 

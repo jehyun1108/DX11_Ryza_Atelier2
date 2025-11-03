@@ -4,6 +4,7 @@ NS_BEGIN(Engine)
 
 enum class BattleBusEventType
 {
+	None,
 	// Session
 	SessionBegan,
 	SessionActivated,
@@ -25,9 +26,11 @@ enum class BattleBusEventType
 	ExecutionStageAdvanced,
 	ExecutionInterrupted,
 
+	// UnitDowned
+	UnitDowned,
+
 	// Resolve
 	ResolveDamageApplied,
-	UnitDowned,
 };
 
 struct EventPayload_None {};

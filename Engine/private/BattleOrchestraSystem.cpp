@@ -22,6 +22,7 @@ void BattleOrchestraSystem::Update(float dt)
 	auto& controller   = registry.Get<BattleControllerSystem>();
 	auto& timelineSys  = registry.Get<BattleTimelineSystem>();
 	auto& aiController = registry.Get<BattleAIControllerSystem>();
+	auto& execSys      = registry.Get<BattleExecutionSystem>();
 
 	sessionSys.Update(dt);
 	intro.Update(dt);
@@ -32,7 +33,7 @@ void BattleOrchestraSystem::Update(float dt)
 		controller.Update(sessionSys.GetLeader(), dt);
 		aiController.Update(dt);
 		timelineSys.Tick(dt);
-		TickExecutions(dt);
+		execSys.Tick(dt);
 		PumpTimelineEventsToBus();
 	}
 	uiOrchestrator->Tick(dt);
@@ -43,9 +44,7 @@ void BattleOrchestraSystem::Update(float dt)
 void BattleOrchestraSystem::Exit()
 {
 	uiOrchestrator->Exit();
-
 	UnwireSubscriptions();
-	execRuntimeByEntity.clear();
 
 	auto& input = registry.Get<InputService>();
 	input.SetFocus(FocusState::None);
@@ -61,10 +60,15 @@ bool BattleOrchestraSystem::BeginBattle(const BattleStartParams& Inparams)
 	auto& moveSys     = registry.Get<MoveStateSystem>();
 	auto& dataSys     = registry.Get<CharacterDataSystem>();
 	auto& timelineSys = registry.Get<BattleTimelineSystem>();
+	auto& targetSys   = registry.Get<BattleTargetSystem>();
 
-	sessionSys.BeginSession(params.allies, params.enemies, params.centerWorld, params.sessionConfig);
-	sessionSys.SetSpacing(params.ringRadius);
-	sessionSys.SetAllyStartAngleDeg(params.startAngleDeg);
+	FormationParams fParams;
+	fParams.ringRadius       = params.ringRadius;     
+	fParams.allyStartDeg     = params.startAngleDeg;    
+	fParams.enemyStartDeg    = params.startAngleDeg + 180.f;
+
+	sessionSys.BeginSession(params.allies, params.enemies, params.centerWorld, fParams, params.sessionConfig);
+	targetSys.Init();
 
 	auto createIntroFor = [&](EntityID entity) 
 		{
@@ -90,7 +94,6 @@ bool BattleOrchestraSystem::BeginBattle(const BattleStartParams& Inparams)
 		BattleTimelineConfig timelineConfig{};
 		timelineSys.InitSession(*state, timelineConfig);
 	}
-	
 	return true;
 }
 
@@ -98,56 +101,47 @@ void BattleOrchestraSystem::WireSubscriptions()
 {
 	listenerIds.clear();
 
-	// Gauge Full -> Controller Turn
-	BattleEventListenerId idGaugeFull = eventBus.Subscribe(BattleBusEventType::TimelineFullGauge, [this](const BattleEvent& event) 
-		{
-			auto& controller = registry.Get<BattleControllerSystem>();
-			controller.OnGaugeBecameFull();
-		});
-	listenerIds.push_back(idGaugeFull);
+	auto& controller = registry.Get<BattleControllerSystem>();
+	auto& execSys    = registry.Get<BattleExecutionSystem>();
+	auto& input      = registry.Get<InputService>();
+	auto& targetSys  = registry.Get<BattleTargetSystem>();
 
-	// Action Finished -> Controller
-	BattleEventListenerId idActionFinished = eventBus.Subscribe(BattleBusEventType::TimelineActionFinished, [this](const BattleEvent& event)
-		{
-			auto& controller = registry.Get<BattleControllerSystem>();
-			controller.OnActionExecutionFinished(TimelineActionIntent{});
-		});
-	listenerIds.push_back(idActionFinished);
+	// TimelineFullGauge → Controller 턴 시작
+	listenerIds.push_back( eventBus.Subscribe(BattleBusEventType::TimelineFullGauge, [&](const BattleEvent&) { controller.OnGaugeBecameFull(); }));
 
-	// TimelineCommitted -> Execution BeginAction
-	BattleEventListenerId idCommited = eventBus.Subscribe(BattleBusEventType::TimelineActionCommitted, [this](const BattleEvent& event) 
-		{
-			const EntityID subject = event.subjectEntity;
-			if (subject == invalidEntity) return;
+	// TimelineActionCommitted → ExecutionSystem 시작
+	listenerIds.push_back(
+		eventBus.Subscribe(BattleBusEventType::TimelineActionCommitted,
+			[&](const BattleEvent& event)
+			{
+				const EntityID subject = event.subjectEntity;
+				if (subject == invalidEntity) return;
 
-			TimelineActionIntent intent{};
-			if (!TryFillIntentFromTimeline(subject, intent)) return;
+				TimelineActionIntent intent{};
+				if (!TryFillIntentFromTimeline(subject, intent)) return;
+				execSys.BeginAction(subject, intent);
+			})
+	);
 
-			auto& dataSys = registry.Get<CharacterDataSystem>();
-			auto& execSys = registry.Get<BattleExecutionSystem>();
+	// TimelineActionFinished → Controller 턴 정리
+	listenerIds.push_back(
+		eventBus.Subscribe(BattleBusEventType::TimelineActionFinished, 
+			[&](const BattleEvent& e){ controller.OnActionExecutionFinished(TimelineActionIntent{});}));
 
-			ExecutionUnitRunTime& runtime = execRuntimeByEntity[subject];
-			runtime.character = dataSys.GetCharacterID(subject);
-			runtime.context   = AnimContext::Battle;
+	// Active 진입시
+	listenerIds.push_back(eventBus.Subscribe(BattleBusEventType::SessionActivated, [&](const BattleEvent& e) {targetSys.Init(); }));
 
-			const bool ok = execSys.BeginAction(subject, intent, runtime);
-			(void)ok;
-		});
-	listenerIds.push_back(idCommited);
+	// IntroReady → UI Focus 해제
+	listenerIds.push_back(eventBus.Subscribe(BattleBusEventType::IntroReady,
+		[&](const BattleEvent&) {input.SetFocus(FocusState::None);input.SetManualTime(0.f);}));
 
-	// IntroReady -> UIFocus 해제
-	BattleEventListenerId idIntroReady = eventBus.Subscribe(BattleBusEventType::IntroReady, [this](const BattleEvent& event)
-		{
-			auto& input = registry.Get<InputService>();
-			input.SetFocus(FocusState::None);
-			input.SetManualTime(0.f);
-		});
-	listenerIds.push_back(idIntroReady);
+	// UnitDowned
+	listenerIds.push_back(eventBus.Subscribe(BattleBusEventType::UnitDowned, [&](const BattleEvent& e) {targetSys.OnUnitDowned(e.subjectEntity); }));
 }
 
 void BattleOrchestraSystem::UnwireSubscriptions()
 {
-	for (BattleEventListenerId id : listenerIds)
+	for (auto id : listenerIds)
 		eventBus.Unsubscribe(id);
 	listenerIds.clear();
 }
@@ -165,36 +159,24 @@ void BattleOrchestraSystem::PumpSessionEventsToBus()
 		{
 		case BattleSessionEventType::IntroReady:
 			busEvent.eventType = BattleBusEventType::IntroReady;
-			eventBus.Publish(busEvent);
 			break;
-
 		case BattleSessionEventType::SessionBegan:
 			busEvent.eventType = BattleBusEventType::SessionBegan;
-			eventBus.Publish(busEvent);
 			break;
-
 		case BattleSessionEventType::SessionActivated:
-		{
 			busEvent.eventType = BattleBusEventType::SessionActivated;
-			EventPayload_SessionPhase phase{};
-			phase.newPhase   = BattlePhase::Active;
-			busEvent.payload = phase;
-			eventBus.Publish(busEvent);
 			break;
-		}
-
 		case BattleSessionEventType::SessionResultDecided:
 			busEvent.eventType = BattleBusEventType::SessionResultDecided;
-			eventBus.Publish(busEvent);
 			break;
-
 		case BattleSessionEventType::SessionEnded:
 			busEvent.eventType = BattleBusEventType::SessionEnded;
-			eventBus.Publish(busEvent);
 			break;
-
 		default: break;
 		}
+
+		if (busEvent.eventType != BattleBusEventType::None)
+			eventBus.Publish(busEvent);
 	}
 	sessionSys.ClearEvents();
 }
@@ -207,82 +189,41 @@ void BattleOrchestraSystem::PumpTimelineEventsToBus()
 	{
 		BattleEvent busEvent{};
 		busEvent.subjectEntity = timelineEvent.subjectEntity;
-		busEvent.subjectTeam   = timelineEvent.subjectTeam;
+		busEvent.subjectTeam = timelineEvent.subjectTeam;
 
 		switch (timelineEvent.eventType)
 		{
 		case BattleTimelineEventType::FullGauge:
 			busEvent.eventType = BattleBusEventType::TimelineFullGauge;
-			eventBus.Publish(busEvent);
 			break;
 
 		case BattleTimelineEventType::ActionCommitted:
-		{
 			busEvent.eventType = BattleBusEventType::TimelineActionCommitted;
-
-			// Intent 채워서 -> Payload 전달
-			TimelineActionIntent intent{};
-			if (TryFillIntentFromTimeline(timelineEvent.subjectEntity, intent))
-			{
-				EventPayload_ActionIntent payload{};
-				payload.intent   = intent;
-				busEvent.payload = payload;
-			}
-			eventBus.Publish(busEvent);
 			break;
-		}
 
 		case BattleTimelineEventType::ActionFinished:
 			busEvent.eventType = BattleBusEventType::TimelineActionFinished;
-			eventBus.Publish(busEvent);
-			break;
-
-		case BattleTimelineEventType::TimelinePaused:
-			busEvent.eventType = BattleBusEventType::TimelinePaused;
-			eventBus.Publish(busEvent);
-			break;
-
-		case BattleTimelineEventType::TimelineResumed:
-			busEvent.eventType = BattleBusEventType::TimelineResumed;
-			eventBus.Publish(busEvent);
 			break;
 
 		case BattleTimelineEventType::ApChanged:
 		{
 			busEvent.eventType = BattleBusEventType::TimelineApChanged;
-			
 			int curAp = 0, maxAp = 0;
 			TryFillApSnapShot(timelineEvent.subjectEntity, curAp, maxAp);
-
 			EventPayload_ApChanged ap{};
-			ap.deltaAp       = timelineEvent.deltaAp;
-			ap.curAp         = curAp;
-			ap.maxAp         = maxAp;
+			ap.deltaAp = timelineEvent.deltaAp;
+			ap.curAp   = curAp;
+			ap.maxAp   = maxAp;
 			busEvent.payload = ap;
-
-			eventBus.Publish(busEvent);
 			break;
 		}
 		default: break;
 		}
+
+		if (busEvent.eventType != BattleBusEventType::None)
+			eventBus.Publish(busEvent);
 	}
 	timelineSys.ClearEvents();
-}
-
-void BattleOrchestraSystem::TickExecutions(float dt)
-{
-	if (execRuntimeByEntity.empty()) return;
-
-	auto& execSys = registry.Get<BattleExecutionSystem>();
-
-	for (auto& pair : execRuntimeByEntity)
-	{
-		const EntityID entity = pair.first;
-		ExecutionUnitRunTime& runtime = pair.second;
-
-		if (runtime.cursor.isActive)
-			execSys.Tick(entity, dt, runtime);
-	}
 }
 
 bool BattleOrchestraSystem::TryFillIntentFromTimeline(EntityID entity, TimelineActionIntent& outIntent) const

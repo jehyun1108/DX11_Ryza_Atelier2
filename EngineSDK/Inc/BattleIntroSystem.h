@@ -20,8 +20,10 @@ private:
 
 	bool TryPlayNextIntroChain(BattleIntroState& state);
 
-	bool    TryQueryTargetPos(EntityID entity, _float3& outTargetWorld) const; // Session -> Target
-	_float3 QueryCenterWorldOrDefault() const;                                 // Session -> Center
+	bool    ResolveTeamSlot(EntityID entity, BattleTeam& outTeam, int& outSlot) const;
+	bool    TryQueryFormationTarget(EntityID entity, _float3& outPos) const;
+	bool    TryQueryFormationFace(EntityID entity, _float2& outDirXZ) const;
+	_float3 QueryCenterWorld() const;
 };
 
 NS_END

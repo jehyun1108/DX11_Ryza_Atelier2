@@ -358,6 +358,12 @@
     <Filter Include="08. UI\04. SlotUIPresenter">
       <UniqueIdentifier>{baa10096-736b-4249-be69-00a23f5a8f90}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05. Battle\07. BattleTargetSystem">
+      <UniqueIdentifier>{6e6b2ea6-a9fd-4dc5-a7d5-b63997462627}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\08. BattleFormationSystem">
+      <UniqueIdentifier>{cee37d81-4e54-4db2-a3c6-04c5ea840ed9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Singleton.h">
@@ -886,6 +892,18 @@
     <ClInclude Include="..\public\BattleAIData.h">
       <Filter>05. Battle\06. BattleAIController</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\BattleTargetSystem.h">
+      <Filter>05. Battle\07. BattleTargetSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleTargetData.h">
+      <Filter>05. Battle\07. BattleTargetSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleFormationSystem.h">
+      <Filter>05. Battle\08. BattleFormationSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleFormationData.h">
+      <Filter>05. Battle\08. BattleFormationSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\GameInstance.cpp">
@@ -1172,6 +1190,12 @@
     </ClCompile>
     <ClCompile Include="..\private\BattleAIControllerSystem.cpp">
       <Filter>05. Battle\06. BattleAIController</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleTargetSystem.cpp">
+      <Filter>05. Battle\07. BattleTargetSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleFormationSystem.cpp">
+      <Filter>05. Battle\08. BattleFormationSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -11,38 +11,54 @@ void BattleControllerSystem::Update(EntityID leaderEntity, float dt)
 {
     g_controllerTimeSec += static_cast<double>(dt);
 
-    auto& input = registry.Get<InputService>();
-    runtime.leaderEntity = leaderEntity;
+    auto& input       = registry.Get<InputService>();
+    auto& timelineSys = registry.Get<BattleTimelineSystem>();
+    auto& execSys     = registry.Get<BattleExecutionSystem>();
 
+    runtime.leaderEntity = leaderEntity;
     if (leaderEntity == invalidEntity)
     {
-        runtime.menu.page = CommandMenuPage::Hidden;
+        runtime.menu.page       = CommandMenuPage::Hidden;
         runtime.isDefendingHold = false;
         runtime.isEscapeHolding = false;
         return;
     }
 
     const bool isReady = IsUnitReadyToAct(runtime.leaderEntity);
-
-    const bool defendHolding = input.KeyPressing(KEY::Y);
+    const bool defendHolding = input.KeyPressing(config.keymap.primary.defend);
+ // ---------------------------------------------------------------------------------------------------------------------
     if (defendHolding && !runtime.isDefendingHold)
     {
         runtime.isDefendingHold = true;
-        registry.Get<BattleTimelineSystem>().SetUnitGate(runtime.leaderEntity, TimelineUnitGate::Closed);
+        TimelineActionIntent intent{};
+        if (BuildIntent_Defend(runtime.leaderEntity, intent))
+        {
+            execSys.BeginAction(runtime.leaderEntity, intent);
+            timelineSys.SetUnitGate(runtime.leaderEntity, TimelineUnitGate::Closed);
+            timelineSys.SetUnitCanAction(runtime.leaderEntity, false);
+            timelineSys.FreezeATB(runtime.leaderEntity, true);
+        }
     }
+
     if (!defendHolding && runtime.isDefendingHold)
     {
         runtime.isDefendingHold = false;
-        registry.Get<BattleTimelineSystem>().SetUnitGate(runtime.leaderEntity, TimelineUnitGate::Open);
-    }
 
+        TimelineActionIntent endIntent{};
+        endIntent.battleCmd  = BattleCommand::Defend;
+        endIntent.specialTag = SpecialAnimTag::DefendEnd;
+
+        execSys.BeginAction(runtime.leaderEntity, endIntent);
+        timelineSys.SetUnitGate(runtime.leaderEntity, TimelineUnitGate::Open);
+        timelineSys.SetUnitCanAction(runtime.leaderEntity, true);
+    }
+// -------------------------------------------------------------------------------------------------------------------------
     const bool isSkillPageHeld = input.KeyPressing(KEY::SPACE);
     runtime.menu.page = isSkillPageHeld ? CommandMenuPage::Skill : CommandMenuPage::Primary;
 
     if (runtime.menu.page == CommandMenuPage::Skill)
     {
         if (!isReady) return;
-        auto& timelineSys = registry.Get<BattleTimelineSystem>();
 
         auto tryCommitSkill = [&](KEY key)
             {
@@ -68,16 +84,6 @@ void BattleControllerSystem::Update(EntityID leaderEntity, float dt)
     }
     else
     {
-        auto& timelineSys = registry.Get<BattleTimelineSystem>();
-
-        if (input.KeyDown(config.keymap.primary.defend))
-        {
-            TimelineActionIntent intent{};
-            if (isReady && BuildIntent_Defend(runtime.leaderEntity, intent))
-                (void)timelineSys.TryCommitIntent(runtime.leaderEntity, intent);
-            return;
-        }
-
         if (input.KeyPressing(config.keymap.primary.flee))
         {
             if (!runtime.isEscapeHolding)
@@ -96,9 +102,7 @@ void BattleControllerSystem::Update(EntityID leaderEntity, float dt)
             return;
         }
         else
-        {
             runtime.isEscapeHolding = false;
-        }
 
         if (!isReady) return;
 
@@ -190,8 +194,8 @@ bool BattleControllerSystem::BuildIntent_Escape(EntityID leaderEntity, TimelineA
 
 bool BattleControllerSystem::ResolveSingleTarget(EntityID leaderEntity, EntityID& outTarget) const
 {
-    auto& sessionSys = registry.Get<BattleSessionSystem>();
-    const BattleParty* allies = sessionSys.GetAllies();
+    auto& sessionSys             = registry.Get<BattleSessionSystem>();
+    const BattleParty*   allies  = sessionSys.GetAllies();
     const BattleEnemies* enemies = sessionSys.GetEnemies();
     if (!allies || !enemies) return false;
 

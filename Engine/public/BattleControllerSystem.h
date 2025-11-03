@@ -4,8 +4,6 @@
 
 NS_BEGIN(Engine)
 
-// Y: 방어   B: 공격 
-// X: 아이템 A: 도망
 class ENGINE_DLL BattleControllerSystem 
 {
 public:

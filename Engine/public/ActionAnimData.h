@@ -4,7 +4,7 @@ NS_BEGIN(Engine)
 
 enum class SpecialAnimTag
 {
-	Intro, Ultimate, BasicAttack, SkillA, SkillB, SkillC, SkillD, ItemRush, AttackFinished, AttackStarted
+	Intro, Ultimate, BasicAttack, SkillA, SkillB, SkillC, SkillD, ItemRush, AttackFinished, AttackStarted, DefendStart, Defending, DefendEnd
 };
 
 struct AnimStageSpec

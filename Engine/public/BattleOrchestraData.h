@@ -8,9 +8,9 @@ struct BattleStartParams
 	BattleEnemies           enemies;
 	_float3                 centerWorld{};
 	BattleSessionConfig     sessionConfig{};
-	BattleSpawnLayoutConfig spawnConfig{};
+
 	float startAngleDeg      = 0.f;
-	float ringRadius         = 300.f;
+	float ringRadius         = 800.f;
 	bool  faceCenterSnap     = true;
 };
 

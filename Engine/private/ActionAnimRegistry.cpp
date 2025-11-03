@@ -81,6 +81,14 @@ void ActionAnimRegistry::RegisterPatriciaAnim()
 
 	// 5. AttackFinished
 	RegisterSpecial(CharacterID::Patricia, SpecialAnimTag::AttackFinished, { AnimKey::Battle_Attack_FinishedA, AnimKey::Battle_Attack_FinishedB, AnimKey::Battle_Attack_FinishedC }, ActionStage::Active, true, kFadeDur);
+
+	// 6. AttackStarted
+	RegisterSpecial(CharacterID::Patricia, SpecialAnimTag::AttackStarted, { AnimKey::Battle_RunLoop, AnimKey::Battle_RunEnd }, ActionStage::Active, true, kFadeDur);
+
+	// 7. Defend
+	RegisterSpecial(CharacterID::Patricia, SpecialAnimTag::DefendStart, { AnimKey::Battle_Defend_Ready },    ActionStage::Active, true, kFadeDur);
+	RegisterSpecial(CharacterID::Patricia, SpecialAnimTag::Defending,   { AnimKey::Battle_Defending },       ActionStage::Active, true, kFadeDur);
+	RegisterSpecial(CharacterID::Patricia, SpecialAnimTag::DefendEnd,   { AnimKey::Battle_Defend_Finished }, ActionStage::Active, true, kFadeDur);
 }
 
 void ActionAnimRegistry::RegisterRyzaAnim()
@@ -111,6 +119,14 @@ void ActionAnimRegistry::RegisterRyzaAnim()
 
 	// 5. AttackFinished
 	RegisterSpecial(CharacterID::Ryza, SpecialAnimTag::AttackFinished, { AnimKey::Battle_Attack_FinishedA, AnimKey::Battle_Attack_FinishedB, AnimKey::Battle_Attack_FinishedC }, ActionStage::Active, true, kFadeDur);
+
+	// 6. AttackStarted
+	RegisterSpecial(CharacterID::Ryza, SpecialAnimTag::AttackStarted, {AnimKey::Battle_RunLoop, AnimKey::Battle_RunEnd }, ActionStage::Active, true, kFadeDur);
+
+	// 7. Defend
+	RegisterSpecial(CharacterID::Ryza, SpecialAnimTag::DefendStart, { AnimKey::Battle_Defend_Ready },    ActionStage::Active, true, kFadeDur);
+	RegisterSpecial(CharacterID::Ryza, SpecialAnimTag::Defending,   { AnimKey::Battle_Defending },       ActionStage::Active, true, kFadeDur);
+	RegisterSpecial(CharacterID::Ryza, SpecialAnimTag::DefendEnd,   { AnimKey::Battle_Defend_Finished }, ActionStage::Active, true, kFadeDur);
 }
 
 void ActionAnimRegistry::RegisterKlaudiaAnim()
@@ -142,6 +158,14 @@ void ActionAnimRegistry::RegisterKlaudiaAnim()
 
 	// 5. AttackFinished
 	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::AttackFinished, { AnimKey::Battle_Attack_FinishedA, AnimKey::Battle_Attack_FinishedB, AnimKey::Battle_Attack_FinishedC }, ActionStage::Active, true, kFadeDur);
+
+	// 6. AttackStarted
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::AttackStarted, { AnimKey::Battle_RunLoop, AnimKey::Battle_RunEnd }, ActionStage::Active, true, kFadeDur);
+
+	// 7. Defend
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::DefendStart, { AnimKey::Battle_Defend_Ready },    ActionStage::Active, true, kFadeDur);
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::Defending,   { AnimKey::Battle_Defending },       ActionStage::Active, true, kFadeDur);
+	RegisterSpecial(CharacterID::Klaudia, SpecialAnimTag::DefendEnd,   { AnimKey::Battle_Defend_Finished }, ActionStage::Active, true, kFadeDur);
 }
 
 void ActionAnimRegistry::RegisterAngelAnim()

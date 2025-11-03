@@ -70,7 +70,7 @@ void FieldOrchestraSystem::BeginBattle()
 	// -----------------------------------------------
 	start.centerWorld    = _float3{};
 	start.startAngleDeg  = 0.f;
-	start.ringRadius     = 300.f;
+	start.ringRadius     = 600.f;
 	start.faceCenterSnap = true;
 
 	registry.Get<GameModeDirectorSystem>().BeginBattle(start);

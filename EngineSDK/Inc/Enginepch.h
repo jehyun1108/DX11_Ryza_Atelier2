@@ -168,6 +168,8 @@ using Microsoft::WRL::ComPtr;
 #include "BattleExecutionSystem.h"
 #include "BattleControllerSystem.h"
 #include "BattleAIControllerSystem.h"
+#include "BattleTargetSystem.h"
+#include "BattleFormationSystem.h"
 
 // BattleAnimSys
 #include "BattleIntroSystem.h"

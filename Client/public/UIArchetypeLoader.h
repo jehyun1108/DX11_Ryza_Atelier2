@@ -290,7 +290,7 @@ public:
 			uiRegistry.RegisterArchetype(spec.texKey, spec);
 		}
 		 //Input
-		{
+		/*{
 			UIArchetypeSpec spec;
 			spec.texKey = L"input_barback";
 			spec.initPosX = -200.f;
@@ -345,7 +345,7 @@ public:
 			spec.initPosX = 200.f;
 			spec.initPosY = 425.f;
 			uiRegistry.RegisterArchetype(L"input_outline4", spec);
-		}
+		}*/
 
 		 // 4. Field_minimap
 		{

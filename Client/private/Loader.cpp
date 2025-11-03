@@ -3,42 +3,51 @@
 
 Loader::~Loader()
 {
-	if (_thread.joinable())
-		_thread.join();
+	StopAndJoin();
 }
 
-HRESULT Loader::Init(LEVEL nextLevelID)
+void Loader::Start()
 {
-	this->nextLevelID = nextLevelID;
-
-	//_thread = thread(&Loader::Loading(), this);
-
-	return S_OK;
-}
-
-HRESULT Loader::Loading()
-{
-	HRESULT hr = CoInitializeEx(nullptr, 0);
-
-	lock_guard<mutex> lock(_mutex);
-
-	switch (nextLevelID)
+	stopRequested.store(false);
 	{
-	case LEVEL::LOGO:
-		Loading_Logo();
-		break;;
+		lock_guard<mutex> lock(mtx);
+		done = false;
 	}
 
-	return S_OK;
+	worker = thread([this] 
+		{
+			CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+			{
+				lock_guard<mutex> lock(mtx);
+				done = true;
+			}
+			cv.notify_one();
+
+			CoUninitialize();
+		});
 }
 
-void Loader::Loading_Logo()
+void Loader::WaitUntilDone()
 {
-
-	isFinished = true;
+	unique_lock<mutex> lock(mtx);
+	cv.wait(lock, [this] {return done; });
 }
 
-void Loader::Loading_GamePlay()
+void Loader::RequestStop()
 {
+	stopRequested.store(true);
+}
 
+void Loader::StopAndJoin()
+{
+	RequestStop();
+	if (worker.joinable())
+		worker.join();
+}
+
+bool Loader::IsDone()
+{
+	lock_guard<mutex> lock(mtx);
+	return done;
 }

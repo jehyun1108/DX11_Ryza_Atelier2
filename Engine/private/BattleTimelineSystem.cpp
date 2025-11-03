@@ -5,30 +5,29 @@ void BattleTimelineSystem::InitSession(const BattleSessionState& sessionState, c
     timelineState.emplace();
     BattleTimelineState& state = *timelineState;
 
-    state.clockState = TimelineClockState::Running;
-    state.elapsedTime = 0.f;
-    state.config = timelineConfig;
+    state.clockState       = TimelineClockState::Running;
+    state.elapsedTime      = 0.f;
+    state.config           = timelineConfig;
     state.leader.curLeader = sessionState.leaderEntity;
-
-    state.alliesUsed = 0;
-    state.enemiesUsed = 0;
+    state.alliesUsed       = 0;
+    state.enemiesUsed      = 0;
 
     for (int allyIdx = 0; allyIdx < sessionState.allies.memberCount; ++allyIdx)
     {
         const EntityID entity = sessionState.allies.members[allyIdx];
         if (entity == invalidEntity) continue;
 
-        state.allies[allyIdx] = {};
-        state.allies[allyIdx].entity = entity;
-        state.allies[allyIdx].team = BattleTeam::Ally;
-        state.allies[allyIdx].ap = TimelineAP{};
-        state.allies[allyIdx].ATB = TimelineGauge{ 0.f, state.config.gaugeMaxValue, state.config.gaugeFillSpeed };
-        state.allies[allyIdx].gateState = TimelineUnitGate::Open;
+        state.allies[allyIdx]             = {};
+        state.allies[allyIdx].entity      = entity;
+        state.allies[allyIdx].team        = BattleTeam::Ally;
+        state.allies[allyIdx].ap          = TimelineAP{};
+        state.allies[allyIdx].ATB         = TimelineGauge{ 0.f, state.config.gaugeMaxValue, state.config.gaugeFillSpeed };
+        state.allies[allyIdx].gateState   = TimelineUnitGate::Open;
         state.allies[allyIdx].motionState = TimelineMotionState::Queued;
-        state.allies[allyIdx].canAction = state.config.canAction;
+        state.allies[allyIdx].canAction   = state.config.canAction;
 
-        state.alliesRuntime[allyIdx] = {};
-        state.alliesRuntime[allyIdx].role.control = (entity == state.leader.curLeader) ? TimelineControlType::Player : TimelineControlType::Ally;
+        state.alliesRuntime[allyIdx]                 = {};
+        state.alliesRuntime[allyIdx].role.control    = (entity == state.leader.curLeader) ? TimelineControlType::Player : TimelineControlType::Ally;
         state.alliesRuntime[allyIdx].role.allowCombo = (state.alliesRuntime[allyIdx].role.control == TimelineControlType::Player);
 
         FillSkillCatalog(entity, state.alliesRuntime[allyIdx].skillCatalog);
@@ -41,17 +40,17 @@ void BattleTimelineSystem::InitSession(const BattleSessionState& sessionState, c
         const EntityID entity = sessionState.enemies.members[enemyIdx];
         if (entity == invalidEntity) continue;
 
-        state.enemies[enemyIdx] = {};
-        state.enemies[enemyIdx].entity = entity;
-        state.enemies[enemyIdx].team = BattleTeam::Enemy;
-        state.enemies[enemyIdx].ap = TimelineAP{};
-        state.enemies[enemyIdx].ATB = TimelineGauge{ 0.f, state.config.gaugeMaxValue, state.config.gaugeFillSpeed, false };
-        state.enemies[enemyIdx].gateState = TimelineUnitGate::Open;
+        state.enemies[enemyIdx]             = {};
+        state.enemies[enemyIdx].entity      = entity;
+        state.enemies[enemyIdx].team        = BattleTeam::Enemy;
+        state.enemies[enemyIdx].ap          = TimelineAP{};
+        state.enemies[enemyIdx].ATB         = TimelineGauge{ 0.f, state.config.gaugeMaxValue, state.config.gaugeFillSpeed, false };
+        state.enemies[enemyIdx].gateState   = TimelineUnitGate::Open;
         state.enemies[enemyIdx].motionState = TimelineMotionState::Queued;
-        state.enemies[enemyIdx].canAction = state.config.canAction;
+        state.enemies[enemyIdx].canAction   = state.config.canAction;
 
-        state.enemiesRuntime[enemyIdx] = {};
-        state.enemiesRuntime[enemyIdx].role.control = TimelineControlType::Enemy;
+        state.enemiesRuntime[enemyIdx]                 = {};
+        state.enemiesRuntime[enemyIdx].role.control    = TimelineControlType::Enemy;
         state.enemiesRuntime[enemyIdx].role.allowCombo = false;
 
         FillSkillCatalog(entity, state.enemiesRuntime[enemyIdx].skillCatalog);
@@ -95,6 +94,27 @@ void BattleTimelineSystem::EndSession()
 
 bool BattleTimelineSystem::TryCommitIntent(EntityID entity, const TimelineActionIntent& intent)
 {
+    TimelineActionIntent effectiveIntent = intent;
+
+    if (intent.battleCmd == BattleCommand::AttackBasic || intent.battleCmd == BattleCommand::Skill)
+    {
+        auto& dataSys = registry.Get<CharacterDataSystem>();
+        auto& execSys = registry.Get<BattleExecutionSystem>();
+        const CharacterID characterId = dataSys.GetCharacterID(entity);
+        const SpecialAnimTag execTag = intent.specialTag.value_or(SpecialAnimTag::BasicAttack);
+        const AnimChainSpec* chain = execSys.TryGetChain(characterId, AnimContext::Battle, execTag);
+        if (!chain || chain->stages.empty()) return false;
+
+        auto& targetSys = registry.Get<BattleTargetSystem>();
+        
+        const EntityID pickedEntity = targetSys.Get(entity);
+        if (effectiveIntent.targetEntity == invalidEntity)
+            effectiveIntent.targetEntity = pickedEntity;
+        
+        if (effectiveIntent.targetEntity == invalidEntity)
+            return false;
+    }
+
     if (!timelineState.has_value()) return false;
 
     BattleTeam team{};
@@ -102,8 +122,8 @@ bool BattleTimelineSystem::TryCommitIntent(EntityID entity, const TimelineAction
     if (!ResolveIdxByEntity(entity, team, slotIdx)) return false;
 
     BattleTimelineState& state = *timelineState;
-    TimelineUnitState& unit = (team == BattleTeam::Ally) ? state.allies[slotIdx] : state.enemies[slotIdx];
-    TimelineUnitRunTime& run = (team == BattleTeam::Ally) ? state.alliesRuntime[slotIdx] : state.enemiesRuntime[slotIdx];
+    TimelineUnitState&   unit  = (team == BattleTeam::Ally) ? state.allies[slotIdx]        : state.enemies[slotIdx];
+    TimelineUnitRunTime& run   = (team == BattleTeam::Ally) ? state.alliesRuntime[slotIdx] : state.enemiesRuntime[slotIdx];
 
     return CommitInternal(unit, run, intent, entity, team);
 }
@@ -117,11 +137,11 @@ void BattleTimelineSystem::NotifyActionFinished(EntityID entity, const TimelineA
     if (!ResolveIdxByEntity(entity, team, slotIdx)) return;
 
     BattleTimelineState& state = *timelineState;
-    TimelineUnitState& unit = (team == BattleTeam::Ally) ? state.allies[slotIdx] : state.enemies[slotIdx];
-    TimelineUnitRunTime& run = (team == BattleTeam::Ally) ? state.alliesRuntime[slotIdx] : state.enemiesRuntime[slotIdx];
+    TimelineUnitState&   unit  = (team == BattleTeam::Ally) ? state.allies[slotIdx]        : state.enemies[slotIdx];
+    TimelineUnitRunTime& run   = (team == BattleTeam::Ally) ? state.alliesRuntime[slotIdx] : state.enemiesRuntime[slotIdx];
 
     ApplyResolveReward(unit, run, finishedIntent, entity, team);
-    unit.motionState = TimelineMotionState::Queued;
+    unit.motionState  = TimelineMotionState::Queued;
     unit.ATB.isFrozen = false;
     PushEvent(BattleTimelineEventType::ActionFinished, entity, team, 0);
 }
@@ -218,6 +238,16 @@ void BattleTimelineSystem::SetUnitCanAction(EntityID entity, bool canAction)
     unit.canAction = canAction;
 }
 
+void BattleTimelineSystem::FreezeATB(EntityID entity, bool freeze)
+{
+    BattleTeam team;
+    int idx;
+    if (!ResolveIdxByEntity(entity, team, idx)) return;
+    BattleTimelineState& state   = *timelineState;
+    TimelineUnitState& unitState = (team == BattleTeam::Ally) ? state.allies[idx] : state.enemies[idx];
+    unitState.ATB.isFrozen       = freeze;
+}
+
 bool BattleTimelineSystem::ResolveIdxByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx) const
 {
     auto it = idxByEntity.find(entity);
@@ -229,19 +259,19 @@ bool BattleTimelineSystem::ResolveIdxByEntity(EntityID entity, BattleTeam& outTe
 
 void BattleTimelineSystem::PushEvent(BattleTimelineEventType type, EntityID subject, BattleTeam team, int deltaAp)
 {
-    BattleTimelineEvent evt{};
-    evt.eventType = type;
-    evt.subjectEntity = subject;
-    evt.subjectTeam = team;
-    evt.deltaAp = deltaAp;
-    eventQueue.push_back(evt);
+    BattleTimelineEvent event{};
+    event.eventType     = type;
+    event.subjectEntity = subject;
+    event.subjectTeam   = team;
+    event.deltaAp       = deltaAp;
+    eventQueue.push_back(event);
 }
 
 void BattleTimelineSystem::AdvanceGauge(TimelineUnitState& unit, float dt, EntityID entity, BattleTeam team)
 {
-    if (unit.ATB.isFrozen) return;
-    if (unit.gateState != TimelineUnitGate::Open) return;
-    if (!unit.canAction) return;
+    if (unit.ATB.isFrozen)                                  return;
+    if (unit.gateState != TimelineUnitGate::Open)           return;
+    if (!unit.canAction)                                    return;
     if (unit.motionState == TimelineMotionState::Executing) return;
 
     const float prev = unit.ATB.curValue;
@@ -258,7 +288,7 @@ bool BattleTimelineSystem::CommitInternal(TimelineUnitState& unitState,
     EntityID entity, BattleTeam team)
 {
     if (!unitState.canAction)                                 return false;
-    if (unitState.gateState   != TimelineUnitGate::Open)        return false;
+    if (unitState.gateState   != TimelineUnitGate::Open)      return false;
     if (unitState.motionState != TimelineMotionState::Queued) return false;
     if (unitState.ATB.curValue < unitState.ATB.maxValue)      return false;
 
@@ -310,10 +340,10 @@ int BattleTimelineSystem::ResolveSkillApCost(EntityID entity, const optional<Spe
     if (!specialTag.has_value()) return 0;
 
     auto& actionReg = registry.Get<ActionAnimRegistry>();
-    auto& dataSys = registry.Get<CharacterDataSystem>();
+    auto& dataSys   = registry.Get<CharacterDataSystem>();
 
-    const auto characterId = dataSys.GetCharacterID(entity);
-    const auto* spec = actionReg.TryGet(characterId);
+    const auto  characterId = dataSys.GetCharacterID(entity);
+    const auto* spec        = actionReg.TryGet(characterId);
     if (!spec) return 0;
 
     auto it = spec->apCostByTag.find(specialTag.value());
@@ -325,11 +355,11 @@ void BattleTimelineSystem::FillSkillCatalog(EntityID entity, vector<TimelineSkil
     outCatalog.clear();
 
     auto* actionReg = registry.TryGet<ActionAnimRegistry>();
-    auto* dataSys = registry.TryGet<CharacterDataSystem>();
+    auto* dataSys   = registry.TryGet<CharacterDataSystem>();
     if (!actionReg || !dataSys) return;
 
     const auto characterId = dataSys->GetCharacterID(entity);
-    const auto* spec = actionReg->TryGet(characterId);
+    const auto* spec       = actionReg->TryGet(characterId);
     if (!spec) return;
 
     auto shouldExpose = [](SpecialAnimTag tag)
@@ -343,9 +373,9 @@ void BattleTimelineSystem::FillSkillCatalog(EntityID entity, vector<TimelineSkil
         const SpecialAnimTag tag = kv.first;
         if (!shouldExpose(tag)) continue;
 
-        int apCost = 0;
+        int apCost  = 0;
         if (auto it = spec->apCostByTag.find(tag); it != spec->apCostByTag.end())
-            apCost = it->second;
+            apCost  = it->second;
 
         outCatalog.push_back(TimelineSkillInfo{ tag, apCost });
     }

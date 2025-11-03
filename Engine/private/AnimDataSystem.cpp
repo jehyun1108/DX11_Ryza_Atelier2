@@ -174,20 +174,43 @@ void AnimDataSystem::RegisterDefaultClips()
 
 void AnimDataSystem::SetDefaultTunings()
 {
-    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackA, ClipTuning{. startNormalized = 0.05f, .endNormalized = 0.4f });
-    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.f, .endNormalized = 0.5f });
-    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.f, .endNormalized = 1.f });
-    
+// --------------------------------------------------- Patricia --------------------------------------------------------------------------------------
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackA, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 0.4f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.f, .endNormalized = 0.5f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_Attack_FinishedA, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f , .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_Attack_FinishedB, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_Defend_Ready, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_Defending, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Patricia, AnimContext::Battle, AnimKey::Battle_Defend_Finished, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+// ---------------------------------------------------- Ryza ----------------------------------------------------------------------------------------------
     SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_AttackA, ClipTuning{ .startNormalized = 0.1f, .endNormalized = 0.5f,
         .playbackSpeed = 1.2f});
-    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.1f, .endNormalized = 0.5f, 
-        .playbackSpeed = 0.8f});
-    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.1f, .endNormalized = 1.f,
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.1f, .endNormalized = 0.45f, 
         .playbackSpeed = 1.2f});
-
-    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackA, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 0.6f });
-    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 0.6f });
-    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 1.f });
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.1f, .endNormalized = 0.8f,
+        .playbackSpeed = 1.2f});
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_Attack_FinishedA, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_Attack_FinishedB, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_Defend_Ready, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f,
+        .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_Defending, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, 
+        .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Ryza, AnimContext::Battle, AnimKey::Battle_Defend_Finished, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+// ----------------------------------------------------- Klaudia --------------------------------------------------------------------------------------------
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackA, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 0.6f,
+        .playbackSpeed = 1.2f});
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackB, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 0.6f,
+        .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_AttackC, ClipTuning{ .startNormalized = 0.05f, .endNormalized = 0.8f,
+        .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_Attack_FinishedA, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle,  AnimKey::Battle_Attack_FinishedB, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_Defend_Ready, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f,
+        .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_Defending, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f,
+        .playbackSpeed = 1.2f });
+    SetClipTuning(CharacterID::Klaudia, AnimContext::Battle, AnimKey::Battle_Defend_Finished, ClipTuning{ .startNormalized = 0.2f, .endNormalized = 0.8f, .playbackSpeed = 1.2f });
 }
 
 const ClipSet* AnimDataSystem::GetClipSet(CharacterID character, AnimContext context) const

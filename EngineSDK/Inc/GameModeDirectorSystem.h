@@ -1,3 +1,4 @@
+#include "Loader.h"
 #pragma once
 
 NS_BEGIN(Engine)
@@ -12,7 +13,11 @@ public:
 	bool     BeginBattle(const BattleStartParams& startParams);
 	GameMode GetMode() const { return curMode; }
 
+
+
 	void     Start() { fieldSys.Enter(); }
+
+
 
 private:
 	SystemRegistry&       registry;

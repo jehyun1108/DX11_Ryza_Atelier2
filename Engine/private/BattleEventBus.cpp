@@ -12,9 +12,7 @@ void BattleEventBus::DispatchAll()
 			const ListenerEntry& entry = pair.second;
 
 			if (!entry.typeFilter.has_value() || entry.typeFilter.value() == event.eventType)
-			{
 				entry.listener(event);
-			}
 		}
 	}
 }

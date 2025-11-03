@@ -5,9 +5,6 @@ NS_BEGIN(Client)
 class MainApp final
 {
 public:
-	MainApp() = default;
-
-public:
 	static unique_ptr<MainApp> Create();
 
 	HRESULT Init();

@@ -31,19 +31,6 @@ public:
 	void BeginFrame(float dt);
 	void EndFrame();
 
-	// --------------- EntityMgr ---------------
-	EntityID CreateEntity();
-	void DestroyEntity(EntityID id);
-	void DestroyEntityDeferred(EntityID id);
-	void FlushDestroyedEntities();
-
-	bool IsEntityAlive(EntityID id) const;
-	void ReserveEntities(size_t n);
-	void ClearEntities();
-
-	template<typename Fn>
-	void ForEachEntity(Fn&& fn) const { entityMgr.ForEachAlive(forward<Fn>(fn)); }
-
 	// -------------- Device ---------------------------------------------------------------------------------
 	ID3D11Device*             GetDevice() const;
 	ID3D11DeviceContext*      GetContext() const;
@@ -148,13 +135,15 @@ private:
 	FieldOrchestraSystem  fieldSys;
 
 	// Battle
-	BattleOrchestraSystem  battleSys;
-	BattleControllerSystem battleCtrlSys;
-	BattleIntroSystem      battleIntroSys;
-	BattleSessionSystem    battleSessionSys;
-	BattleTimelineSystem   battleTimelineSys;
-	BattleExecutionSystem  battleExecSys;
+	BattleOrchestraSystem    battleSys;
+	BattleControllerSystem   battleCtrlSys;
+	BattleIntroSystem        battleIntroSys;
+	BattleSessionSystem      battleSessionSys;
+	BattleTimelineSystem     battleTimelineSys;
+	BattleExecutionSystem    battleExecSys;
 	BattleAIControllerSystem battleAICtrlSys;
+	BattleTargetSystem       battleTargetSys;
+	BattleFormationSystem    battleFormationSys;
 
 	// UI
 	UISystem               uiSys;

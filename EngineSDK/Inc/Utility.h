@@ -159,6 +159,9 @@ public:
 	static float SignedAngRad2D(const _float2& a, const _float2& b);
 	static _float2 Rotate2D(const _float2& v, float ang);
 	static _float2 Normalize(float x, float z);
+	static _float3 NormalizeXZ(const _float3& v);
+	static _float2 Normalize(const _float3& v);
+	static _float3 Normalize3(const _float2& xz);
 };
 
 NS_END

@@ -173,6 +173,7 @@
     <ClInclude Include="..\public\Client_Defines.h" />
     <ClInclude Include="..\public\Central.h" />
     <ClInclude Include="..\public\Loader.h" />
+    <ClInclude Include="..\public\LoaderData.h" />
     <ClInclude Include="..\public\Loading.h" />
     <ClInclude Include="..\public\Logo.h" />
     <ClInclude Include="..\public\MainApp.h" />

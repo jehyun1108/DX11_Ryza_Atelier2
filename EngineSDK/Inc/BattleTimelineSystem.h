@@ -35,13 +35,12 @@ public:
     void SetUnitGate(EntityID entity, TimelineUnitGate gate);
     void SetUnitCanAction(EntityID entity, bool canAction);
 
-    // 이벤트 큐
     const vector<BattleTimelineEvent>& PeekEvents() const { return eventQueue; }
-    void                              ClearEvents()       { eventQueue.clear(); }
+    void                               ClearEvents()      { eventQueue.clear(); }
+
+    void FreezeATB(EntityID entity, bool freeze);
 
 private:
-    static constexpr int kMaxSlots = 3;
-
     bool ResolveIdxByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx) const;
     void PushEvent(BattleTimelineEventType type, EntityID subject, BattleTeam team, int deltaAp = 0);
 

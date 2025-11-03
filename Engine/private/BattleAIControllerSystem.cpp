@@ -3,16 +3,13 @@
 namespace
 {
 	static double elapsedTime = 0.0;
-
 	inline double SecondUntilNextEval(float evalHz)
 	{
 		if (evalHz <= 0.0f) return 0.0;
 		return 1.0 / static_cast<double>(evalHz);
 	}
 }
-
 // ---------------------------------------------------------------------------------
-
 void BattleAIControllerSystem::Update(float dt)
 {
 	elapsedTime += static_cast<double>(dt);
@@ -21,17 +18,18 @@ void BattleAIControllerSystem::Update(float dt)
 	if (controllable.empty()) return;
 
 	auto& timelineSys = registry.Get<BattleTimelineSystem>();
+	auto& targetSys   = registry.Get<BattleTargetSystem>();
 
 	for (EntityID entity : controllable)
 	{
 		if (!ShouldEval(entity, elapsedTime)) continue;
 		if (!timelineSys.IsUnitReadyToAct(entity)) continue;
 
-		const EntityID resolvedTarget = ResolveTargetFirstEnemy(entity);
-		if (resolvedTarget == invalidEntity) continue;
+		EntityID targetEntity = targetSys.Get(entity);
+		if (targetEntity == invalidEntity) continue;
 
 		TimelineActionIntent intent{};
-		if (!BuildBasicIntent(entity, resolvedTarget, intent)) continue;
+		if (!BuildBasicIntent(entity, targetEntity, intent)) continue;
 
 		(void)timelineSys.TryCommitIntent(entity, intent);
 	}
@@ -119,4 +117,11 @@ bool BattleAIControllerSystem::BuildBasicIntent(EntityID self, EntityID target, 
 	out.apCost       = 0;
 	out.specialTag   = SpecialAnimTag::BasicAttack;
 	return true;
+}
+
+EntityID BattleAIControllerSystem::ResolveTargetViaSystem(EntityID self) const
+{
+	auto& targetSys = registry.Get<BattleTargetSystem>();
+	EntityID target = targetSys.Get(self);
+	return target;
 }

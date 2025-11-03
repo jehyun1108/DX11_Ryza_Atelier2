@@ -69,6 +69,9 @@
     <ClInclude Include="..\public\CharacterUILoader.h">
       <Filter>AssetData</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\LoaderData.h">
+      <Filter>01. Levels\Loading\Loader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Client.ico">

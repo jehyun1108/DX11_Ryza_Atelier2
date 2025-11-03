@@ -21,6 +21,8 @@ private:
 	EntityID         ResolveTargetFirstEnemy(EntityID self) const;
 	bool             BuildBasicIntent(EntityID self, EntityID target, TimelineActionIntent& out) const;
 
+	EntityID         ResolveTargetViaSystem(EntityID self) const;
+
 private:
 	SystemRegistry& registry;
 	AIConfig        config{};

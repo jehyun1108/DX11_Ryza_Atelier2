@@ -60,8 +60,8 @@ struct TimelineInputQueue
 
 struct TimelineUnitPolicy
 {
-	int apGainBasicAttack = 1;
-	int apGainSkillAttack = 1;
+	int  apGainBasicAttack      = 1;
+	int  apGainSkillAttack      = 1;
 	bool aiPreferSkillAtMaxAp   = true;
 	bool aiRandomAmongAfforable = true; // 가능한 후보중랜덤
 };

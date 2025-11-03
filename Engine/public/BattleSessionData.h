@@ -27,39 +27,6 @@ struct BattleSide
 using BattleParty   = BattleSide;
 using BattleEnemies = BattleSide;
 
-struct BattleSpawnLayoutConfig
-{
-	array<_float3, 3> allyInitPos = {
-		_float3{   0.f, 0.f, 1000.f},
-		_float3{-150.f, 0.f, 1200.f},
-		_float3{ 150.f, 0.f, 1200.f},
-	};
-	array<_float3, 3> enemyInitPos = {
-		_float3{   0.f, 0.f,  0.f  },
-		_float3{-150.f, 0.f, -150.f},
-		_float3{ 150.f, 0.f, -150.f}
-	};
-
-	float spacing = 300.f;
-	bool  faceCenterOnFinish = true;
-};
-
-struct BattleSessionLayout
-{
-	_float3 centerWorld = {};
-
-	array<_float3, 3>  allyTargetWorld = { _float3{}, _float3{}, _float3{} };
-	array<_float3, 3> enemyTargetWorld = { _float3{}, _float3{}, _float3{} };
-
-	array<_float2, 3> allyFaceDirXZ  = { _float2{ 0, -1 }, _float2{ 0, -1 }, _float2{ 0, -1 } };
-	array<_float2, 3> enemyFaceDirXZ = { _float2{ 0,  1 }, _float2{ 0,  1 }, _float2{ 0,  1 } };
-
-	int allySlotUsed  = 0;
-	int enemySlotUsed = 0;
-	float spacing           = 300.f;
-	float allyStartAngleDeg = 0.f;
-};
-
 struct BattleSlotAssignment
 {
 	unordered_map<EntityID, int> allySlotIdxByEntity;
@@ -72,12 +39,6 @@ struct BattleSessionEvent
 	BattleSessionEventType type = BattleSessionEventType::SessionBegan;
 };
 
-struct BattleUnitRef
-{
-	EntityID   entity = invalidEntity;
-	BattleTeam team   = BattleTeam::Neutral;
-};
-
 struct BattleVictoryCondition
 {
 	bool allyMustSurvive  = true;
@@ -87,7 +48,7 @@ struct BattleVictoryCondition
 struct BattleSessionConfig
 {
 	float baseGaugeFillPerSec = 1.0f;
-	int maxSimultaneousActionsPerTeam = -1;
+	int   maxSimultaneousActionsPerTeam = -1;
 };
 
 struct BattleSessionState
@@ -98,8 +59,6 @@ struct BattleSessionState
 	BattleParty   allies{};
 	BattleEnemies enemies{};
 
-	_float3 centerWorld = {};
-
 	BattleSessionConfig    config{};
 	BattleVictoryCondition victoryCondition{};
 
@@ -108,8 +67,6 @@ struct BattleSessionState
 
 	EntityID leaderEntity = invalidEntity;
 
-	BattleSpawnLayoutConfig spawnConfig{};
-	BattleSessionLayout     layout{};
 	BattleSlotAssignment    slots{};
 
 	int  alliesReadyCount    = 0;

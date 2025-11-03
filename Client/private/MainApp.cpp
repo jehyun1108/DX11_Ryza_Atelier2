@@ -3,20 +3,21 @@
 
 #include "Logo.h"
 #include "Central.h"
+#include "loading.h"
 
 HRESULT MainApp::Init()
 {
 	EngineDesc desc{};
-	desc.hWnd = g_hWnd;
+	desc.hWnd    = g_hWnd;
 	desc.winMode = WINMODE::WIN;
-	desc.WinX = WinX;
-	desc.WinY = WinY;
+	desc.WinX    = WinX;
+	desc.WinY    = WinY;
 	desc.levelCount = ENUM(LEVEL::END);
 
 	if (FAILED(game.InitEngine(desc)))
 		return E_FAIL;
 
-	game.ChangeLevel(ENUM(LEVEL::CENTRAL), Central::Create());
+	game.ChangeLevel(ENUM(LEVEL::LOADING), Loading::Create());
 
 	return S_OK;
 }
