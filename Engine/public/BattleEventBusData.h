@@ -10,10 +10,8 @@ enum class BattleBusEventType
 	SessionActivated,
 	SessionResultDecided,
 	SessionEnded,
-
 	// Session-Intro
 	IntroReady,
-
 	// Timeline
 	TimelineFullGauge,
 	TimelineActionCommitted,
@@ -21,16 +19,13 @@ enum class BattleBusEventType
 	TimelinePaused,
 	TimelineResumed,
 	TimelineApChanged,
-
 	// Execution
 	ExecutionStageAdvanced,
 	ExecutionInterrupted,
-
-	// UnitDowned
-	UnitDowned,
-
 	// Resolve
+	UnitDowned,
 	ResolveDamageApplied,
+	LeaderChanged,
 };
 
 struct EventPayload_None {};

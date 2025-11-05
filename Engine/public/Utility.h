@@ -162,6 +162,7 @@ public:
 	static _float3 NormalizeXZ(const _float3& v);
 	static _float2 Normalize(const _float3& v);
 	static _float3 Normalize3(const _float2& xz);
+	static _vec    FromEuler(const _float3& eulerRad);
 };
 
 NS_END

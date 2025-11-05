@@ -48,9 +48,9 @@ void MouthSystem::SetClip(Handle handle, const wstring& clip)
 {
 	if (auto mouth = Get(handle))
 	{
-		mouth->clip = clip;
+		mouth->clip   = clip;
 		auto& animSys = registry.Get<AnimatorSystem>();
-		auto mask = animSys.BuildMaskFromClip(mouth->animator, mouth->clip, true);
+		auto mask     = animSys.BuildMaskFromClip(mouth->animator, mouth->clip, true);
 		animSys.SetLayerMask(mouth->animator, mouth->layer, mask);
 		animSys.Play(mouth->animator, mouth->layer, mouth->clip, ANIMTYPE::LOOP);
 	}

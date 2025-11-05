@@ -8,7 +8,7 @@ class BattleUIOrchestrator;
 class ENGINE_DLL BattleOrchestraSystem : public IModeOrchestrator
 {
 public:
-	explicit BattleOrchestraSystem(SystemRegistry& registry) : registry(registry) {}
+	explicit BattleOrchestraSystem(SystemRegistry& registry, BattleEventBus& eventBus) : registry(registry), eventBus(eventBus) {}
 
 	void Enter() override;
 	void Update(float dt) override;
@@ -19,6 +19,9 @@ public:
 private:
 	void WireSubscriptions();   
 	void UnwireSubscriptions(); 
+
+	void WireCameraSubscriptions();
+	void UnwireCameraSubscriptions();
 	
 	void PumpSessionEventsToBus();
 	void PumpTimelineEventsToBus();
@@ -28,9 +31,13 @@ private:
 
 private:
 	SystemRegistry& registry;
-	BattleEventBus eventBus;
+	BattleEventBus& eventBus;
 	vector<BattleEventListenerId> listenerIds;
 	unique_ptr<BattleUIOrchestrator> uiOrchestrator{};
+
+	BattleCameraDirector::SeqSampleFunc seqSampler{};
+	unique_ptr<BattleCameraDirector>    camDirector;
+	unique_ptr<CamRegistry>             camReg;
 };
 
 NS_END

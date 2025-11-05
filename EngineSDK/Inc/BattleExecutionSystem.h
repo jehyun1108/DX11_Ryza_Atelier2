@@ -23,14 +23,14 @@ private:
     void BuildPlanForEscape(EntityID entity, ExecutionUnitRunTime& rt);
     
     bool AdvanceIfStageFinished(EntityID entity, ExecutionUnitRunTime& rt, float dt);
-    bool AdvanceChainOrFinish(EntityID entity, ExecutionUnitRunTime& rt);
+    bool AdvanceChainOrFinish(EntityID entity,   ExecutionUnitRunTime& rt);
 
 private:
     Handle ResolveAnimHandle(EntityID entity) const;
     Handle ResolveTfHandle(EntityID entity) const;
-    void   ConsumePulse(EntityID entity, ExecutionUnitRunTime& rt, float dt);
+    void   ConsumePulse(EntityID entity,  ExecutionUnitRunTime& rt, float dt);
 
-    void   MaintainFacing(EntityID self, ExecutionUnitRunTime& rt);
+    void   MaintainFacing(EntityID self,  ExecutionUnitRunTime& rt);
     void   FinishAndIdle(EntityID entity, ExecutionUnitRunTime& rt);
 
 private:

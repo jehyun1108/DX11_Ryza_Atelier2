@@ -207,7 +207,7 @@ void Device::ApplyFrameLimiter()
 {
 	if (opts.vsyncMode != VSyncMode::Off || opts.frameLimiterHz == 0) return;
 
-	const auto now         = high_resolution_clock::now();
+	const auto   now       = high_resolution_clock::now();
 	const double targetMs  = 1000.0 / static_cast<double>(opts.frameLimiterHz);
 	const double elapsedMs = duration<double, milli>(now - lastPresentTime).count();
 
@@ -226,7 +226,7 @@ HRESULT Device::Present()
 
 	ApplyFrameLimiter();
 
-	_uint sync = 0;
+	_uint sync  = 0;
 	_uint flags = 0;
 
 	switch (opts.vsyncMode)
@@ -245,7 +245,7 @@ HRESULT Device::Present()
 
 	default: break;
 	}
-
+	
 	return swapChain->Present(sync, flags);
 }
 

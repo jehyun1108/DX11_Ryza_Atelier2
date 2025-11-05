@@ -38,11 +38,11 @@ Handle FaceSystem::Create(EntityID owner, Handle anim, wstring openClip, wstring
     animSys.SetLayerBlendType(anim, face.layer, ANIMBLEND::OVERRIDE);
     animSys.SetLayerBlendWeight(anim, face.layer, 0.f);
 
-    face.curOpenHold = nextOpenHold(face);
+    face.curOpenHold  = nextOpenHold(face);
     face.curFadeClose = Utility::Jitter(face.fadeClose);
-    face.curFadeOpen = Utility::Jitter(face.fadeOpen);
-    face.state = FaceState::OpenHold;
-    face.timer = face.curOpenHold;
+    face.curFadeOpen  = Utility::Jitter(face.fadeOpen);
+    face.state        = FaceState::OpenHold;
+    face.timer        = face.curOpenHold;
     return handle;
 }
 

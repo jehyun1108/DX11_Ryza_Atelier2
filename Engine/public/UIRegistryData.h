@@ -8,7 +8,7 @@ struct UIArchetypeSpec
 {
 	wstring texKey;
 
-	UILayer      layer      = UILayer::Widgets;
+	int          zOrder     = 0;
 	UIContext    context    = UIContext::Battle;
 	UIVisibility visibility = UIVisibility::Always;
 
@@ -49,6 +49,11 @@ struct UIInstance
 
 	float    animOffsetX = 0.f;
 	float    animOffsetY = 0.f;
+	float    animScaleX  = 1.f;
+	float    animScaleY  = 1.f;
+	float    animOpacity = 1.f;
+
+	int      zOrder = 0;
 };
 
 NS_END

@@ -18,15 +18,6 @@ enum class UIPivot
 {
 	TopLeft, TopCenter, TopRight, MidLeft, MidCenter, MidRight, BottomLeft, BottomCenter, BottomRight
 };
-enum class UILayer // 높을수록 먼저그림
-{
-	BackGround,
-	BarBack,
-	Widgets,
-	FatalDrive,
-	Overlay,
-	Debug,
-};
 enum class UIWidgetState
 {
 	None, Hovered, Pressed, Disabled

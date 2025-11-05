@@ -25,7 +25,7 @@ public:
 		// 1. FatalDrive
 		{
 			UIArchetypeSpec spec;
-			spec.layer         = UILayer::FatalDrive;
+			spec.zOrder        = 0;
 			spec.startEnabled  = false;
 
 			spec.texKey = L"patricia_fataldrive";
@@ -64,6 +64,16 @@ public:
 			spec.fixedHeight =  200.f * 0.6f;
 			spec.texKey      = L"klaudia_battleui";
 			uiRegistry.RegisterArchetype(spec.texKey, spec);
+		}
+		{
+			//// timeline ryza/klaudia/patricia
+			//UIArchetypeSpec spec;
+			//spec.texKey = L"timeline_ryza";
+			//uiRegistry.RegisterArchetype(spec.texKey, spec);
+			//spec.texKey = L"timeline_patricia";
+			//uiRegistry.RegisterArchetype(spec.texKey, spec);
+			//spec.texKey = L"timeline_klaudia";
+			//uiRegistry.RegisterArchetype(spec.texKey, spec);
 		}
 		// 3. barback
 		{

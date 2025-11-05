@@ -81,10 +81,10 @@ void SocketSystem::Update(float dt)
 			const _mat offset      = XMLoadFloat4x4(&socket.offsetMat);
 
             const bool removeScale = true;
-            const _mat boneMat = removeScale ? Utility::RemoveScaleKeepRotTrans(boneWorld) : boneWorld;
+            const _mat boneMat     = removeScale ? Utility::RemoveScaleKeepRotTrans(boneWorld) : boneWorld;
             
             const _float3 vScale = tfSys.GetScale(socket.childTf);
-            const _mat mScale = XMMatrixScaling(vScale.x, vScale.y, vScale.z);
+            const _mat mScale    = XMMatrixScaling(vScale.x, vScale.y, vScale.z);
 
             const _mat world = mScale * offset * boneMat * parentWorld;
 			tfSys.SetWorld(socket.childTf, world);
@@ -105,7 +105,7 @@ void SocketSystem::RenderGui(EntityID id)
 {
 #ifdef USE_IMGUI
 	auto& animSys = registry.Get<AnimatorSystem>();
-	auto& tfSys = registry.Get<TransformSystem>();
+	auto& tfSys   = registry.Get<TransformSystem>();
 
 	struct NameBuffer { char text[128] = {}; };
 	static unordered_map<_uint, NameBuffer> nameBuffers;

@@ -40,30 +40,27 @@ vector<EntityID> BattleAIControllerSystem::CollectEntities() const
 	vector<EntityID> result;
 	result.reserve(6);
 
-	auto& sessionSys = registry.Get<BattleSessionSystem>();
+	auto& sessionSys  = registry.Get<BattleSessionSystem>();
+	auto& timelineSys = registry.Get<BattleTimelineSystem>();
 
 	const BattleParty*   allies  = sessionSys.GetAllies();
 	const BattleEnemies* enemies = sessionSys.GetEnemies();
-	const EntityID       leader  = sessionSys.GetLeader();
+	const EntityID       leader  = timelineSys.GetLeader();
 
 	if (enemies)
-	{
 		for (int i = 0; i < enemies->memberCount; ++i)
 		{
 			const EntityID enemy = enemies->members[i];
 			if (enemy != invalidEntity)
 				result.push_back(enemy);
 		}
-	}
 	if (allies)
-	{
 		for (int i = 0; i < allies->memberCount; ++i)
 		{
 			const EntityID ally = allies->members[i];
 			if (ally != invalidEntity && ally != leader)
 				result.push_back(ally);
 		}
-	}
 	return result;
 }
 
@@ -75,12 +72,6 @@ bool BattleAIControllerSystem::ShouldEval(EntityID id, double now)
 	const double interval = SecondUntilNextEval(config.eval_hz);
 	bb.next_eval_sec = now + interval;
 	return true;
-}
-
-bool BattleAIControllerSystem::IsGaugeFull(EntityID id) const
-{
-	auto& timelineSys = registry.Get<BattleTimelineSystem>();
-	return timelineSys.IsGaugeFull(id);
 }
 
 EntityID BattleAIControllerSystem::ResolveTargetFirstEnemy(EntityID self) const

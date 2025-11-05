@@ -14,6 +14,7 @@ enum class BattleTimelineEventType
 	TimelinePaused,
 	TimelineResumed,
 	ApChanged,
+	LeaderChanged,
 };
 
 struct TimelineRole
@@ -33,7 +34,7 @@ struct TimelineGauge
 {
 	float curValue  = 0.f;
 	float maxValue  = 0.f;
-	float fillSpeed = 1000.f;
+	float fillSpeed = 100.f;
 	bool  isFrozen  = false;
 };
 
@@ -80,7 +81,8 @@ struct TimelineUnitState
 	TimelineActionIntent pendingIntent{};
 	TimelineActionIntent activeIntent{};
 
-	bool canAction = true;
+	bool defendAllowed = true;
+	bool canAction     = true;
 };
 
 struct TimelineUnitRunTime
@@ -94,14 +96,14 @@ struct TimelineUnitRunTime
 struct BattleTimelineConfig
 {
 	float gaugeMaxValue = 100.f;
-	float gaugeFillSpeed = 100.f;
+	float gaugeFillSpeed = 50.f;
 	bool  canAction = true;
 };
 
-struct TimelineLeaderState
+struct LeaderState
 {
-	EntityID curLeader = invalidEntity;
-	bool     swapApOnLeaderChange = true;
+	EntityID curLeader  = invalidEntity;
+	EntityID comboOwner = invalidEntity;
 };
 
 struct BattleTimelineState
@@ -110,7 +112,7 @@ struct BattleTimelineState
 	float              elapsedTime = 0.f;
 
 	BattleTimelineConfig config{};
-	TimelineLeaderState  leader{};
+	LeaderState          leader{};
 
 	array<TimelineUnitState,   3> allies{};
 	array<TimelineUnitState,   3> enemies{};

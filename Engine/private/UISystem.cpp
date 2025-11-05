@@ -90,11 +90,11 @@ void UISystem::ExtractUIProxies(UISnapShot& out)
 		const float topLeftY = anchorY + inst->localY - pivotOffY + inst->animOffsetY;
 
 		UIDrawItem drawItem{};
-		drawItem.zOrder         = static_cast<int>(spec.layer);
+		drawItem.zOrder         = (spec.zOrder + inst->zOrder);
 		drawItem.dstRect.x      = topLeftX;
 		drawItem.dstRect.y      = topLeftY;
-		drawItem.dstRect.width  = drawW;
-		drawItem.dstRect.height = drawH;
+		drawItem.dstRect.width  = drawW * inst->animScaleX;
+		drawItem.dstRect.height = drawH * inst->animScaleY;
 		drawItem.texKey         = inst->overrideKey.has_value() ? *inst->overrideKey : spec.texKey;
 
 		drawItem.useScissor  = inst->useScissor;

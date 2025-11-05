@@ -11,8 +11,7 @@ HRESULT MainApp::Init()
 	desc.WinY    = WinY;
 	desc.levelCount = ENUM(LEVEL::END);
 
-	if (FAILED(game.InitEngine(desc)))
-		return E_FAIL;
+	if (FAILED(game.InitEngine(desc))) return E_FAIL;
 
 	game.ChangeLevel(ENUM(LEVEL::IMPORTER), ImportLevel::Create());
 	
@@ -37,9 +36,7 @@ HRESULT MainApp::Render()
 unique_ptr<MainApp> MainApp::Create()
 {
 	auto inst = make_unique<MainApp>();
-
 	if (FAILED(inst->Init()))
 		return nullptr;
-
 	return inst;
 }

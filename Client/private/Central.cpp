@@ -29,8 +29,12 @@ HRESULT Central::Init()
 		.WithCam(XMConvertToRadians(90.f), float(WinX) / WinY, 0.1f, 10000.f, true)
 		.WithFreeCam(500.f)
 		//.WithThirdCam(playerHandle.tf, _vec{ 0.f, 200.f, -200.f }, OffsetSpace::WorldSpace, FollowPolicy::PosOnly)
-		.WithDirectionalLight()
 		.WithTag("freecam")
+		.Build();
+
+	auto light = spawner.NewEntity()
+		.WithTf()
+		.WithDirectionalLight()
 		.Build();
 
 	//auto orbitCam = spawner.NewEntity()

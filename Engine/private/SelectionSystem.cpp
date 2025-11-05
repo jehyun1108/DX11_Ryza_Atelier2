@@ -255,21 +255,6 @@ float SelectionSystem::Snap(float v, float step, float origin)
 void SelectionSystem::RenderGui(EntityID id) 
 {
 #ifdef USE_IMGUI
-	if (ImGui::CollapsingHeader("Selection"))
-	{
-		ImGui::Text("Hovered: %u", (_uint)hovered);
-		ImGui::Text("Selected Count: %d", (int)selected.size());
-
-		if (ImGui::TreeNode("Selected Entities"))
-		{
-			for (auto id : selected)
-				ImGui::BulletText("%u", (_uint)id);
-			ImGui::TreePop();
-		}
-
-		if (ImGui::Button("Clear Selection"))
-			selected.clear();
-	}
 
 #endif
 }

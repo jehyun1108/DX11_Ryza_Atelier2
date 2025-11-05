@@ -19,6 +19,9 @@ public:
 	void SetScissor(const wstring&  archetypeKey, bool use, const UIRect& rect);
 	void SetWidgetTexture(const wstring& archetypeKey, const wstring& texKey);
 
+	void SetZOrder(const wstring& archetypeKey, int zOrder);
+	int  GetZOrder(const wstring& archetypeKey);
+
 	// Field / Battle 기준으로 그릴 후보를 모아서 반환 -> visible 해석 (부모영향 + Context 허용) 여기서 해결
 	void CollectForContext(UIContext context, vector<const UIInstance*>& out);
 

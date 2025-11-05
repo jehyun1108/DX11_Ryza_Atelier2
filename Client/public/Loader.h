@@ -9,6 +9,7 @@ class Loader
 public:
 	~Loader();
 
+public:
 	void Start();
 	void WaitUntilDone();
 	void RequestStop();

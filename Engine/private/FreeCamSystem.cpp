@@ -64,9 +64,9 @@ void FreeCamSystem::Update(float dt)
             if (lenSq > 1e-12f)
             {
                 const float invLen = 1.f / sqrtf(lenSq);
-                dx *= invLen; dy *= invLen; dz *= invLen;
+                dx *= invLen; dy  *= invLen; dz *= invLen;
 
-                const float scale = cam.moveSpeed * dt;
+                const float   scale   = cam.moveSpeed * dt;
                 const _float3 dtLocal = { dx * scale, dy * scale, dz * scale };
                 tfSys.AddLocalOffset(cam.transform, dtLocal);
             }
@@ -75,7 +75,7 @@ void FreeCamSystem::Update(float dt)
             if (input.KeyPressing(KEY::RBUTTON))
             {
                 const _float2 mouseDt = input.GetMouseDelta();
-                cam.yawDeg = WrapAngleDeg(cam.yawDeg + mouseDt.x * cam.sensitivity);
+                cam.yawDeg   = WrapAngleDeg(cam.yawDeg + mouseDt.x * cam.sensitivity);
                 cam.pitchDeg = clamp(cam.pitchDeg + (-mouseDt.y * cam.sensitivity), -89.f, 89.f);
 
                 const float yawRad   = XMConvertToRadians(cam.yawDeg);

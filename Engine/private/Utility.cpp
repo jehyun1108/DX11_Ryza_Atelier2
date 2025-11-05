@@ -657,3 +657,14 @@ _float3 Utility::Normalize3(const _float2& xz)
 {
 	return _float3{ xz.x, 0.f, xz.y };
 }
+
+_vec Utility::FromEuler(const _float3& eulerRad)
+{
+	_vec qx = XMQuaternionRotationAxis(XMVectorSet(1, 0, 0, 0), eulerRad.x);
+	_vec qy = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), eulerRad.y);
+	_vec qz = XMQuaternionRotationAxis(XMVectorSet(0, 0, 1, 0), eulerRad.z);
+
+	// DirectX는 보통 Y(요) → X(피치) → Z(롤) 순으로 곱함
+	_vec q = XMQuaternionMultiply(qx, XMQuaternionMultiply(qy, qz));
+	return XMQuaternionNormalize(q);
+}

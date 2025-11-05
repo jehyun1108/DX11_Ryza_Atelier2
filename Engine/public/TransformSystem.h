@@ -23,9 +23,6 @@ public:
 	void SetEuler(Handle handle, float pitch, float yaw, float roll);
 	void SetRotation(Handle handle, float yawRad, float pitchRad); 
 	void SetQuat(Handle handle, _fvec quat);
-	//void SetYawDegrees(Handle handle, float yawDeg);
-	//float GetYawRad(Handle handle)const;
-
 	void SetForwardXZ(Handle handle, const _float3& worldPos);
 	void SetForward(Handle handle, const _float3& worldPos, const _float3& upWorld = _float3{ 0.f, 1.f, 0.f });
 	

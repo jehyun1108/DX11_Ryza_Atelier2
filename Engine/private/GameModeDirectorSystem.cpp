@@ -1,7 +1,7 @@
 #include "Enginepch.h"
 
-GameModeDirectorSystem::GameModeDirectorSystem(SystemRegistry& registry, EntityID fieldLeaderEntity)
-	:registry(registry), fieldSys(registry), battleSys(registry), curMode(GameMode::Field), playerLeader(fieldLeaderEntity){}
+GameModeDirectorSystem::GameModeDirectorSystem(SystemRegistry& registry, FieldOrchestraSystem& fieldSys, BattleOrchestraSystem& battleSys, EntityID fieldLeaderEntity)
+	:registry(registry), fieldSys(fieldSys),battleSys(battleSys),curMode(GameMode::Field),playerLeader(fieldLeaderEntity){}
 
 void GameModeDirectorSystem::Update(float dt)
 {

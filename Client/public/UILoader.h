@@ -101,6 +101,30 @@ public:
 		// input_barback
 		meta.fullPath = L"../bin/Resources/UI/Battle/input/input_barback.png";
 		assets.RegisterTexture(L"input_barback", meta);
+		// timeline_ryza
+		meta.fullPath = L"../bin/Resources/UI/Battle/character_icon/timeline_ryza.png";
+		assets.RegisterTexture(L"timeline_ryza", meta);
+		// timeline_patricia
+		meta.fullPath = L"../bin/Resources/UI/Battle/character_icon/timeline_patricia.png";
+		assets.RegisterTexture(L"timeline_patricia", meta);
+		// timeline_klaudia
+		meta.fullPath = L"../bin/Resources/UI/Battle/character_icon/timeline_klaudia.png";
+		assets.RegisterTexture(L"timeline_klaudia", meta);
+		// timeline_npc
+		meta.fullPath = L"../bin/Resources/UI/Battle/character_icon/timeline_npc.png";
+		assets.RegisterTexture(L"timeline_npc", meta);
+		// timeline_leader
+		meta.fullPath = L"../bin/Resources/UI/Battle/character_icon/timeline_leader.png";
+		assets.RegisterTexture(L"timeline_leader", meta);
+		// timeline_enemy1
+		meta.fullPath = L"../bin/Resources/UI/Battle/character_icon/timeline_enemy1.png";
+		assets.RegisterTexture(L"timeline_enemy1", meta);
+		// timeline_enemy2
+		meta.fullPath = L"../bin/Resources/UI/Battle/character_icon/timeline_enemy2.png";
+		assets.RegisterTexture(L"timeline_enemy2", meta);
+		// timeline_enemy3
+		meta.fullPath = L"../bin/Resources/UI/Battle/character_icon/timeline_enemy3.png";
+		assets.RegisterTexture(L"timeline_enemy3", meta);
 
 		// field_minimap
 		meta.fullPath = L"../bin/Resources/UI/Field/minimap/field_minimap.png";

@@ -10,7 +10,7 @@ public:
 	explicit CameraSystem(SystemRegistry& registry) : EntitySystem(registry) {}
 
 	Handle Create(EntityID owner, Handle transform, float fovY, float aspect, float nearZ, float farZ);
-	void Update(float dt);
+	void   Update(float dt);
 
 	void SetPerspective(Handle handle, float fovY, float aspect, float nearZ, float farZ);
 	void SetTarget(Handle handle, Handle targetTf, _fvec offset);
@@ -21,29 +21,27 @@ public:
 	void SetFollowPolicy(Handle handle, FollowPolicy policy, float softDamping = 10.f);
 
 	Handle GetMainCamHandle() const { return mainCam; }
-
 	// -------------- Safe -----------------
-	const _float4x4* TryGetView(Handle handle)        const;
-	const _float4x4* TryGetProj(Handle handle)        const;
-	const _float4x4* TryGetViewProj(Handle handle)    const;
-	const _float4x4* TryGetInvView(Handle handle)     const;
-	const _float4x4* TryGetInvViewProj(Handle handle) const;
-	_vec             TryGetPos(Handle handle)         const;
+	const _float4x4* TryGetView(Handle handle)        const { return Validate(handle) ? &Get(handle)->view        : nullptr; }
+	const _float4x4* TryGetProj(Handle handle)        const { return Validate(handle) ? &Get(handle)->proj        : nullptr; }
+	const _float4x4* TryGetViewProj(Handle handle)    const { return Validate(handle) ? &Get(handle)->viewProj    : nullptr; }
+	const _float4x4* TryGetInvView(Handle handle)     const { return Validate(handle) ? &Get(handle)->invView     : nullptr; }
+	const _float4x4* TryGetInvViewProj(Handle handle) const { return Validate(handle) ? &Get(handle)->invViewProj : nullptr; }
+	_vec             TryGetPos(Handle handle)         const { return Validate(handle) ? XMLoadFloat4(&Get(handle)->camPos) : XMVectorZero(); }
 	// --------- 유효해야함 -------------------
-	const _float4x4& GetView(Handle handle)        const;
-	const _float4x4& GetProj(Handle handle)        const;
-	const _float4x4& GetViewProj(Handle handle)    const;
-	const _float4x4& GetInvView(Handle handle)     const;
-	const _float4x4& GetInvViewProj(Handle handle) const;
-	_vec             GetPos(Handle handle)         const;
-
+	const _float4x4& GetView(Handle handle)        const { return RequiredCam(this, handle, "GetView: invalid camera").view; }
+	const _float4x4& GetProj(Handle handle)        const { return RequiredCam(this, handle, "GetProj: invalid camera").proj; }
+	const _float4x4& GetViewProj(Handle handle)    const { return RequiredCam(this, handle, "GetViewProj: invalid camera").viewProj; }
+	const _float4x4& GetInvView(Handle handle)     const { return RequiredCam(this, handle, "GetInvView: invalid camera").invView; }
+	const _float4x4& GetInvViewProj(Handle handle) const { return RequiredCam(this, handle, "GetInvViewProj: invalid camera").invViewProj; }
+	_vec             GetPos(Handle handle)         const { return XMLoadFloat4(&RequiredCam(this, handle, "GetPos: invalid camera").camPos); }
 	// ---------- 편의용 ----------------------
-	const _float4x4& GetMainView()        const { return GetView(mainCam); }
-	const _float4x4& GetMainProj()        const { return GetProj(mainCam); }
-	const _float4x4& GetMainViewProj()    const { return GetViewProj(mainCam); }
-	const _float4x4& GetMainInvView()     const { return GetInvView(mainCam); }
+	const _float4x4& GetMainView()        const { return GetView(mainCam);        }
+	const _float4x4& GetMainProj()        const { return GetProj(mainCam);        }
+	const _float4x4& GetMainViewProj()    const { return GetViewProj(mainCam);    }
+	const _float4x4& GetMainInvView()     const { return GetInvView(mainCam);     }
 	const _float4x4& GetMainInvViewProj() const { return GetInvViewProj(mainCam); }
-	_vec             GetMainPos()         const { return GetPos(mainCam); }
+	_vec             GetMainPos()         const { return GetPos(mainCam);         }
 
 	float GetFovY(Handle handle)   const { return Validate(handle) ? Get(handle)->fovY   : 0.f; }
 	float GetAspect(Handle handle) const { return Validate(handle) ? Get(handle)->aspect : 0.f; }

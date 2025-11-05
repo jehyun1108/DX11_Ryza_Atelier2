@@ -60,6 +60,21 @@ void UIRegistry::SetWidgetTexture(const wstring& archetypeKey, const wstring& te
 	inst.overrideKey = texKey;
 }
 
+void UIRegistry::SetZOrder(const wstring& archetypeKey, int zOrder)
+{
+	auto& inst = instances.at(archetypeKey);
+	inst.zOrder = zOrder;
+}
+
+int UIRegistry::GetZOrder(const wstring& archetypeKey)
+{
+	auto it = instances.find(archetypeKey);
+	if (it == instances.end()) return 0;
+	const UIInstance& inst = it->second;
+	const int base = inst.spec ? inst.spec->zOrder : 0;
+	return base + inst.zOrder;
+}
+
 void UIRegistry::CollectForContext(UIContext context, vector<const UIInstance*>& out)
 {
 	out.clear();

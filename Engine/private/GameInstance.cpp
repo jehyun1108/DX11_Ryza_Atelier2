@@ -5,7 +5,7 @@ bool GameInstance::inited = false;
 HWND g_hWnd;
 
 GameInstance::GameInstance(PassKey)
-	:entityMgr(registry), tfSys(registry), animatorSys(registry), camSys(registry), lightSys(registry), freeCamSys(registry), faceSys(registry), mouthSys(registry), socketSys(registry), modelSys(registry), layerSys(registry), gridSys(registry), pickingSys(registry), selectionSys(registry), collisionSys(registry), renderSys(registry), moveStateSys(registry), moveProfileSys(registry), moveIntentSys(registry), meshColliderSys(registry), skySys(registry), fieldAnimSys(registry), facingSys(registry),  orbitCamSys(registry), fieldCtrlSys(registry), battleIntroSys(registry), animDataSys(registry), jumpSys(registry), battleSessionSys(registry), fieldSys(registry), battleCtrlSys(registry) ,charaDataSys(registry), battleTimelineSys(registry), battleExecSys(registry), uiRegistry(assetSys), uiAnimSys(uiRegistry), uiSys(registry, assetSys,uiRegistry, uiAnimSys), battleSys(registry), fieldUIOrchestrator(registry, uiRegistry, uiSys, uiAnimSys), director(registry, 1), battleAICtrlSys(registry), battleTargetSys(registry) {
+	: eventBus(registry), entityMgr(registry), tfSys(registry), animatorSys(registry), camSys(registry), lightSys(registry), freeCamSys(registry), faceSys(registry), mouthSys(registry), socketSys(registry), modelSys(registry), layerSys(registry), gridSys(registry), pickingSys(registry), selectionSys(registry), collisionSys(registry), renderSys(registry), moveStateSys(registry), moveProfileSys(registry), moveIntentSys(registry), meshColliderSys(registry), skySys(registry), fieldAnimSys(registry), facingSys(registry),  orbitCamSys(registry), fieldCtrlSys(registry), battleIntroSys(registry), animDataSys(registry), jumpSys(registry), battleSessionSys(registry), fieldSys(registry), battleCtrlSys(registry, battleTimelineSys) ,charaDataSys(registry), battleTimelineSys(registry, eventBus), battleExecSys(registry), uiRegistry(assetSys), uiAnimSys(uiRegistry), uiSys(registry, assetSys,uiRegistry, uiAnimSys), battleSys(registry, eventBus), fieldUIOrchestrator(registry, uiRegistry, uiSys, uiAnimSys), director(registry, fieldSys, battleSys, 1), battleAICtrlSys(registry), battleTargetSys(registry), battleCamDirector(registry)  {
 }
 GameInstance::~GameInstance() = default;
 HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
@@ -64,6 +64,9 @@ HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
 	registry.Register(battleAICtrlSys);
 	registry.Register(battleTargetSys);
 	registry.Register(battleFormationSys);
+	registry.Register(battleCamDirector);
+	registry.Register(eventBus);
+
 
 	levelMgr = LevelMgr::Create();
 	

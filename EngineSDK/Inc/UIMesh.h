@@ -15,18 +15,7 @@ public:
 
 private:
     size_t FillVB(ID3D11DeviceContext* context, const vector<const UIDrawItem*>& sorted,  size_t quadCount);
-
     void   IssueBatches(ID3D11DeviceContext* context,  const vector<const UIDrawItem*>& sorted, ResolveTexture resolveTexture,  size_t quadCount);
-
-    static bool IsSameScissor(const UIDrawItem& a, const UIDrawItem& b)
-    {
-        if (a.useScissor != b.useScissor) return false;
-        if (!a.useScissor) return true;
-        return a.scissorRect.x == b.scissorRect.x &&
-            a.scissorRect.y == b.scissorRect.y &&
-            a.scissorRect.width == b.scissorRect.width &&
-            a.scissorRect.height == b.scissorRect.height;
-    }
 
 private:
     ComPtr<ID3D11Buffer> vbDynamic;

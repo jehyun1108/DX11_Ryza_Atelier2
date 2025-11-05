@@ -331,32 +331,6 @@ void FieldAnimSystem::Update(float dt)
         });
 }
 
-void FieldAnimSystem::RenderGui(EntityID id)
-{
-#ifdef USE_IMGUI
-	if (!ImGui::CollapsingHeader("FieldAnimSystem##FieldAnimSystem", ImGuiTreeNodeFlags_DefaultOpen)) return;
-	
-    GuiUtility::BeginPanel("Field Locomotion", PanelMode::Lines, 10.f);
-	ForEachAliveEx([&](Handle handle, EntityID owner, LocomotionAnim& loco)
-		{
-			if (id != invalidEntity && owner != id) return;
-
-			ImGui::PushID((int)handle.idx);
-			if (ImGui::TreeNodeEx("Locomotion", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				ImGui::Text("Owner: %u", (unsigned)owner);
-				ImGui::Text("State: %d", (int)loco.cur);
-				ImGui::Text("Clip : %ls", loco.curClipName.c_str());
-				ImGui::Text("Elapsed: %.3f", loco.stateElapsed);
-				ImGui::TreePop();
-			}
-			ImGui::PopID();
-		});
-
-	GuiUtility::EndPanel();
-#endif
-}
-
 const wstring& FieldAnimSystem::ResolveClip(const AnimProfile& profile, AnimKey key) const
 {
     const auto& animData = registry.Get<AnimDataSystem>();
@@ -385,4 +359,33 @@ void FieldAnimSystem::PlayKey(LocomotionAnim& loco, AnimKey key, ANIMTYPE type, 
         animSys.CrossFade(loco.animHandle, 0, 1, clipName, fadeSeconds, type);
     else
         animSys.Play(loco.animHandle, 0, clipName, type);
+}
+
+void FieldAnimSystem::RenderGui(EntityID id)
+{
+#ifdef USE_IMGUI
+    
+    if (ImGui::CollapsingHeader("FieldAnimSystem##FieldAnimSystem"))
+    {
+        ForEachOwned(id, [&](Handle handle, LocomotionAnim& loco)
+            {
+                ImGui::PushID((int)handle.idx);
+
+                const ImGuiTreeNodeFlags flags =
+                    ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+
+                if (ImGui::TreeNodeEx("Locomotion", flags))
+                {
+                    ImGui::Text("Owner: %u", (unsigned)id);
+                    ImGui::Text("State: %d", (int)loco.cur);
+                    ImGui::Text("Clip : %ls", loco.curClipName.c_str());
+                    ImGui::Text("Elapsed: %.3f", loco.stateElapsed);
+                    ImGui::TreePop();
+                }
+
+                ImGui::PopID();
+            });
+    }
+
+#endif
 }

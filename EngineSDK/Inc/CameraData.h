@@ -1,9 +1,9 @@
 #pragma once
 
 NS_BEGIN(Engine)
-enum class RAYORIGIN { CameraPos, NearPlane, END };
-enum class OffsetSpace {TargetSpace, WorldSpace};
-enum class FollowPolicy {HardLookAt, SoftLookAt, PosOnly };
+enum class RAYORIGIN    { CameraPos,   NearPlane, END };
+enum class OffsetSpace  { TargetSpace, WorldSpace };
+enum class FollowPolicy { HardLookAt,  SoftLookAt, PosOnly };
 
 struct ENGINE_DLL CameraData
 {

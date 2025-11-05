@@ -144,6 +144,8 @@ private:
 	BattleAIControllerSystem battleAICtrlSys;
 	BattleTargetSystem       battleTargetSys;
 	BattleFormationSystem    battleFormationSys;
+	BattleCameraDirector     battleCamDirector;
+	BattleEventBus           eventBus;
 
 	// UI
 	UISystem               uiSys;

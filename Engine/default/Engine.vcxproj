@@ -195,6 +195,9 @@
     <ClInclude Include="..\public\AssetSystem.h" />
     <ClInclude Include="..\public\BattleAIControllerSystem.h" />
     <ClInclude Include="..\public\BattleAIData.h" />
+    <ClInclude Include="..\public\BattleCamera_Enum.h" />
+    <ClInclude Include="..\public\BattleCameraDirector.h" />
+    <ClInclude Include="..\public\BattleCamera_Struct.h" />
     <ClInclude Include="..\public\BattleControllerData.h" />
     <ClInclude Include="..\public\BattleControllerSystem.h" />
     <ClInclude Include="..\public\BattleData.h" />
@@ -216,6 +219,8 @@
     <ClInclude Include="..\public\BattleTimelineSystem.h" />
     <ClInclude Include="..\public\BattleUIOrchestrator.h" />
     <ClInclude Include="..\public\BinaryUtil.h" />
+    <ClInclude Include="..\public\CamRegistryData.h" />
+    <ClInclude Include="..\public\CamRegistry.h" />
     <ClInclude Include="..\public\CBufferTypes.h" />
     <ClInclude Include="..\public\CharaAnimData.h" />
     <ClInclude Include="..\public\CharacterData.h" />
@@ -239,6 +244,7 @@
     <ClInclude Include="..\public\GuiUtility.h" />
     <ClInclude Include="..\public\HighlightData.h" />
     <ClInclude Include="..\public\HighlightSystem.h" />
+    <ClInclude Include="..\public\ICamTrack.h" />
     <ClInclude Include="..\public\IModeOrchestra.h" />
     <ClInclude Include="..\public\InputLayoutUtil.h" />
     <ClInclude Include="..\public\InputRouting.h" />
@@ -339,7 +345,7 @@
     <ClInclude Include="..\public\Singleton.h" />
     <ClInclude Include="..\public\SkyboxData.h" />
     <ClInclude Include="..\public\SkyboxSystem.h" />
-    <ClInclude Include="..\public\TimelineBarPresenter.h" />
+    <ClInclude Include="..\public\BattleTimelinePresenter.h" />
     <ClInclude Include="..\public\SocketData.h" />
     <ClInclude Include="..\public\SocketSystem.h" />
     <ClInclude Include="..\public\SystemRegistry.h" />
@@ -353,6 +359,7 @@
     <ClInclude Include="..\public\TransformData.h" />
     <ClInclude Include="..\public\InputLayoutBuilder.h" />
     <ClInclude Include="..\public\TransformSystem.h" />
+    <ClInclude Include="..\public\UIAnimData.h" />
     <ClInclude Include="..\public\UIAnimSystem.h" />
     <ClInclude Include="..\public\UIData_Enum.h" />
     <ClInclude Include="..\public\UIData_Struct.h" />
@@ -372,6 +379,7 @@
     <ClCompile Include="..\private\AnimDataSystem.cpp" />
     <ClCompile Include="..\private\AssetSystem.cpp" />
     <ClCompile Include="..\private\BattleAIControllerSystem.cpp" />
+    <ClCompile Include="..\private\BattleCameraDirector.cpp" />
     <ClCompile Include="..\private\BattleControllerSystem.cpp" />
     <ClCompile Include="..\private\BattleEventBus.cpp" />
     <ClCompile Include="..\private\BattleExecutionSystem.cpp" />
@@ -385,6 +393,7 @@
     <ClCompile Include="..\private\BinaryUtil.cpp" />
     <ClCompile Include="..\private\Bone.cpp" />
     <ClCompile Include="..\private\CameraSystem.cpp" />
+    <ClCompile Include="..\private\CamRegistry.cpp" />
     <ClCompile Include="..\private\CBuffer.cpp" />
     <ClCompile Include="..\private\CharacterDataSystem.cpp" />
     <ClCompile Include="..\private\CollisionSystem.cpp" />
@@ -413,6 +422,7 @@
     <ClCompile Include="..\private\GuiUtility.cpp" />
     <ClCompile Include="..\private\HierachyPanel.cpp" />
     <ClCompile Include="..\private\HighlightSystem.cpp" />
+    <ClCompile Include="..\private\ICamTrack.cpp" />
     <ClCompile Include="..\private\imgui.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
@@ -485,7 +495,7 @@
     <ClCompile Include="..\private\Renderer.cpp" />
     <ClCompile Include="..\private\Shader.cpp" />
     <ClCompile Include="..\private\SkyboxSystem.cpp" />
-    <ClCompile Include="..\private\TimelineBarPresenter.cpp" />
+    <ClCompile Include="..\private\BattleTimelinePresenter.cpp" />
     <ClCompile Include="..\private\SocketSystem.cpp" />
     <ClCompile Include="..\private\TagSystem.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />

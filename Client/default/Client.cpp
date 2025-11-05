@@ -92,7 +92,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    g_hInst = hInstance; 
    int monitorW = GetSystemMetrics(SM_CXSCREEN);
-   g_hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, DefaultX, DefaultY, WinX, WinY, nullptr, nullptr, hInstance, nullptr);
+   g_hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+       DefaultX, DefaultY, WinX, WinY,
+       nullptr, nullptr, hInstance, nullptr);
+
    if (!g_hWnd) return FALSE;
 
    ShowWindow(g_hWnd, nCmdShow);

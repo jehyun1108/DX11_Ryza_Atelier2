@@ -5,7 +5,7 @@ NS_BEGIN(Engine)
 enum class LocomotionState
 { 
     Idle,
-    WalkStart, WalkLoop, WalkEnd,
+    WalkStart, WalkLoop, WalkEnd, // walkspeed = 500.f runspeed = 800.f
     RunStart,  RunLoop,  RunEnd,
     JumpStart, JumpLoop, JumpEnd,
     FieldSwing

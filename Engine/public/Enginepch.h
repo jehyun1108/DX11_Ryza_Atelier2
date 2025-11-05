@@ -17,7 +17,7 @@
 
 #include <nlohmann/json.hpp>
 
-#define USE_IMGUI
+//#define USE_IMGUI
 
 //--------- ImGui ---------------------
 #ifdef USE_IMGUI 
@@ -170,6 +170,8 @@ using Microsoft::WRL::ComPtr;
 #include "BattleAIControllerSystem.h"
 #include "BattleTargetSystem.h"
 #include "BattleFormationSystem.h"
+#include "BattleCameraDirector.h"
+#include "CamRegistry.h"
 
 // BattleAnimSys
 #include "BattleIntroSystem.h"
@@ -195,6 +197,7 @@ using Microsoft::WRL::ComPtr;
 
 #include "BattleUIOrchestrator.h"
 #include "FieldUIOrchestrator.h"
+#include "BattleTimelinePresenter.h"
 // ---- Utility ---------------------
 
 #include "GuiMgr.h"

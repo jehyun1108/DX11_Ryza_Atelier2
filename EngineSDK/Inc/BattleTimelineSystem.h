@@ -3,24 +3,24 @@
 #include "BattleTimelineData.h"
 
 NS_BEGIN(Engine)
+class BattleEventBus;
 
 class ENGINE_DLL BattleTimelineSystem
 {
 public:
-    explicit BattleTimelineSystem(SystemRegistry& registry) : registry(registry) {}
+    explicit BattleTimelineSystem(SystemRegistry& registry, BattleEventBus& eventBus)
+        : registry(registry), eventBus(eventBus) {}
 
-    // 세션 수명
     void InitSession(const BattleSessionState& sessionState, const BattleTimelineConfig& timelineConfig);
     void Tick(float dt);
     void EndSession();
 
-    // Intent 경로(플레이어/AI 공용)
-    bool TryCommitIntent(EntityID entity, const TimelineActionIntent& intent);
+    bool     TryCommitIntent(EntityID entity, const TimelineActionIntent& intent);
+    bool     TrySetLeader(EntityID newLeader);
+    EntityID GetLeader() const;
 
-    // 실행 종료 콜백
     void NotifyActionFinished(EntityID entity, const TimelineActionIntent& finishedIntent);
 
-    // 질의/설정
     const BattleTimelineState* TryGetState()   const { return timelineState ? &(*timelineState) : nullptr; }
     TimelineClockState         GetClockState() const { return timelineState ? timelineState->clockState : TimelineClockState::Stopped; }
 
@@ -28,6 +28,7 @@ public:
     bool TryGetUnitStateByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx, const TimelineUnitState*& outState) const;
 
     bool IsGaugeFull(EntityID entity) const;
+    bool IsDefendAllowed(EntityID entity) const;
     bool IsUnitReadyToAct(EntityID entity) const;
     int  ResolveSkillApCost(EntityID entity, const optional<SpecialAnimTag>& specialTag) const;
 
@@ -39,6 +40,7 @@ public:
     void                               ClearEvents()      { eventQueue.clear(); }
 
     void FreezeATB(EntityID entity, bool freeze);
+    void PublishLeaderChanged(EntityID newLeader);
 
 private:
     bool ResolveIdxByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx) const;
@@ -54,6 +56,7 @@ private:
 
 private:
     SystemRegistry& registry;
+    BattleEventBus& eventBus;
 
     optional<BattleTimelineState>                   timelineState; // 스냅샷(슬롯/런타임/리더/설정)
     unordered_map<EntityID, pair<BattleTeam, int>>  idxByEntity;  // entity → (team, slot)

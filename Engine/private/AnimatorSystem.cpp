@@ -33,11 +33,7 @@ static inline SectionInfo ResolveSection(const AnimLayerData& layer)
     if (endTicks < startTicks) swap(endTicks, startTicks);
     if (endTicks - startTicks < eps) endTicks = min(duration, startTicks + eps);
 
-    return SectionInfo{
-        startTicks,
-        endTicks,
-        max(eps, endTicks - startTicks)
-    };
+    return SectionInfo{ startTicks,  endTicks, max(eps, endTicks - startTicks) };
 }
 
 static inline float WrapInSection(float curTicks, const SectionInfo& sec)
@@ -265,8 +261,8 @@ void AnimatorSystem::PlaySection(Handle handle, _uint layerIdx, const wstring& c
         endNormalized = min(1.f, startNormalized + 1e-4f);
 
     layer.sectionStartTicks = dur * startNormalized;
-    layer.sectionEndTicks = dur * endNormalized;
-    layer.curTime = layer.sectionStartTicks;    
+    layer.sectionEndTicks   = dur * endNormalized;
+    layer.curTime           = layer.sectionStartTicks;    
 }
 
 void AnimatorSystem::Play(Handle handle, _uint layerIdx, const wstring& clipName, ANIMTYPE type)
@@ -276,14 +272,14 @@ void AnimatorSystem::Play(Handle handle, _uint layerIdx, const wstring& clipName
     const AnimClip* clip = FindClip(*anim, clipName);
     if (!clip) return;
 
-    auto& Layer = anim->layers[layerIdx];
-    Layer.clip = clip;
+    auto& Layer    = anim->layers[layerIdx];
+    Layer.clip     = clip;
     Layer.playType = type;
     Layer.isPaused = false;
-    Layer.curTime = 0.f;
+    Layer.curTime  = 0.f;
 
     Layer.sectionStartTicks = 0.f;
-    Layer.sectionEndTicks = -1.f;
+    Layer.sectionEndTicks   = -1.f;
 }
 
 const AnimClip* AnimatorSystem::FindClip(const AnimData& anim, const wstring& clipName) const
@@ -300,7 +296,7 @@ void AnimatorSystem::BaseSRT(AnimData& anim)
         for (_uint i = 0; i < anim.boneCount; ++i)
         {
             const Bone& bone = *anim.skeleton->bones[i];
-            _mat bindLocal = XMLoadFloat4x4(&bone.bindLocal);
+            _mat bindLocal   = XMLoadFloat4x4(&bone.bindLocal);
             XMMatrixDecompose(&anim.baseScale[i], &anim.baseRot[i], &anim.baseTrans[i], bindLocal);
         }
         return;
@@ -442,7 +438,7 @@ void AnimatorSystem::SampleAddDelta(const AnimData& anim, _uint boneIdx, const A
     _vec curS, curR, curT;
     _vec refS, refR, refT;
 
-    SampleSRT(anim, boneIdx, layer, curS, curR, curT);
+    SampleSRT(  anim, boneIdx, layer,      curS, curR, curT);
     SampleSRTAt(anim, boneIdx, layer, 0.f, refS, refR, refT);
 
     deltaScale = curS - refS;
@@ -460,8 +456,8 @@ float AnimatorSystem::GetNormalizedTime(Handle handle, _uint layerIdx) const
     if (!layer.clip) return 0.f;
 
     const SectionInfo sec = ResolveSection(layer);
-    const float clamped = clamp(layer.curTime, sec.startTicks, sec.endTicks);
-    const float relTicks = clamped - sec.startTicks;
+    const float clamped   = clamp(layer.curTime, sec.startTicks, sec.endTicks);
+    const float relTicks  = clamped - sec.startTicks;
     return (sec.length > 0.f) ? (relTicks / sec.length) : 0.f;
 }
 
@@ -473,13 +469,13 @@ float AnimatorSystem::GetRemainingTime(Handle handle, _uint layerIdx) const
     const AnimLayerData& layer = anim->layers[layerIdx];
     if (!layer.clip) return 0.f;
 
-    const float tps = max(1.f, layer.clip->tickPerSec);
+    const float       tps = max(1.f, layer.clip->tickPerSec);
     const SectionInfo sec = ResolveSection(layer);
 
     const float cur = clamp(layer.curTime, sec.startTicks, sec.endTicks);
 
-    const float remainingTicks = (layer.playType == ANIMTYPE::LOOP) ? (sec.length - fmod(max(0.f, cur - sec.startTicks), sec.length)):(max(0.f, sec.endTicks - cur));
-
+    const float remainingTicks = (layer.playType == ANIMTYPE::LOOP) ? (sec.length - fmod(max(0.f, cur - sec.startTicks), sec.length))
+                                                                    : (max(0.f, sec.endTicks - cur));
     return remainingTicks / tps;
 }
 
@@ -492,7 +488,7 @@ float AnimatorSystem::GetRemainingNormalized(Handle handle, _uint layerIdx) cons
     if (!layer.clip) return 0.f;
 
     const SectionInfo sec = ResolveSection(layer);
-    const float cur = clamp(layer.curTime, sec.startTicks, sec.endTicks);
+    const float       cur = clamp(layer.curTime, sec.startTicks, sec.endTicks);
     const float remaining = (layer.playType == ANIMTYPE::LOOP) ? (sec.length - fmod(max(0.f, cur - sec.startTicks), sec.length)): (max(0.f, sec.endTicks - cur));
 
     return Utility::Saturate((sec.length > 0.f) ? (remaining / sec.length) : 0.f);
@@ -547,7 +543,7 @@ void AnimatorSystem::Reset(Handle handle, _uint layerIdx)
     layer.blendType = ANIMBLEND::OVERRIDE;
 
     layer.sectionStartTicks = 0.f;
-    layer.sectionEndTicks = -1.f;
+    layer.sectionEndTicks   = -1.f;
 }
 
 void AnimatorSystem::AddLayer(Handle handle, const vector<string>& maskedBoneNames)
@@ -562,7 +558,7 @@ void AnimatorSystem::AddLayer(Handle handle, const vector<string>& maskedBoneNam
     layer.lastPos.assign(anim->boneCount, 0);
     layer.lastRot.assign(anim->boneCount, 0);
     layer.lastScale.assign(anim->boneCount, 0);
-    layer.blendType = ANIMBLEND::OVERRIDE;
+    layer.blendType   = ANIMBLEND::OVERRIDE;
     layer.blendWeight = 0.f;
 
     for (const auto& name : maskedBoneNames)
@@ -933,13 +929,10 @@ void AnimatorSystem::RenderGui(EntityID id)
                         vector<uint8_t> fullMask(anim.boneCount, 1);
                         SetLayerMask(animHandle, layerIndex, fullMask);
                     }
-
                     ImGui::TreePop();
                 }
-
                 ImGui::PopID(); 
             }
-
             ImGui::PopID(); 
         });
 #endif

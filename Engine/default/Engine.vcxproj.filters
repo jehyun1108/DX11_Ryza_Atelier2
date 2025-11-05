@@ -37,9 +37,6 @@
     <Filter Include="00. Engine\00. GameInstance">
       <UniqueIdentifier>{81cc572b-b554-4cbb-9da4-45fb35138936}</UniqueIdentifier>
     </Filter>
-    <Filter Include="00. Engine\01. Device">
-      <UniqueIdentifier>{6570d520-af07-4dde-b272-a8d637f85028}</UniqueIdentifier>
-    </Filter>
     <Filter Include="00. Engine\02. Timers">
       <UniqueIdentifier>{9352e726-b54b-43a7-b9de-5ee4d4ff5ef3}</UniqueIdentifier>
     </Filter>
@@ -364,13 +361,22 @@
     <Filter Include="05. Battle\08. BattleFormationSystem">
       <UniqueIdentifier>{cee37d81-4e54-4db2-a3c6-04c5ea840ed9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05. Battle\09. BattleCameraDirector">
+      <UniqueIdentifier>{b0653eeb-d871-4f2c-b4b5-02f9a9665f87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\10. CamRegistry">
+      <UniqueIdentifier>{49bc75fd-403e-4758-954b-1c78ed2fe741}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\11. ICamTrack">
+      <UniqueIdentifier>{259f0368-ba23-49d7-ba63-17748e865a8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\01. Device">
+      <UniqueIdentifier>{6570d520-af07-4dde-b272-a8d637f85028}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Singleton.h">
       <Filter>98. Utility\Singleton</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\GameInstance.h">
-      <Filter>00. Engine\00. GameInstance</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Enginepch.h">
       <Filter>99. Etc\pch</Filter>
@@ -880,7 +886,7 @@
     <ClInclude Include="..\public\UIAnimSystem.h">
       <Filter>08. UI\03. UIAnimSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\TimelineBarPresenter.h">
+    <ClInclude Include="..\public\BattleTimelinePresenter.h">
       <Filter>08. UI\04. SlotUIPresenter</Filter>
     </ClInclude>
     <ClInclude Include="..\public\TimelinePresenterData.h">
@@ -904,11 +910,32 @@
     <ClInclude Include="..\public\BattleFormationData.h">
       <Filter>05. Battle\08. BattleFormationSystem</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\BattleCameraDirector.h">
+      <Filter>05. Battle\09. BattleCameraDirector</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleCamera_Enum.h">
+      <Filter>05. Battle\09. BattleCameraDirector</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleCamera_Struct.h">
+      <Filter>05. Battle\09. BattleCameraDirector</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CamRegistry.h">
+      <Filter>05. Battle\10. CamRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CamRegistryData.h">
+      <Filter>05. Battle\10. CamRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ICamTrack.h">
+      <Filter>05. Battle\11. ICamTrack</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIAnimData.h">
+      <Filter>08. UI\03. UIAnimSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\GameInstance.h">
+      <Filter>00. Engine\00. GameInstance</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\private\GameInstance.cpp">
-      <Filter>00. Engine\00. GameInstance</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\Enginepch.cpp">
       <Filter>99. Etc\pch</Filter>
     </ClCompile>
@@ -1185,7 +1212,7 @@
     <ClCompile Include="..\private\UIAnimSystem.cpp">
       <Filter>08. UI\03. UIAnimSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\TimelineBarPresenter.cpp">
+    <ClCompile Include="..\private\BattleTimelinePresenter.cpp">
       <Filter>08. UI\04. SlotUIPresenter</Filter>
     </ClCompile>
     <ClCompile Include="..\private\BattleAIControllerSystem.cpp">
@@ -1196,6 +1223,18 @@
     </ClCompile>
     <ClCompile Include="..\private\BattleFormationSystem.cpp">
       <Filter>05. Battle\08. BattleFormationSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleCameraDirector.cpp">
+      <Filter>05. Battle\09. BattleCameraDirector</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CamRegistry.cpp">
+      <Filter>05. Battle\10. CamRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ICamTrack.cpp">
+      <Filter>05. Battle\11. ICamTrack</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\GameInstance.cpp">
+      <Filter>00. Engine\00. GameInstance</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

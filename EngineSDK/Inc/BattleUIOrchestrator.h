@@ -2,12 +2,14 @@
 
 NS_BEGIN(Engine)
 class CharacterUIAgent;
+class BattleTimelinePresenter;
 
 class ENGINE_DLL BattleUIOrchestrator
 {
 public:
-	BattleUIOrchestrator(SystemRegistry& registry, BattleEventBus& bus)
-		: registry(registry), bus(bus) , uiRegistry(registry.Get<UIRegistry>()), uiSys(registry.Get<UISystem>()),  uiAnimSys(registry.Get<UIAnimSystem>()) {}
+	BattleUIOrchestrator(SystemRegistry& registry)
+		: registry(registry), bus(registry.Get<BattleEventBus>())
+		, uiRegistry(registry.Get<UIRegistry>()), uiSys(registry.Get<UISystem>()),  uiAnimSys(registry.Get<UIAnimSystem>()) {}
 
 	void Enter();
 	void Tick(float dt);
@@ -19,6 +21,8 @@ private:
 	UIRegistry&          uiRegistry;
 	UISystem&            uiSys;
 	UIAnimSystem&        uiAnimSys;
+
+	unique_ptr<BattleTimelinePresenter> timelinePresenter{};
 };
 
 NS_END

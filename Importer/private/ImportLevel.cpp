@@ -28,7 +28,7 @@ HRESULT ImportLevel::Init()
 	assets.RegisterModel(L"bottlesky", { L"../bin/Resources/Models/Skybox/BottleSky/BottleSky.model", true });
 	assets.RegisterModel(L"nightsky", { L"../bin/Resources/Models/Skybox/NightSky/NightSky.model", true });
 
-	assets.RegisterModel(L"angel", { L"../bin/Resources/Models/Angel/Angel.model", true });
+	//assets.RegisterModel(L"angel", { L"../bin/Resources/Models/Angel/Angel.model", true });
 // --------------------------------------------------------------------------------------------------
 	playerHandle = SpawnRyza();
 	playerID = playerHandle.entity;
@@ -55,14 +55,6 @@ HRESULT ImportLevel::Init()
 		.WithTag("grid")
 		.Build();
 
-	auto angel = spawner.NewEntity()
-		.WithTf().WithEuler(0.f, 180.f, 0.f).WithScale(3.f, 3.f, 3.f)
-		.WithLayer(LayerUtil::LayerBit(LAYER::MONSTER))
-		.WithTag("angel")
-		.WithModel(L"angel")
-		.WithColliderFromModel()
-		.Build();
-
 	inputSerivce.SetActiveEntity(playerID);
 	inputSerivce.SetContext(InputContext::Field);
 	inputSerivce.SetFocus(FocusState::None);
@@ -86,16 +78,12 @@ void ImportLevel::Render()
 EntityHandles ImportLevel::SpawnPatricia()
 {
 	auto patricia = spawner.NewEntity()
-		.WithTf().WithPos(150.f, 0.f, 1100.f)
+		.WithTf().WithPos(150.f, 0.f, 0.f)
 		.WithLayer(LayerUtil::LayerBit(LAYER::PLAYER))
 		.WithModel(L"patricia")
 		//.WithFace(L"PC24A_Face_Eye_UP", L"PC24A_Face_CloseEye_down")
 		//.WithMouth(L"PC24A_Face_pronunciation")
 		.WithTag("patricia")
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable(LayerUtil::LayerBit(LAYER::PLAYER))
-		.WithSelectable(LayerUtil::LayerBit(LAYER::PLAYER))
 		.WithPlayerMovement()
 		.Build();
 
@@ -105,10 +93,6 @@ EntityHandles ImportLevel::SpawnPatricia()
 		.WithTag("patricia_weapon")
 		.WithModel(L"patricia_weapon")
 		.WithSocket("patricia", "bone_71", _float3(3.f, 3.f, 0.f), _float3(-13.f, 86.f, -1.4f))
-		.WithColliderFromModel(ColliderType::AABB)
-		.WithMeshCollider()
-		.WithPickable(LayerUtil::LayerBit(LAYER::PLAYER))
-		.WithSelectable(LayerUtil::LayerBit(LAYER::PLAYER))
 		.Build();
 	
 	return patricia;

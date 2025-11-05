@@ -2,7 +2,7 @@
 
 void BattleOrchestraSystem::Enter()
 {
-	uiOrchestrator = make_unique<BattleUIOrchestrator>(registry, eventBus);
+	uiOrchestrator = make_unique<BattleUIOrchestrator>(registry);
 
 	auto& input = registry.Get<InputService>();
 	input.SetContext(InputContext::Battle);
@@ -11,7 +11,21 @@ void BattleOrchestraSystem::Enter()
 
 	eventBus.ReserveQueue(256);
 	WireSubscriptions();
+// ==============================================================
+	camDirector = make_unique<BattleCameraDirector>(registry);
+	camReg      = make_unique<CamRegistry>(registry);
 
+	auto& camSys = registry.Get<CameraSystem>();
+	const Handle mainCam = camSys.GetMainCamHandle();
+	camDirector->BindCam(mainCam);
+	camSys.ClearTarget(mainCam);
+
+	camReg->BindDirector(*camDirector);
+	camReg->RegisterDefaults();
+
+	WireCameraSubscriptions();
+	camReg->SpawnDefaultToFollow();
+// =================================================================
 	uiOrchestrator->Enter();
 }
 
@@ -36,6 +50,8 @@ void BattleOrchestraSystem::Update(float dt)
 		execSys.Tick(dt);
 		PumpTimelineEventsToBus();
 	}
+	if (camDirector) camDirector->Tick(dt);
+
 	uiOrchestrator->Tick(dt);
 	eventBus.DispatchAll();
 	eventBus.ClearQueue();
@@ -44,7 +60,12 @@ void BattleOrchestraSystem::Update(float dt)
 void BattleOrchestraSystem::Exit()
 {
 	uiOrchestrator->Exit();
+	UnwireCameraSubscriptions();
 	UnwireSubscriptions();
+
+	if (camReg) camReg->ClearAll();
+	camReg.reset();
+	camDirector.reset();
 
 	auto& input = registry.Get<InputService>();
 	input.SetFocus(FocusState::None);
@@ -94,6 +115,7 @@ bool BattleOrchestraSystem::BeginBattle(const BattleStartParams& Inparams)
 		BattleTimelineConfig timelineConfig{};
 		timelineSys.InitSession(*state, timelineConfig);
 	}
+// ======================================================================================================
 	return true;
 }
 
@@ -110,8 +132,7 @@ void BattleOrchestraSystem::WireSubscriptions()
 	listenerIds.push_back( eventBus.Subscribe(BattleBusEventType::TimelineFullGauge, [&](const BattleEvent&) { controller.OnGaugeBecameFull(); }));
 
 	// TimelineActionCommitted ¡æ ExecutionSystem ½ÃÀÛ
-	listenerIds.push_back(
-		eventBus.Subscribe(BattleBusEventType::TimelineActionCommitted,
+	listenerIds.push_back( eventBus.Subscribe(BattleBusEventType::TimelineActionCommitted,
 			[&](const BattleEvent& event)
 			{
 				const EntityID subject = event.subjectEntity;
@@ -137,6 +158,8 @@ void BattleOrchestraSystem::WireSubscriptions()
 
 	// UnitDowned
 	listenerIds.push_back(eventBus.Subscribe(BattleBusEventType::UnitDowned, [&](const BattleEvent& e) {targetSys.OnUnitDowned(e.subjectEntity); }));
+
+	// LeaderSwitch
 }
 
 void BattleOrchestraSystem::UnwireSubscriptions()
@@ -144,6 +167,17 @@ void BattleOrchestraSystem::UnwireSubscriptions()
 	for (auto id : listenerIds)
 		eventBus.Unsubscribe(id);
 	listenerIds.clear();
+}
+
+void BattleOrchestraSystem::WireCameraSubscriptions()
+{
+	listenerIds.push_back(eventBus.Subscribe(BattleBusEventType::SessionActivated, [&](const BattleEvent&) { if (camReg) camReg->SpawnIntro(); }));
+	listenerIds.push_back(eventBus.Subscribe(BattleBusEventType::TimelineActionFinished, [&](const BattleEvent&) { if (camReg) camReg->KillRecent(0.7f); }));
+}
+
+void BattleOrchestraSystem::UnwireCameraSubscriptions()
+{
+
 }
 
 void BattleOrchestraSystem::PumpSessionEventsToBus()

@@ -100,32 +100,71 @@ bool BattleTimelineSystem::TryCommitIntent(EntityID entity, const TimelineAction
     {
         auto& dataSys = registry.Get<CharacterDataSystem>();
         auto& execSys = registry.Get<BattleExecutionSystem>();
-        const CharacterID characterId = dataSys.GetCharacterID(entity);
-        const SpecialAnimTag execTag = intent.specialTag.value_or(SpecialAnimTag::BasicAttack);
-        const AnimChainSpec* chain = execSys.TryGetChain(characterId, AnimContext::Battle, execTag);
+        const CharacterID    characterId = dataSys.GetCharacterID(entity);
+        const SpecialAnimTag execTag     = intent.specialTag.value_or(SpecialAnimTag::BasicAttack);
+        const AnimChainSpec* chain       = execSys.TryGetChain(characterId, AnimContext::Battle, execTag);
         if (!chain || chain->stages.empty()) return false;
 
         auto& targetSys = registry.Get<BattleTargetSystem>();
-        
-        const EntityID pickedEntity = targetSys.Get(entity);
         if (effectiveIntent.targetEntity == invalidEntity)
-            effectiveIntent.targetEntity = pickedEntity;
-        
+            effectiveIntent.targetEntity = targetSys.Get(entity);
         if (effectiveIntent.targetEntity == invalidEntity)
             return false;
     }
 
     if (!timelineState.has_value()) return false;
 
-    BattleTeam team{};
-    int slotIdx{};
+    BattleTeam team{};  int slotIdx{};
     if (!ResolveIdxByEntity(entity, team, slotIdx)) return false;
 
     BattleTimelineState& state = *timelineState;
+
+    if (team == BattleTeam::Ally)
+    {
+        const EntityID owner = state.leader.comboOwner;
+        const bool comboLockActive = (owner != invalidEntity);
+        if (comboLockActive && owner != entity)
+            return false;
+    }
     TimelineUnitState&   unit  = (team == BattleTeam::Ally) ? state.allies[slotIdx]        : state.enemies[slotIdx];
     TimelineUnitRunTime& run   = (team == BattleTeam::Ally) ? state.alliesRuntime[slotIdx] : state.enemiesRuntime[slotIdx];
 
     return CommitInternal(unit, run, intent, entity, team);
+}
+
+EntityID BattleTimelineSystem::GetLeader() const
+{
+    if (!timelineState.has_value()) return invalidEntity;
+    return timelineState->leader.curLeader;
+}
+
+bool BattleTimelineSystem::TrySetLeader(EntityID newLeader)
+{
+    if (!timelineState.has_value()) return false;
+    if (newLeader == invalidEntity) return false;
+
+    BattleTeam newTeam{};
+    int newSlot{};
+    if (!ResolveIdxByEntity(newLeader, newTeam, newSlot)) return false;
+    if (newTeam != BattleTeam::Ally) return false;
+
+    BattleTimelineState& state = *timelineState;
+    const EntityID prevLeader = state.leader.curLeader;
+    if (prevLeader == newLeader) return true;
+
+    if (prevLeader != invalidEntity)
+    {
+        BattleTeam prevTeam{}; int prevSlot{};
+        if (ResolveIdxByEntity(prevLeader, prevTeam, prevSlot) && prevTeam == BattleTeam::Ally)
+            state.alliesRuntime[prevSlot].role.control = TimelineControlType::Ally;
+    }
+
+    // NewLeader
+    state.alliesRuntime[newSlot].role.control = TimelineControlType::Player;
+    state.leader.curLeader = newLeader;
+
+    PublishLeaderChanged(newLeader);
+    return true;
 }
 
 void BattleTimelineSystem::NotifyActionFinished(EntityID entity, const TimelineActionIntent& finishedIntent)
@@ -143,6 +182,13 @@ void BattleTimelineSystem::NotifyActionFinished(EntityID entity, const TimelineA
     ApplyResolveReward(unit, run, finishedIntent, entity, team);
     unit.motionState  = TimelineMotionState::Queued;
     unit.ATB.isFrozen = false;
+
+    if (team == BattleTeam::Ally && state.leader.comboOwner == entity)
+    {
+        state.leader.comboOwner = invalidEntity;
+        run.role.allowCombo = false;
+    }
+
     PushEvent(BattleTimelineEventType::ActionFinished, entity, team, 0);
 }
 
@@ -185,6 +231,17 @@ bool BattleTimelineSystem::IsGaugeFull(EntityID entity) const
     int slotIdx{};
     if (!TryGetUnitStateByEntity(entity, team, slotIdx, unit)) return false;
     return (unit->ATB.curValue >= unit->ATB.maxValue);
+}
+
+bool BattleTimelineSystem::IsDefendAllowed(EntityID entity) const
+{
+    if (!timelineState.has_value()) return false;
+    BattleTeam team{}; int idx{};
+    if (!ResolveIdxByEntity(entity, team, idx)) return false;
+
+    const BattleTimelineState& state = *timelineState;
+    const TimelineUnitState& unit = (team == BattleTeam::Ally) ? state.allies[idx] : state.enemies[idx];
+    return unit.defendAllowed;
 }
 
 bool BattleTimelineSystem::IsUnitReadyToAct(EntityID entity) const
@@ -248,6 +305,20 @@ void BattleTimelineSystem::FreezeATB(EntityID entity, bool freeze)
     unitState.ATB.isFrozen       = freeze;
 }
 
+void BattleTimelineSystem::PublishLeaderChanged(EntityID newLeader)
+{
+    BattleTimelineState& state = *timelineState;
+    if (state.leader.curLeader == newLeader) return;
+    state.leader.curLeader = newLeader;
+
+    PushEvent(BattleTimelineEventType::LeaderChanged, newLeader, BattleTeam::Ally, 0);
+
+    BattleEvent event{};
+    event.eventType = BattleBusEventType::LeaderChanged;
+    event.subjectEntity = newLeader;
+    eventBus.Publish(event);
+}
+
 bool BattleTimelineSystem::ResolveIdxByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx) const
 {
     auto it = idxByEntity.find(entity);
@@ -279,13 +350,13 @@ void BattleTimelineSystem::AdvanceGauge(TimelineUnitState& unit, float dt, Entit
     if (unit.ATB.curValue > unit.ATB.maxValue) unit.ATB.curValue = unit.ATB.maxValue;
 
     if (prev < unit.ATB.maxValue && unit.ATB.curValue >= unit.ATB.maxValue)
+    {
+        unit.defendAllowed = true;
         PushEvent(BattleTimelineEventType::FullGauge, entity, team, 0);
+    }
 }
 
-bool BattleTimelineSystem::CommitInternal(TimelineUnitState& unitState,
-    TimelineUnitRunTime& unitRunTime,
-    TimelineActionIntent intent,
-    EntityID entity, BattleTeam team)
+bool BattleTimelineSystem::CommitInternal(TimelineUnitState& unitState, TimelineUnitRunTime& unitRunTime, TimelineActionIntent intent, EntityID entity, BattleTeam team)
 {
     if (!unitState.canAction)                                 return false;
     if (unitState.gateState   != TimelineUnitGate::Open)      return false;
@@ -294,19 +365,36 @@ bool BattleTimelineSystem::CommitInternal(TimelineUnitState& unitState,
 
     const int resolvedCost = ResolveSkillApCost(entity, intent.specialTag);
     intent.apCost = resolvedCost;
-
     if (intent.apCost > unitState.ap.curAp) return false;
 
-    unitState.ap.curAp -= intent.apCost;
-    if (unitState.ap.curAp < 0) unitState.ap.curAp = 0;
+    unitState.ap.curAp = max(0, unitState.ap.curAp - intent.apCost);
 
-    unitState.ATB.curValue = 0.f;
-    unitState.ATB.isFrozen = true;
+    unitState.ATB.curValue  = 0.f;
+    unitState.ATB.isFrozen  = true;
     unitState.pendingIntent = intent;
-    unitState.activeIntent = intent;
-    unitState.motionState = TimelineMotionState::Preparing;
+    unitState.activeIntent  = intent;
+    unitState.motionState   = TimelineMotionState::Preparing;
 
     PushEvent(BattleTimelineEventType::ActionCommitted, entity, team, -intent.apCost);
+
+    if (intent.battleCmd == BattleCommand::AttackBasic || intent.battleCmd == BattleCommand::Skill)
+        unitState.defendAllowed = false;
+
+    if (team == BattleTeam::Ally)
+    {
+        const bool startComboLock =
+            (unitRunTime.role.control == TimelineControlType::Player) && unitRunTime.role.allowCombo  &&
+            (intent.battleCmd == BattleCommand::AttackBasic || intent.battleCmd == BattleCommand::Skill);
+
+        if (startComboLock)
+        {
+            BattleTimelineState& state = *timelineState;
+            state.leader.comboOwner = entity;
+            for (int i = 0; i < state.alliesUsed; ++i)
+                state.alliesRuntime[i].role.allowCombo = false;
+            unitRunTime.role.allowCombo = true;
+        }
+    }
 
     unitState.motionState = TimelineMotionState::Executing;
     return true;

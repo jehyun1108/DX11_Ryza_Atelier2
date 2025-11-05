@@ -11,6 +11,8 @@ NS_BEGIN(Engine)
 class ENGINE_DLL BattleEventBus
 {
 public:
+	explicit BattleEventBus(SystemRegistry& registry) : registry(registry) {}
+
 	void Publish(const BattleEvent& eventData)   { eventQueue.push_back(eventData); }
 
 	const vector<BattleEvent>& PeekQueue() const { return eventQueue; }
@@ -23,6 +25,7 @@ public:
 	void ReserveQueue(size_t n) { eventQueue.reserve(n); }
 
 private:
+	SystemRegistry& registry;
 	struct ListenerEntry
 	{
 		optional<BattleBusEventType> typeFilter;

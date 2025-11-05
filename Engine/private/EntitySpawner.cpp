@@ -389,7 +389,7 @@ EntitySpawner& EntitySpawner::WithPlayerMovement(const MoveProfile& preset)
 	auto& profileSys   = registry.Get<MoveProfileSystem>();
 	auto& stateSys     = registry.Get<MoveStateSystem>();
 	auto& intentSys    = registry.Get<MoveIntentSystem>();
-	auto& faceSys  = registry.Get<FacingSystem>();
+	auto& faceSys      = registry.Get<FacingSystem>();
 	auto& fieldAnimSys = registry.Get<FieldAnimSystem>();
 	auto& fieldCtrlSys = registry.Get<FieldControllerSystem>();
 	auto& jumpSys      = registry.Get<JumpSystem>();

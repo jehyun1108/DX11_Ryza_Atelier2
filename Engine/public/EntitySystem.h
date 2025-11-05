@@ -18,7 +18,7 @@ public:
 	T*       Get(Handle handle)        { return pool.Get(handle); }
 	const T* Get(Handle handle)  const { return pool.Get(handle); }
 
-	void Destroy(Handle handle)             { pool.DestroySlot(handle); }
+	void Destroy(Handle handle)                  { pool.DestroySlot(handle); }
 	void DestroyOwned(EntityID owner)  override  { pool.DestroyOwned(owner); }
 
 	// 모든 살아있는 슬롯 (owner, handle, data) 같이 오너와 정보까지 포함해 순회

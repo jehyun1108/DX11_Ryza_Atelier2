@@ -66,7 +66,7 @@ struct ControllerRuntime
 	EntityID leaderEntity = invalidEntity;
 	CommandMenuModel   menuModel{};
 	CommandMenuRuntime menu{};
-	array<bool, 4> queuedSkillSlotFlags = { false, false, false, false };
+	array<bool, 4>  queuedSkillSlotFlags = { false, false, false, false };
 	BufferedIntent  buffered{};
 	bool            isExecuting = false;
 	bool            isDefendingHold = false;

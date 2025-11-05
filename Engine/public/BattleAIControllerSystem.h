@@ -17,7 +17,7 @@ public:
 private:
 	vector<EntityID> CollectEntities() const;
 	bool             ShouldEval(EntityID id, double now);
-	bool             IsGaugeFull(EntityID id) const;
+	bool             IsGaugeFull(EntityID id) const               { return registry.Get<BattleTimelineSystem>().IsGaugeFull(id); }
 	EntityID         ResolveTargetFirstEnemy(EntityID self) const;
 	bool             BuildBasicIntent(EntityID self, EntityID target, TimelineActionIntent& out) const;
 

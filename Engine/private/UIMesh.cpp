@@ -1,5 +1,15 @@
 #include "Enginepch.h"
 
+inline static bool IsSameScissor(const UIDrawItem& a, const UIDrawItem& b)
+{
+    if (a.useScissor != b.useScissor) return false;
+    if (!a.useScissor) return true;
+    return a.scissorRect.x == b.scissorRect.x &&
+        a.scissorRect.y == b.scissorRect.y &&
+        a.scissorRect.width == b.scissorRect.width &&
+        a.scissorRect.height == b.scissorRect.height;
+}
+// ===================================================================================================
 HRESULT UIMesh::Create(ID3D11Device* device, size_t maxQuads)
 {
     Destroy();

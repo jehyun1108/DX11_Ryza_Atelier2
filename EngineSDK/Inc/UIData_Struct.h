@@ -27,23 +27,7 @@ struct UIVertex
 	float uvX, uvY;
 };
 
-struct UITween1D
-{
-	bool  playing  = false;
-	float elapsed  = 0.f;
-	float dur      = 0.25f;
-	float start    = 0.f;
-	float end      = 0.f;
-	UIEasing easing = UIEasing::EaseOutCubic;
-};
 
-struct UIAnimChannels
-{
-	UITween1D offsetX, offsetY;
-
-	UITween1D scaleX, scaleY;
-	UITween1D opacity;
-};
 
 using ResolveTexture = function<const Texture* (const wstring&)>;
 

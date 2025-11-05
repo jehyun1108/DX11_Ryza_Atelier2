@@ -111,66 +111,6 @@ void CameraSystem::SetFollowPolicy(Handle handle, FollowPolicy policy, float sof
     }
 }
 
-const _float4x4* CameraSystem::TryGetView(Handle handle) const
-{
-    return Validate(handle) ? &Get(handle)->view : nullptr;
-}
-
-const _float4x4* CameraSystem::TryGetProj(Handle handle) const
-{
-    return Validate(handle) ? &Get(handle)->proj : nullptr;
-}
-
-const _float4x4* CameraSystem::TryGetViewProj(Handle handle) const
-{
-    return Validate(handle) ? &Get(handle)->viewProj : nullptr;
-}
-
-const _float4x4* CameraSystem::TryGetInvView(Handle handle) const
-{
-    return Validate(handle) ? &Get(handle)->invView : nullptr;
-}
-
-const _float4x4* CameraSystem::TryGetInvViewProj(Handle handle) const
-{
-    return Validate(handle) ? &Get(handle)->invViewProj : nullptr;
-}
-
-_vec CameraSystem::TryGetPos(Handle handle) const
-{
-    return Validate(handle) ? XMLoadFloat4(&Get(handle)->camPos) : XMVectorZero();
-}
-
-const _float4x4& CameraSystem::GetView(Handle handle) const
-{
-    return RequiredCam(this, handle, "GetView: invalid camera").view; 
-}
-
-const _float4x4& CameraSystem::GetProj(Handle handle) const
-{
-    return RequiredCam(this, handle, "GetProj: invalid camera").proj;
-}
-
-const _float4x4& CameraSystem::GetViewProj(Handle handle) const
-{
-    return RequiredCam(this, handle, "GetViewProj: invalid camera").viewProj;
-}
-
-const _float4x4& CameraSystem::GetInvView(Handle handle) const
-{
-    return RequiredCam(this, handle, "GetInvView: invalid camera").invView;
-}
-
-const _float4x4& CameraSystem::GetInvViewProj(Handle handle) const
-{
-    return RequiredCam(this, handle, "GetInvViewProj: invalid camera").invViewProj;
-}
-
-_vec CameraSystem::GetPos(Handle handle) const
-{
-    return XMLoadFloat4(&RequiredCam(this, handle, "GetPos: invalid camera").camPos);
-}
-
 void CameraSystem::CreateRayFromScreen(Handle handle, const _float2& screenPos, const D3D11_VIEWPORT& vp, _vec& outRayOrigin, _vec& outRayDir) const
 {
     if (!Validate(handle))

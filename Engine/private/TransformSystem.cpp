@@ -29,7 +29,6 @@ namespace
 {
 	inline _vec MakeYawPitchQuat(float yawRad, float pitchRad)
 	{
-		// 1. Yaw/Pitch로 부터 Look 벡터 직접 생성
 		const float cosYaw   = cosf(yawRad);
 		const float sinYaw   = sinf(yawRad);
 		const float cosPitch = cosf(pitchRad);
@@ -37,15 +36,12 @@ namespace
 
 		_vec look = XMVectorSet(sinYaw * cosPitch, sinPitch, cosYaw * cosPitch, 0.f);
 
-		// 2. 직교 기저 재구성 : Right, Up
 		_vec upWorld = Utility::Up();
 		_vec right = XMVector3Cross(upWorld, look);
 
-		// 3. 특이점 근처 (look ~ upWorld 평행) 보정
 		const float rightLength = XMVectorGetX(XMVector3LengthSq(right));
 		if (rightLength < 1e-12f)
 		{
-			// upWorld가 거의 평행이면, world Right를 사용해 보정
 			_vec alt = Utility::Right();
 			right = XMVector3Cross(alt, look);
 		}
@@ -53,13 +49,11 @@ namespace
 		right = XMVector3Normalize(right);
 		_vec up = XMVector3Normalize(XMVector3Cross(look, right));
 
-		// 4. 회전 행렬 재구성
 		_mat rotMat = XMMatrixIdentity();
 		rotMat.r[0] = right;
 		rotMat.r[1] = up;
 		rotMat.r[2] = look;
 
-		// 5. 행렬 -> 쿼터니언 정규화
 		_vec quat = XMQuaternionRotationMatrix(rotMat);
 		quat = XMQuaternionNormalize(quat);
 		return quat;
@@ -76,7 +70,6 @@ namespace
 
 	static float ComputeYawRadWorldForward(const _float3& worldForward)
 	{
-		// +Z가 0rad, +X가 +90°가 되도록 atan2(x, z) 사용
 		return atan2f(worldForward.x, worldForward.z);
 	}
 
@@ -329,13 +322,12 @@ void TransformSystem::AddLocalOffset(Handle handle, const _float3& dtLocal)
 {
 	if (auto tf = Get(handle))
 	{
-		// LocalDt 를 현재 회전에 맞춰 월드dt 로 회전
 		_vec vLocalDt = XMLoadFloat3(&const_cast<_float3&>(dtLocal));
-		_vec vRot = XMLoadFloat4(&tf->rot);
+		_vec vRot     = XMLoadFloat4(&tf->rot);
 		_vec vWorldDt = XMVector3Rotate(vLocalDt, vRot);
 
 		_vec vPos = XMLoadFloat3(&tf->pos);
-		vPos = XMVectorAdd(vPos, vWorldDt);
+		vPos      = XMVectorAdd(vPos, vWorldDt);
 
 		XMStoreFloat3(&tf->pos, vPos);
 		tf->dirty = true;
@@ -346,20 +338,20 @@ void TransformSystem::LookAt(Handle handle, _fvec targetPos)
 {
 	if (auto tf = Get(handle))
 	{
-		const _vec vPos = XMLoadFloat3(&tf->pos);
+		const _vec vPos  = XMLoadFloat3(&tf->pos);
 		const _vec vLook = XMVector3Normalize(targetPos - vPos);
 
 		_vec worldUp = Utility::Up();
-		_vec vRight = XMVector3Cross(worldUp, vLook);
+		_vec vRight  = XMVector3Cross(worldUp, vLook);
 
 		float length = XMVectorGetX(XMVector3LengthSq(vRight));
 		if (length < 1e-12f)
 		{
 			worldUp = Utility::Right();
-			vRight = XMVector3Cross(worldUp, vLook);
+			vRight  = XMVector3Cross(worldUp, vLook);
 		}
 
-		vRight = XMVector3Normalize(vRight);
+		vRight         = XMVector3Normalize(vRight);
 		const _vec vUp = XMVector3Normalize(XMVector3Cross(vLook, vRight));
 
 		_mat rotMat = XMMatrixIdentity();
@@ -412,32 +404,28 @@ PlanarBasisXZ TransformSystem::GetPlanarBasisXZ(Handle handle) const
 	const auto tf = Get(handle);
 	if (!tf) return out;
 
-	const _vec vRot = XMLoadFloat4(&tf->rot);
-	_vec vRight = XMVector3Rotate(Utility::Right(), vRot);
-	_vec vLook  = XMVector3Rotate(Utility::Look(), vRot);
+	const _vec vRot   = XMLoadFloat4(&tf->rot);
+	_vec       vRight = XMVector3Rotate(Utility::Right(), vRot);
+	_vec       vLook  = XMVector3Rotate(Utility::Look(), vRot);
 
 	_float3 right, forward;
 	XMStoreFloat3(&right, vRight);
 	XMStoreFloat3(&forward, vLook);
 
-	// y = 0 평면 투영 -> (x,z)
 	_float2 rightXZ   = { right.x, right.z };
 	_float2 forwardXZ = { forward.x, forward.z };
 
 	rightXZ   = Utility::Normalize(rightXZ);
 	forwardXZ = Utility::Normalize(forwardXZ);
 
-	// 카메라가 거의 수직일 때 look.xz 가 0에 가까울수 있음 -> right 기반으로 forward 재구성
 	if (forwardXZ.x * forwardXZ.x + forwardXZ.y * forwardXZ.y <= 1e-12f)
 		forwardXZ = _float2{ -rightXZ.y, rightXZ.x };
 
 	{
-		// forward를 right에 직교화(2D 기준) 후 다시 정규화 (하면 깔끔함)
 		const float dot2 = forwardXZ.x * rightXZ.x + forwardXZ.y * rightXZ.y;
 		forwardXZ = _float2{ forwardXZ.x - dot2 * rightXZ.x, forwardXZ.y - dot2 * rightXZ.y };
 		forwardXZ = Utility::Normalize(forwardXZ);
 
-		// 만약 여전히 0이라면, 다시 right 에서 직교 생성
 		if (forwardXZ.x * forwardXZ.x + forwardXZ.y * forwardXZ.y <= 1e-12f)
 			forwardXZ = _float2{ -rightXZ.y, rightXZ.x };
 	}
@@ -479,10 +467,7 @@ void TransformSystem::RenderGui(EntityID id)
 		{
 			ImGui::PushID((int)handle.idx);
 
-			const ImGuiTreeNodeFlags flags =
-				ImGuiTreeNodeFlags_DefaultOpen |
-				ImGuiTreeNodeFlags_Framed |
-				ImGuiTreeNodeFlags_AllowItemOverlap;
+			const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_AllowItemOverlap;
 
 			if (ImGui::TreeNodeEx("Transform", flags))
 			{
