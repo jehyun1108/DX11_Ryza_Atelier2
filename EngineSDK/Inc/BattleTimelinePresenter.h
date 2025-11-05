@@ -5,11 +5,11 @@
 NS_BEGIN(Engine)
 class BattleEventBus;
 
-class BattleTimelinePresenter
+class BattleTimelinePresenter : public ISystem
 {
 public:
-	BattleTimelinePresenter(SystemRegistry& registry, BattleEventBus& bus, UIRegistry& ui, UIAnimSystem& uiAnimSys, BattleTimelineSystem& timelineSys)
-		: registry(registry), eventBus(bus), uiRegistry(ui), uiAnimSys(uiAnimSys), timelineSys(timelineSys) {}
+	explicit BattleTimelinePresenter(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
 	void Enter();
 	void Tick(float dt);
@@ -46,10 +46,11 @@ private:
 
 private:
 	SystemRegistry&       registry;
-	BattleEventBus&       eventBus;
-	UIRegistry&           uiRegistry;
-	UIAnimSystem&         uiAnimSys;
-	BattleTimelineSystem& timelineSys;
+	BattleEventBus*       eventBus{};
+	UIRegistry*           uiRegistry{};
+	UIAnimSystem*         uiAnimSys{};
+	BattleTimelineSystem* timelineSys{};
+	CharacterDataSystem*  dataSys{};
 
 	TimelinePresenterConfig config{};
 	LaneLayout              alliesLayout{};

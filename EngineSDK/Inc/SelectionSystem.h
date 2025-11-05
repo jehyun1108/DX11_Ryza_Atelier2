@@ -8,7 +8,7 @@ class ENGINE_DLL SelectionSystem : public EntitySystem<SelectionData>, public IG
 {
 public:
 	explicit SelectionSystem(SystemRegistry& registry) : EntitySystem(registry) {}
-	
+	void     OnBoot() override;
 	Handle   Create(EntityID owner, bool selectable = true, _uint layerMask = 0xFFFFFFFFu);
 
 	void  SetContext(const SelectionContext& context) { this->context = context; }
@@ -39,6 +39,11 @@ private:
 	static float Snap(float v, float step, float origin = 0.f);
 
 private:
+	InputService*           input{};
+	CameraSystem*           camSys{};
+	PickingSystem*          pickSys{};
+	TransformSystem*        tfSys{};
+
 	SelectionContext        context{};
 	DragState               drag;
 	EntityID                hovered = 0;

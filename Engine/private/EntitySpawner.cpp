@@ -1,9 +1,17 @@
 #include "Enginepch.h"
 
+void EntitySpawner::OnBoot()
+{
+	assets   = &registry.Get<AssetSystem>();
+	entities = &registry.Get<EntityMgr>();
+
+	assert(assets && entities);
+}
+
 EntitySpawner& EntitySpawner::NewEntity()
 {
 	handles = {};
-	handles.entity = entities.Create();
+	handles.entity = entities->Create();
 	started = true;
 	return *this;
 }
@@ -434,7 +442,7 @@ EntitySpawner& EntitySpawner::WithSkybox(const vector<SkySubmesh>& submeshList, 
 vector<SkySubmesh> EntitySpawner::BuildSkysubmeshes(const wstring& modelKey)
 {
 	vector<SkySubmesh> out{};
-	auto model = assets.GetModel(modelKey);
+	auto model = assets->GetModel(modelKey);
 	if (!model) return out;
 
 	_uint submeshIdx = 0;
@@ -448,7 +456,7 @@ vector<SkySubmesh> EntitySpawner::BuildSkysubmeshes(const wstring& modelKey)
 		meta.shaderKey = L"Skybox";
 		
 		material->SetMeta(meta);
-		material->Resolve(assets.GetShaderCache(), assets.GetTextureCache());
+		material->Resolve(assets->GetShaderCache(), assets->GetTextureCache());
 
 		SkySubmesh subMesh{};
 		subMesh.mesh     = part.mesh;

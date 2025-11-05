@@ -17,7 +17,7 @@
 
 #include <nlohmann/json.hpp>
 
-//#define USE_IMGUI
+#define USE_IMGUI
 
 //--------- ImGui ---------------------
 #ifdef USE_IMGUI 
@@ -96,6 +96,9 @@ using Microsoft::WRL::ComPtr;
 #include "UIData_Enum.h"
 #include "UIData_Struct.h"
 
+#include "ISystem.h"
+#include "EngineSystems.h"
+
 #include "SystemRegistry.h"
 #include "ComponentPool.h"
 #include "Singleton.h"
@@ -104,6 +107,7 @@ using Microsoft::WRL::ComPtr;
 
 #include "MeshUtil.h"
 #include "MaterialUtil.h"
+#include "InputMgr.h"
 
 // ------------ Data -------------------
 #include "RenderProxies.h"
@@ -201,7 +205,6 @@ using Microsoft::WRL::ComPtr;
 // ---- Utility ---------------------
 
 #include "GuiMgr.h"
-#include "InputMgr.h"
 #include "PathMgr.h"
 #include "GameInstance.h"
 #include "GuiPanel.h"

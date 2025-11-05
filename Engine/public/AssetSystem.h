@@ -19,11 +19,12 @@ using ModelCache      = AssetCache<shared_ptr<Model>,    ModelMeta,    ModelRegi
 using MeshCache       = AssetCache<shared_ptr<Mesh>,     MeshMeta,     MeshRegistry>;
 using MaterialCache   = AssetCache<shared_ptr<Material>, MaterialMeta, MaterialRegistry>;
 
-class ENGINE_DLL AssetSystem
+class ENGINE_DLL AssetSystem : public ISystem
 {
 public:
-	explicit AssetSystem();
-	void Init();
+	explicit AssetSystem(SystemRegistry& registry);
+	void     OnBoot() override;
+	void     Init();
 
 	// ---------  Texture ----------------------
 	void RegisterTexture(const wstring& key, const TextureMeta& meta);
@@ -59,6 +60,7 @@ public:
 	ShaderCache&   GetShaderCache()   { return shaderCache; }
 
 private:
+	SystemRegistry&  registry;
 
 	TextureRegistry  textureRegistry;
 	ShaderRegistry   shaderRegistry;

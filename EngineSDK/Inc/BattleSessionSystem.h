@@ -5,10 +5,11 @@
 NS_BEGIN(Engine)
 struct FormationParams;
 // 누가 싸우는지, 언제 시작/종료되는지, 리더/페이즈/규칙 관리
-class ENGINE_DLL BattleSessionSystem
+class ENGINE_DLL BattleSessionSystem : public ISystem
 {
 public:
 	explicit BattleSessionSystem(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
 	void BeginSession(const BattleParty& allies, const BattleEnemies& enemies, const _float3& centerWorld,
 		const BattleSessionConfig& cfg = BattleSessionConfig{});
@@ -42,6 +43,8 @@ private:
 
 private:
 	SystemRegistry& registry;
+	BattleFormationSystem* formationSys{};
+
 	optional<BattleSessionState> sessionState;
 	vector<BattleSessionEvent>   eventQueue;
 };

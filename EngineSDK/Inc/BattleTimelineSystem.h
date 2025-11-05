@@ -5,11 +5,11 @@
 NS_BEGIN(Engine)
 class BattleEventBus;
 
-class ENGINE_DLL BattleTimelineSystem
+class ENGINE_DLL BattleTimelineSystem : public ISystem
 {
 public:
-    explicit BattleTimelineSystem(SystemRegistry& registry, BattleEventBus& eventBus)
-        : registry(registry), eventBus(eventBus) {}
+    explicit BattleTimelineSystem(SystemRegistry& registry) : registry(registry) {}
+    void     OnBoot() override;
 
     void InitSession(const BattleSessionState& sessionState, const BattleTimelineConfig& timelineConfig);
     void Tick(float dt);
@@ -55,8 +55,12 @@ private:
     void FillSkillCatalog(EntityID entity, vector<TimelineSkillInfo>& outCatalog) const;
 
 private:
-    SystemRegistry& registry;
-    BattleEventBus& eventBus;
+    SystemRegistry&        registry;
+    BattleEventBus*        eventBus{};
+    CharacterDataSystem*   dataSys{};
+    BattleExecutionSystem* execSys{};
+    BattleTargetSystem*    targetSys{};
+    ActionAnimRegistry*    actionReg{};
 
     optional<BattleTimelineState>                   timelineState; // Ω∫≥¿º¶(ΩΩ∑‘/∑±≈∏¿”/∏Æ¥ı/º≥¡§)
     unordered_map<EntityID, pair<BattleTeam, int>>  idxByEntity;  // entity °Ê (team, slot)

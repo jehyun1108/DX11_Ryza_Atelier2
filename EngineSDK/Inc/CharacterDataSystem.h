@@ -4,7 +4,7 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL CharacterDataSystem
+class ENGINE_DLL CharacterDataSystem : public ISystem
 {
 public:
 	explicit CharacterDataSystem(SystemRegistry& registry) : registry(registry) {}

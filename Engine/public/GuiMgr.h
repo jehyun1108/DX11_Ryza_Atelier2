@@ -5,16 +5,16 @@
 NS_BEGIN(Engine)
 class GuiPanel;
 
-class ENGINE_DLL GuiMgr
+class ENGINE_DLL GuiMgr : public ISystem
 {
 public:
-	GuiMgr(SystemRegistry& registry, EntityMgr& entities) :registry(registry), entities(entities) {}
+	GuiMgr(SystemRegistry& registry) :registry(registry) {}
 	virtual ~GuiMgr();
 	GuiMgr(const GuiMgr& other) = delete;
 	GuiMgr& operator=(const GuiMgr&) = delete;
 
 public:
-	static unique_ptr<GuiMgr> Create(SystemRegistry& registry, EntityMgr& entities);
+	void OnBoot() override;
 
 	void Init();
 	void ShutDown();
@@ -33,14 +33,14 @@ public:
 private:
 	vector<unique_ptr<GuiPanel>> panels;
 	SystemRegistry& registry;
-	EntityMgr&      entities;
+	EntityMgr*      entities{};
 	EntityID        selected = invalidEntity;
 };
 
 template<typename T, typename ...Args>
 inline T* GuiMgr::AddPanel(string title, Args&& ...args)
 {
-	auto panel = make_unique<T>(move(title), registry, entities, &selected, forward<Args>(args)...);
+	auto panel = make_unique<T>(move(title), registry, &selected, forward<Args>(args)...);
 	T* pPanel = panel.get();
 	panels.emplace_back(move(panel));
 	return pPanel;

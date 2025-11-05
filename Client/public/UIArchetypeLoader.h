@@ -20,7 +20,7 @@ NS_BEGIN(Client) // ±âº» ½ºÆå
 class UIArchetypeLoader
 {
 public:
-	inline static void RegisterUIArchetypes(UIRegistry& uiRegistry)
+	inline static void RegisterUIArchetypes(UIRegistry* uiRegistry)
 	{
 		// 1. FatalDrive
 		{
@@ -29,13 +29,13 @@ public:
 			spec.startEnabled  = false;
 
 			spec.texKey = L"patricia_fataldrive";
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 
 			spec.texKey = L"ryza_fataldrive";
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 
 			spec.texKey = L"klaudia_fataldrive";
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		// 2. Battle_Character_UI
 		{
@@ -46,14 +46,14 @@ public:
 			spec.initPosY    =  185.f;
 			spec.fixedWidth  =  241.f * 0.6f;
 			spec.fixedHeight =  200.f * 0.6f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.initPosX = -1050.f;
 			spec.initPosY =  415.f;
 			spec.texKey   = L"ryza_battleui";
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -63,7 +63,7 @@ public:
 			spec.fixedWidth  =  241.f * 0.6f;
 			spec.fixedHeight =  200.f * 0.6f;
 			spec.texKey      = L"klaudia_battleui";
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			//// timeline ryza/klaudia/patricia
@@ -81,35 +81,35 @@ public:
 			spec.texKey   = L"leader_barback_bottom";
 			spec.initPosX = -850.f;
 			spec.initPosY =  560.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey   = L"leader_barback_top";
 			spec.initPosX = -875.f;
 			spec.initPosY =  500.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey   = L"ap_barback";
 			spec.initPosX = -675.f;
 			spec.initPosY =  425.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey   = L"leader_switching_barback";
 			spec.initPosX = -1150.f;
 			spec.initPosY =  575.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey   = L"battle_minimap";
 			spec.initPosX = 1050.f;
 			spec.initPosY = -500.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -117,21 +117,21 @@ public:
 			spec.texKey       = L"aggressivemode";
 			spec.initPosX     = 1050.f;
 			spec.initPosY     = -325.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey   = L"supportmode";
 			spec.initPosX = 1050.f;
 			spec.initPosY = -325.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey   = L"timelinebar";
 			spec.initPosX = 950.f;
 			spec.initPosY = 550.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -141,7 +141,7 @@ public:
 			spec.fixedWidth  = WinX;
 			spec.fixedHeight = 300.f;
 			spec.startEnabled = false;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -150,7 +150,7 @@ public:
 			spec.startEnabled = false;
 			//spec.fixedWidth  = WinX;
 			//spec.fixedHeight = 300.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -160,35 +160,35 @@ public:
 			spec.fixedHeight = 16.f * 1.5f;
 			spec.initPosX    = -950.f;
 			spec.initPosY    =  510.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey = L"party_hpbarfront";
 			spec.initPosX = -1050.f;
 			spec.initPosY = 275.f;
-			uiRegistry.RegisterArchetype(L"party_hpbarfront1", spec);
+			uiRegistry->RegisterArchetype(L"party_hpbarfront1", spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey = L"party_hpbarback";
 			spec.initPosX = -1050.f;
 			spec.initPosY =  275.f;
-			uiRegistry.RegisterArchetype(L"party_hpbarback1", spec);
+			uiRegistry->RegisterArchetype(L"party_hpbarback1", spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey = L"party_hpbarfront";
 			spec.initPosX = -1100.f;
 			spec.initPosY =  75.f;
-			uiRegistry.RegisterArchetype(L"party_hpbarfront2", spec);
+			uiRegistry->RegisterArchetype(L"party_hpbarfront2", spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey = L"party_hpbarback";
 			spec.initPosX = -1100.f;
 			spec.initPosY =  75.f;
-			uiRegistry.RegisterArchetype(L"party_hpbarback2", spec);
+			uiRegistry->RegisterArchetype(L"party_hpbarback2", spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -198,7 +198,7 @@ public:
 			spec.fixedHeight = 20.f;
 			spec.initPosX    = -800.f;
 			spec.initPosY    = 512.f;
-			uiRegistry.RegisterArchetype(L"leader_hpbarfront", spec);
+			uiRegistry->RegisterArchetype(L"leader_hpbarfront", spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -208,7 +208,7 @@ public:
 			spec.fixedHeight = 25.f;
 			spec.initPosX    = -800.f;
 			spec.initPosY    = 512.f;
-			uiRegistry.RegisterArchetype(L"leader_hpbarback", spec);
+			uiRegistry->RegisterArchetype(L"leader_hpbarback", spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -218,7 +218,7 @@ public:
 			spec.fixedHeight = 16.f;
 			spec.initPosX = -880.f;
 			spec.initPosY =  490.f;
-			uiRegistry.RegisterArchetype(L"leader_redbarback", spec);
+			uiRegistry->RegisterArchetype(L"leader_redbarback", spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -228,35 +228,35 @@ public:
 			spec.fixedHeight = 11.f;
 			spec.initPosX = -880.f;
 			spec.initPosY =  490.f;
-			uiRegistry.RegisterArchetype(L"leader_redbarfront", spec);
+			uiRegistry->RegisterArchetype(L"leader_redbarfront", spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey = L"red_barback";
 			spec.initPosX = -1085.f;
 			spec.initPosY =  255.f;
-			uiRegistry.RegisterArchetype(L"party_redbarback1", spec);
+			uiRegistry->RegisterArchetype(L"party_redbarback1", spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey = L"red_barfront";
 			spec.initPosX = -1085.f;
 			spec.initPosY =  255.f;
-			uiRegistry.RegisterArchetype(L"party_redbarfront1", spec);
+			uiRegistry->RegisterArchetype(L"party_redbarfront1", spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey = L"red_barback";
 			spec.initPosX = -1135.f;
 			spec.initPosY =  55.f;
-			uiRegistry.RegisterArchetype(L"party_redbarback2", spec);
+			uiRegistry->RegisterArchetype(L"party_redbarback2", spec);
 		}
 		{
 			UIArchetypeSpec spec;
 			spec.texKey = L"red_barfront";
 			spec.initPosX = -1135.f;
 			spec.initPosY =  55.f;
-			uiRegistry.RegisterArchetype(L"party_redbarfront2", spec);
+			uiRegistry->RegisterArchetype(L"party_redbarfront2", spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -266,7 +266,7 @@ public:
 			spec.fixedHeight = 18.f * 0.8f;
 			spec.initPosX    = -740.f;
 			spec.initPosY    =  490.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -277,7 +277,7 @@ public:
 			spec.initPosX     = -740.f;
 			spec.initPosY     = 490.f;
 			//spec.startEnabled = false;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -287,7 +287,7 @@ public:
 			spec.fixedHeight = 18.f * 0.8f;
 			spec.initPosX    = -740.f;
 			spec.initPosY    = 490.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -297,7 +297,7 @@ public:
 			spec.fixedHeight = 23.f * 0.8f;
 			spec.initPosX    = -740.f;
 			spec.initPosY    = 490.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		 //Input
 		/*{
@@ -364,7 +364,7 @@ public:
 			spec.texKey  = L"field_minimap";
 			spec.initPosX = 1050.f;
 			spec.initPosY = 500.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -372,7 +372,7 @@ public:
 			spec.texKey  = L"field_minimap_in";
 			spec.initPosX = 1075.f;
 			spec.initPosY = 510.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -380,7 +380,7 @@ public:
 			spec.texKey   = L"north";
 			spec.initPosX = 1075.f;
 			spec.initPosY = 375.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -388,7 +388,7 @@ public:
 			spec.texKey   = L"minimap_cursor";
 			spec.initPosX = 1075.f;
 			spec.initPosY = 510.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -396,7 +396,7 @@ public:
 			spec.texKey   = L"pm_am";
 			spec.initPosX = 925.f;
 			spec.initPosY = 610.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 		{
 			UIArchetypeSpec spec;
@@ -404,7 +404,7 @@ public:
 			spec.texKey   = L"night";
 			spec.initPosX = 930.f;
 			spec.initPosY = 545.f;
-			uiRegistry.RegisterArchetype(spec.texKey, spec);
+			uiRegistry->RegisterArchetype(spec.texKey, spec);
 		}
 	}
 };

@@ -1,5 +1,12 @@
 #include "Enginepch.h"
 
+void UIRegistry::OnBoot()
+{
+	assets = &registry.Get<AssetSystem>();
+
+	assert(assets);
+}
+
 UIInstance& UIRegistry::Ensure(const wstring& archetypeKey, EntityID owner)
 {
 	if (auto it = instances.find(archetypeKey); it != instances.end()) 
@@ -84,7 +91,6 @@ void UIRegistry::CollectForContext(UIContext context, vector<const UIInstance*>&
 	{
 		const UIArchetypeSpec* spec = inst.spec;
 		if (!spec) continue;
-
 		if (spec->context != context) continue;
 
 		bool visible = inst.selfEnabled;
@@ -98,7 +104,7 @@ pair<float, float> UIRegistry::GetOrCacheTexSize(const wstring& texKey)
 	auto it = sizeCache.find(texKey);
 	if (it != sizeCache.end()) return it->second;
 
-	shared_ptr<Texture> texture = assets.GetTexture(texKey);
+	shared_ptr<Texture> texture = assets->GetTexture(texKey);
 	if (!texture) return { 1.f, 1.f };
 
 	pair<float, float> widthHeight = {

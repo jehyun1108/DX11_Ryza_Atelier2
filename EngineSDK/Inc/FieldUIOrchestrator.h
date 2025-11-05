@@ -2,11 +2,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL FieldUIOrchestrator
+class ENGINE_DLL FieldUIOrchestrator : public ISystem
 {
 public:
-    FieldUIOrchestrator(SystemRegistry& registry, UIRegistry& uiRegistry, UISystem& uiSys, UIAnimSystem& uiAnimSys) 
-        : registry(registry), uiRegistry(uiRegistry),  uiSys(uiSys), uiAnimSys(uiAnimSys) {}
+    explicit FieldUIOrchestrator(SystemRegistry& registry) : registry(registry) {}
+    void     OnBoot() override;
 
     void Enter();
     void Tick(float dt);
@@ -14,9 +14,9 @@ public:
 
 private:
     SystemRegistry& registry;
-    UIRegistry&     uiRegistry;
-    UISystem&       uiSys;
-    UIAnimSystem&   uiAnimSys;
+    UIRegistry*     uiRegistry{};
+    UISystem*       uiSys{};
+    UIAnimSystem*   uiAnimSys{};
 };
 
 NS_END

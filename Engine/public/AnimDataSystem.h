@@ -4,10 +4,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL AnimDataSystem
+class ENGINE_DLL AnimDataSystem : public ISystem
 {
 public:
 	explicit AnimDataSystem(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
 	void RegisterDefaultClips();
 	void SetDefaultTunings();

@@ -5,8 +5,7 @@ NS_BEGIN(Engine)
 class ENGINE_DLL GuiPanel 
 {
 public:
-	GuiPanel(string title, SystemRegistry& registry, EntityMgr& entities, EntityID* selected)
-		:title(move(title)), registry(registry), entities(entities), selected(selected) {}
+	GuiPanel(string title, SystemRegistry& registry, EntityID* selected);
 	virtual ~GuiPanel() = default;
 
 public:
@@ -21,7 +20,7 @@ protected:
 	string          title;
 	bool            isActive = true;
 	SystemRegistry& registry;
-	EntityMgr&      entities;
+	EntityMgr*      entities{};
 	EntityID*       selected;
 };
 

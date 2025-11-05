@@ -33,7 +33,6 @@ inline vector<float> BattleFormationSystem::MakeAngles(int n, float centerDeg, f
     return out;
 }
 // ---------------------------------------------------------------------------------------------------------------------------------
-
 void BattleFormationSystem::Init(const _float3 center, int allyCount, int enemyCount, const FormationParams& fParams)
 {
 	centerWorld       = center;

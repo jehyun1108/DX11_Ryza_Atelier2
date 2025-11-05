@@ -1,18 +1,18 @@
 #include "Enginepch.h"
 
-unique_ptr<Renderer> Renderer::Create()
+void Renderer::OnBoot()
 {
-	auto instance = make_unique<Renderer>();
-	if (FAILED(instance->Init()))
-		return nullptr;
-	return instance;
+	assets    = &registry.Get<AssetSystem>();
+	gridSys   = &registry.Get<GridSystem>();
+	selectSys = &registry.Get<SelectionSystem>();
+	Init();
 }
 
 HRESULT Renderer::Init()
 {
-	device = game.GetDevice();
+	device  = game.GetDevice();
 	context = game.GetContext();
-	uiMesh = make_unique<UIMesh>();
+	uiMesh  = make_unique<UIMesh>();
 	uiMesh->Create(device, 1024);
 
 	cameraCBuffer = CBuffer::Create(sizeof(CameraProxy));
@@ -23,9 +23,9 @@ HRESULT Renderer::Init()
 	tsCBuffer     = CBuffer::Create(sizeof(TessellationCB));
 	uiCBuffer     = CBuffer::Create(sizeof(UICB));
 
-	gridShader = assets.GetShader(L"PC");
-	skyShader  = assets.GetShader(L"P");
-	uiShader   = assets.GetShader(L"UI");
+	gridShader = assets->GetShader(L"PC");
+	skyShader  = assets->GetShader(L"P");
+	uiShader   = assets->GetShader(L"UI");
 
 	// 1. Rasterizer 
 	{
@@ -198,7 +198,7 @@ void Renderer::DrawOpaque(const vector<DrawItem>& items)
 	SetRasterizerState(RASTERIZER::CULLBACK);
 
 	const auto& vp = game.GetViewport();
-	const HoverState& hover = registry.Get<SelectionSystem>().GetHoverState();
+	const HoverState& hover = selectSys->GetHoverState();
 
 	vector<const RenderProxy*> outlineTargets;
 	outlineTargets.reserve(8);
@@ -665,7 +665,7 @@ void Renderer::DrawUI(const vector<UIDrawItem>& items)
 	
 	auto resolveTexture = [&](const wstring& textureKey) -> const Texture*
 		{
-			return assets.GetTexture(textureKey).get();
+			return assets->GetTexture(textureKey).get();
 		};
 
 	uiMesh->Draw(context, items, resolveTexture);
@@ -712,16 +712,13 @@ SkyDrawLists Renderer::BuildSkyDrawLists(const vector<SkySubmesh>& submeshes)
 
 void Renderer::DrawGrid()
 {
-	auto& gridSys = registry.Get<GridSystem>();
-
 	BindGridState();
-
 	SetBlendState(BLENDSTATE::Opaque);
-	gridSys.RenderAllLines(context);
 
+	gridSys->RenderAllLines(context);
 	SetBlendState(BLENDSTATE::ALPHABLEND);
-	gridSys.RenderAllHover(context);
 
+	gridSys->RenderAllHover(context);
 	// Reset
 	SetDepthState(DEPTHSTATE::DEFAULT);
 	SetBlendState(BLENDSTATE::Opaque);

@@ -4,6 +4,18 @@
 static constexpr _uint worldMagic   = 'W' | ('L' << 8) | ('D' << 16) | ('1' << 24); // "WLD1"
 static constexpr _uint worldVersion = 1;
 
+void WorldSerializer::OnBoot()
+{
+	entities = &registry.Get<EntityMgr>();
+	tfSys    = &registry.Get<TransformSystem>();
+	layerSys = &registry.Get<LayerSystem>();
+	modelSys = &registry.Get<ModelSystem>();
+	assets   = &registry.Get<AssetSystem>();
+	spawner  = &registry.Get<EntitySpawner>();
+
+	assert(entities && tfSys && layerSys && modelSys && assets);
+}
+
 bool WorldSerializer::SaveWorldToFile(const filesystem::path& outPath, const vector<EntityID>& entityList, string& outErrorMsg)
 {
 	if (entityList.empty())
@@ -17,7 +29,7 @@ bool WorldSerializer::SaveWorldToFile(const filesystem::path& outPath, const vec
 
 	for (EntityID entityId : entityList)
 	{
-		if (!entities.IsAlive(entityId)) continue;
+		if (!entities->IsAlive(entityId)) continue;
 
 		WorldInstanceDto dto{};
 		if (!BuildDtoFromEntity(entityId, dto))
@@ -159,7 +171,7 @@ bool WorldSerializer::BuildDtoFromEntity(EntityID entityId, WorldInstanceDto& ou
 {
 	// 1. Transform 
 	Handle tfHandle{};
-	const TransformData* tf = tfSys.GetByOwner(entityId, &tfHandle);
+	const TransformData* tf = tfSys->GetByOwner(entityId, &tfHandle);
 	if (!tf) return false;
 
 	const _float3 pos = tf->pos;
@@ -210,11 +222,11 @@ bool WorldSerializer::BuildDtoFromEntity(EntityID entityId, WorldInstanceDto& ou
 	}
 
 	// 2. Layer
-	const LayerData* layer = layerSys.GetByOwner(entityId);
+	const LayerData* layer = layerSys->GetByOwner(entityId);
 	outDto.layerMask = layer ? layer->layerMask : 0xFFFFFFFFu;
 
 	// 3. Model -> LogicalKey 얻어오기
-	const ModelData* model = modelSys.GetByOwner(entityId);
+	const ModelData* model = modelSys->GetByOwner(entityId);
 	if (!model || !model->model) return false;
 
 	const wstring logicalKey = model->model->GetLogicalKey();
@@ -240,10 +252,7 @@ EntityID WorldSerializer::SpawnFromDto(const WorldInstanceDto& dto)
 	meta.fullPath         = fullPath.wstring();
 	meta.resolveMaterials = true;
 	
-	assets.RegisterModel(normalizedKey, meta);
-
-	// 3. Spawn
-	EntitySpawner spawner{ registry, entities, assets };
+	assets->RegisterModel(normalizedKey, meta);
 
 	TransformDesc tfDesc{};
 	tfDesc.pos   = _float3(dto.pos[0], dto.pos[1], dto.pos[2]);
@@ -279,7 +288,7 @@ EntityID WorldSerializer::SpawnFromDto(const WorldInstanceDto& dto)
 	float scaleZ = (fabsf(dto.scale[2]) < 1e-6f) ? 1e-6f : dto.scale[2];
 	tfDesc.scale = _float3(scaleX, scaleY, scaleZ);
 
-	auto handles = spawner.NewEntity()
+	auto handles = spawner->NewEntity()
 		.WithTf(tfDesc)
 		.WithLayer(dto.layerMask)
 		.WithModel(normalizedKey)

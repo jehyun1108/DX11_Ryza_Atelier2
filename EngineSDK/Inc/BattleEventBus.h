@@ -8,7 +8,7 @@ NS_BEGIN(Engine)
 // Queue: 프레임 동안 사건을 큐에 모음
 // DispatchAll: Listener에게 일괄 Dispatch
 // Subscribe/Unsubscribe: 이벤트 타입별로 콜백 구독/해지
-class ENGINE_DLL BattleEventBus
+class ENGINE_DLL BattleEventBus : public ISystem
 {
 public:
 	explicit BattleEventBus(SystemRegistry& registry) : registry(registry) {}

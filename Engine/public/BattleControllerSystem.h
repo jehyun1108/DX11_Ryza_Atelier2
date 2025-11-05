@@ -4,10 +4,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL BattleControllerSystem 
+class ENGINE_DLL BattleControllerSystem : public ISystem
 {
 public:
-	explicit BattleControllerSystem(SystemRegistry& registry, BattleTimelineSystem& timelineSys) : registry(registry), timelineSys(timelineSys) {}
+	explicit BattleControllerSystem(SystemRegistry& registry) : registry(registry) {}
+    void     OnBoot() override;
 
 	void  Update(EntityID leaderEntity, float dt); 
 	void  SetConfig(const ControllerConfig& newConfig) { config = newConfig; }
@@ -20,8 +21,8 @@ public:
     void SubmitIntent(const TimelineActionIntent& intent)                  { (void)SubmitAccordingToPolicy(intent); }
 
 private:
-    bool IsGaugeFull(EntityID entity)      const { return timelineSys.IsGaugeFull(entity); }
-    bool IsUnitReadyToAct(EntityID entity) const { return timelineSys.IsUnitReadyToAct(entity); }
+    bool IsGaugeFull(EntityID entity)      const { return timelineSys->IsGaugeFull(entity); }
+    bool IsUnitReadyToAct(EntityID entity) const { return timelineSys->IsUnitReadyToAct(entity); }
 
     bool BuildIntent_Basic(EntityID leaderEntity, TimelineActionIntent& outIntent);
     bool BuildIntent_Skill(EntityID leaderEntity, SpecialAnimTag tag, TimelineActionIntent& outIntent);
@@ -29,7 +30,7 @@ private:
     bool BuildIntent_Escape(EntityID leaderEntity, TimelineActionIntent& outIntent);
     bool ResolveSingleTarget(EntityID leaderEntity, EntityID& outTarget) const;
 
-    bool SubmitAccordingToPolicy(const TimelineActionIntent& intent) { return timelineSys.TryCommitIntent(runtime.leaderEntity, intent); }
+    bool SubmitAccordingToPolicy(const TimelineActionIntent& intent) { return timelineSys->TryCommitIntent(runtime.leaderEntity, intent); }
     void PushToBuffer(const TimelineActionIntent& intent);
     bool HasBuffered()                                const { return runtime.buffered.hasValue; }
     void ClearBuffer()                                      { runtime.buffered = {}; }
@@ -48,8 +49,12 @@ private:
     EntityID PickAllyByIdx(int idx) const;
 
 private:
-	SystemRegistry&       registry;
-    BattleTimelineSystem& timelineSys;
+	SystemRegistry&        registry;
+    BattleTimelineSystem*  timelineSys{};
+    BattleSessionSystem*   sessionSys{};
+    InputService*          input{};
+    BattleExecutionSystem* execSys{};
+
 	ControllerConfig      config;
 	ControllerRuntime     runtime;
 };

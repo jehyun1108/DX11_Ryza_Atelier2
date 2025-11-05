@@ -7,6 +7,16 @@
 
 constexpr wchar_t worldFilter[] = L"World Files (*.dat)\0*.dat\0All Files (*.*)\0*.*\0";
 
+ImportPanel::ImportPanel(string title, SystemRegistry& registry, EntityID* selected)
+	:GuiPanel(move(title), registry, selected)
+{
+	entities   = &registry.Get<EntityMgr>();
+	spawner    = &registry.Get<EntitySpawner>();
+	serializer = &registry.Get<WorldSerializer>();
+
+	previewEntities.reserve(256);
+}
+
 // -fbxmultitake -fbxascii -notex
 void ImportPanel::Draw()
 {
@@ -149,9 +159,7 @@ void ImportPanel::RefreshModels()
 void ImportPanel::SpawnEntity(const filesystem::path& modelPath)
 {
 	const wstring& logicalKey = Utility::MakeModelKey(modelPath);
-	assets.RegisterModel(logicalKey, { modelPath.wstring(), true });
-
-	EntitySpawner spawner{ registry, entities, assets };
+	assets->RegisterModel(logicalKey, { modelPath.wstring(), true });
 
 	const size_t spawnedCount = previewEntities.size();
 	const int gridX = static_cast<int>(spawnedCount % 10);
@@ -159,7 +167,7 @@ void ImportPanel::SpawnEntity(const filesystem::path& modelPath)
 	const float spacing = 2.f;
 	const _float3 spawnPos = _float3(gridX * spacing, 0.f, gridY * spacing);
 
-	auto handles = spawner.NewEntity()
+	auto handles = spawner->NewEntity()
 		.WithTf(TransformDesc{ .pos = spawnPos })
 		.WithLayer(LayerUtil::LayerBit(LAYER::MAPOBJ))
 		.WithModel(logicalKey)
@@ -179,8 +187,8 @@ void ImportPanel::DestroyAll()
 {
 	for (EntityID id : previewEntities)
 	{
-		if (entities.IsAlive(id))
-			entities.DestroyDeferred(id);
+		if (entities->IsAlive(id))
+			entities->DestroyDeferred(id);
 	}
 	previewEntities.clear();
 }
@@ -202,7 +210,7 @@ void ImportPanel::Save()
 	toSave.reserve(previewEntities.size());
 	for (EntityID id : previewEntities)
 	{
-		if (entities.IsAlive(id))
+		if (entities->IsAlive(id))
 			toSave.push_back(id);
 	}
 
@@ -212,9 +220,8 @@ void ImportPanel::Save()
 		return;
 	}
 
-	WorldSerializer serializer(registry, entities);
 	string errorMsg;
-	if (serializer.SaveWorldToFile(*maybeOut, toSave, errorMsg))
+	if (serializer->SaveWorldToFile(*maybeOut, toSave, errorMsg))
 		statusMsg = string("Saved: ") + maybeOut->string();
 	else
 		statusMsg = string("Saved failed: ") + errorMsg;
@@ -236,10 +243,9 @@ void ImportPanel::Load(bool clearBeforeLoad)
 	if (clearBeforeLoad)
 		DestroyAll();
 
-	WorldSerializer  serializer(registry, entities);
 	vector<EntityID> spawned;
 	string errorMsg;
-	if (serializer.LoadWorldFromFile(*maybeIn, spawned, errorMsg))
+	if (serializer->LoadWorldFromFile(*maybeIn, spawned, errorMsg))
 	{
 		previewEntities.insert(previewEntities.end(), spawned.begin(), spawned.end());
 		if (!spawned.empty() && selected)

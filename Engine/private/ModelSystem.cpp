@@ -7,7 +7,7 @@ Handle ModelSystem::Create(EntityID owner, Handle transform, const wstring& mode
 	comp = {};
 	comp.transform = transform;
 
-	auto& assets = GAME.GetAssetSystem();
+	auto& assets = registry.Get<AssetSystem>();
 	comp.model = assets.GetModel(modelKey);
 	assert(comp.model && "Model resource not found");
 	if (!comp.model) return {};
@@ -46,7 +46,7 @@ void ModelSystem::SetEnabled(Handle handle, bool on)
 
 void ModelSystem::RenderGui(EntityID id)
 {
-	auto& assets      = GAME.GetAssetSystem();
+	auto& assets      = registry.Get<AssetSystem>();
 	auto& shaderCache = assets.GetShaderCache();
 	auto& texCache    = assets.GetTextureCache();
 

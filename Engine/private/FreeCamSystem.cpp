@@ -11,6 +11,12 @@ namespace
     }
 }
 
+void FreeCamSystem::OnBoot()
+{
+    input = &registry.Get<InputService>();
+    tfSys = &registry.Get<TransformSystem>();
+}
+
 Handle FreeCamSystem::Create(EntityID owner, Handle transform, float moveSpeed, float sens)
 {
 	Handle handle = CreateComp(owner);
@@ -43,21 +49,18 @@ void FreeCamSystem::SetSensitivity(Handle handle, float sens)
 
 void FreeCamSystem::Update(float dt)
 {
-    auto& tfSys = registry.Get<TransformSystem>();
-    GameInstance& input = GameInstance::GetInstance();
-
     ForEachAliveEx([&](Handle handle, EntityID owner, FreeCamData& cam)
         {
             if (!cam.isActive) return;
-            if (!tfSys.Validate(cam.transform)) return;
+            if (!tfSys->Validate(cam.transform)) return;
            
             float dx = 0.f, dy = 0.f, dz = 0.f;
-            if (input.KeyPressing(KEY::D)) dx += 1.f;
-            if (input.KeyPressing(KEY::A)) dx -= 1.f;
-            if (input.KeyPressing(KEY::E)) dy += 1.f;
-            if (input.KeyPressing(KEY::Q)) dy -= 1.f;
-            if (input.KeyPressing(KEY::W)) dz += 1.f;
-            if (input.KeyPressing(KEY::S)) dz -= 1.f;
+            if (input->KeyPressing(KEY::D)) dx += 1.f;
+            if (input->KeyPressing(KEY::A)) dx -= 1.f;
+            if (input->KeyPressing(KEY::E)) dy += 1.f;
+            if (input->KeyPressing(KEY::Q)) dy -= 1.f;
+            if (input->KeyPressing(KEY::W)) dz += 1.f;
+            if (input->KeyPressing(KEY::S)) dz -= 1.f;
 
             // 대각선 가속 방지
             const float lenSq = dx * dx + dy * dy + dz * dz;
@@ -68,19 +71,19 @@ void FreeCamSystem::Update(float dt)
 
                 const float   scale   = cam.moveSpeed * dt;
                 const _float3 dtLocal = { dx * scale, dy * scale, dz * scale };
-                tfSys.AddLocalOffset(cam.transform, dtLocal);
+                tfSys->AddLocalOffset(cam.transform, dtLocal);
             }
 
             // 마우스 회전
-            if (input.KeyPressing(KEY::RBUTTON))
+            if (input->KeyPressing(KEY::RBUTTON))
             {
-                const _float2 mouseDt = input.GetMouseDelta();
+                const _float2 mouseDt = input->GetMouseDelta();
                 cam.yawDeg   = WrapAngleDeg(cam.yawDeg + mouseDt.x * cam.sensitivity);
                 cam.pitchDeg = clamp(cam.pitchDeg + (-mouseDt.y * cam.sensitivity), -89.f, 89.f);
 
                 const float yawRad   = XMConvertToRadians(cam.yawDeg);
                 const float pitchRad = XMConvertToRadians(cam.pitchDeg);
-                tfSys.SetRotation(cam.transform, yawRad, pitchRad);
+                tfSys->SetRotation(cam.transform, yawRad, pitchRad);
             }
         });
 }
@@ -88,7 +91,6 @@ void FreeCamSystem::Update(float dt)
 void FreeCamSystem::RenderGui(EntityID id)
 {
 #ifdef USE_IMGUI
-    auto& tfSys = registry.Get<TransformSystem>();
     ForEachOwned(id, [&](Handle handle, FreeCamData& freeCam) 
         {
             ImGui::PushID((int)handle.idx);
@@ -108,7 +110,7 @@ void FreeCamSystem::RenderGui(EntityID id)
 
                 ImGui::Separator();
                 if (ImGui::SmallButton("Zero Rotation"))
-                    tfSys.SetEuler(freeCam.transform, 0.f, 0.f, 0.f);
+                    tfSys->SetEuler(freeCam.transform, 0.f, 0.f, 0.f);
                 ImGui::SameLine();
                 if (ImGui::SmallButton("Reset Speed"))
                     SetSpeed(handle, 200.f);

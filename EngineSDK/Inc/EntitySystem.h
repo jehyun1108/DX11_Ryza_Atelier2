@@ -3,7 +3,7 @@
 NS_BEGIN(Engine)
 
 template<typename T>
-class EntitySystem : public IOwnsEntities, public IReservable
+class EntitySystem : public IOwnsEntities, public IReservable, public ISystem
 {
 public:
 	explicit EntitySystem(SystemRegistry& registry) : registry(registry) {}

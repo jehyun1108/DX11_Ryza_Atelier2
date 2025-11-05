@@ -1,14 +1,22 @@
 #include "Enginepch.h"
 
-GameModeDirectorSystem::GameModeDirectorSystem(SystemRegistry& registry, FieldOrchestraSystem& fieldSys, BattleOrchestraSystem& battleSys, EntityID fieldLeaderEntity)
-	:registry(registry), fieldSys(fieldSys),battleSys(battleSys),curMode(GameMode::Field),playerLeader(fieldLeaderEntity){}
+GameModeDirectorSystem::GameModeDirectorSystem(SystemRegistry& registry)
+	:registry(registry),curMode(GameMode::Field), playerLeader(1){}
+
+void GameModeDirectorSystem::OnBoot()
+{
+	fieldSys  = &registry.Get<FieldOrchestraSystem>();
+	battleSys = &registry.Get<BattleOrchestraSystem>();
+
+	assert(fieldSys && battleSys);
+}
 
 void GameModeDirectorSystem::Update(float dt)
 {
 	switch (curMode)
 	{
-	case GameMode::Field:  fieldSys.Update(dt);   break;
-	case GameMode::Battle: battleSys.Update(dt);  break;
+	case GameMode::Field:  fieldSys->Update(dt);   break;
+	case GameMode::Battle: battleSys->Update(dt);  break;
 	case GameMode::Menu:                          break;
 	}
 }
@@ -19,8 +27,8 @@ void GameModeDirectorSystem::RequestSwitch(GameMode nextMode)
 
 	switch (curMode)
 	{
-	case GameMode::Field:  fieldSys.Exit();	  break;
-	case GameMode::Battle: battleSys.Exit();  break;
+	case GameMode::Field:  fieldSys->Exit();	  break;
+	case GameMode::Battle: battleSys->Exit();  break;
 	case GameMode::Menu:                      break;
 	}
 
@@ -28,15 +36,15 @@ void GameModeDirectorSystem::RequestSwitch(GameMode nextMode)
 
 	switch (curMode)
 	{
-	case GameMode::Field:  fieldSys.Enter();  break;
-	case GameMode::Battle: battleSys.Enter(); break;
+	case GameMode::Field:  fieldSys->Enter();  break;
+	case GameMode::Battle: battleSys->Enter(); break;
 	case GameMode::Menu:                      break;
 	}
 }
 
 bool GameModeDirectorSystem::BeginBattle(const BattleStartParams& startParams)
 {
-	if (!battleSys.BeginBattle(startParams)) return false;
+	if (!battleSys->BeginBattle(startParams)) return false;
 	RequestSwitch(GameMode::Battle);
 	return true;
 }

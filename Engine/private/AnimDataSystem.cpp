@@ -1,5 +1,10 @@
 #include "Enginepch.h"
 
+void AnimDataSystem::OnBoot()
+{
+    RegisterDefaultClips();
+}
+
 void AnimDataSystem::RegisterDefaultClips()
 {
 	// Ryza - Field

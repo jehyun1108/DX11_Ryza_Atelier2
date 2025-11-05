@@ -1,6 +1,12 @@
 #include "Enginepch.h"
 #include "InspectorPanel.h"
 
+InspectorPanel::InspectorPanel(string title, SystemRegistry& registry, EntityID* selected)
+	:GuiPanel(move(title), registry, selected)
+{
+	entities = &registry.Get<EntityMgr>();
+}
+
 void InspectorPanel::Draw()
 {
 #ifdef USE_IMGUI
@@ -11,14 +17,14 @@ void InspectorPanel::Draw()
 	}
 
 	const EntityID id = *selected;
-	bool alive = entities.IsAlive(id);
+	bool alive = entities->IsAlive(id);
 
 	ImGui::Separator();
 	ImGui::Text("Entity %u %s", id, alive ? "" : "(dead)");
 	ImGui::SameLine();
 
 	if (alive && ImGui::SmallButton("Destroy##entity"))
-		entities.DestroyDeferred(id);
+		entities->DestroyDeferred(id);
 
 	ImGui::Separator();
 

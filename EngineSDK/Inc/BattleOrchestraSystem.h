@@ -5,10 +5,11 @@
 NS_BEGIN(Engine)
 class BattleUIOrchestrator;
 
-class ENGINE_DLL BattleOrchestraSystem : public IModeOrchestrator
+class ENGINE_DLL BattleOrchestraSystem : public IModeOrchestrator, public ISystem
 {
 public:
-	explicit BattleOrchestraSystem(SystemRegistry& registry, BattleEventBus& eventBus) : registry(registry), eventBus(eventBus) {}
+	explicit BattleOrchestraSystem(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
 	void Enter() override;
 	void Update(float dt) override;
@@ -30,14 +31,29 @@ private:
 	bool TryFillApSnapShot(EntityID entity, int& outCurAp, int& outMaxAp) const;
 
 private:
-	SystemRegistry& registry;
-	BattleEventBus& eventBus;
+	SystemRegistry&            registry;
+	BattleEventBus*            eventBus{};
+	BattleUIOrchestrator*      uiOrchestrator{};
+	InputService*              input{};
+	BattleCameraDirector*      camDirector{};
+	CamRegistry*               camReg{};
+	CameraSystem*              camSys{};
+	BattleSessionSystem*       sessionSys{};
+	BattleIntroSystem*         introSys{};
+	BattleControllerSystem*    ctrlSys{};
+	BattleTimelineSystem*      timelineSys{};
+	BattleAIControllerSystem*  aiCtrlSys{};
+	BattleExecutionSystem*     execSys{};
+	TransformSystem*           tfSys{};
+	AnimatorSystem*            animator{};
+	MoveStateSystem*           moveSys{};
+	CharacterDataSystem*       dataSys{};
+	BattleTargetSystem*        targetSys{};
+
+
 	vector<BattleEventListenerId> listenerIds;
-	unique_ptr<BattleUIOrchestrator> uiOrchestrator{};
 
 	BattleCameraDirector::SeqSampleFunc seqSampler{};
-	unique_ptr<BattleCameraDirector>    camDirector;
-	unique_ptr<CamRegistry>             camReg;
 };
 
 NS_END

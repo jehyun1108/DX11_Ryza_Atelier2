@@ -11,8 +11,7 @@ enum class OverWritePolicy
 class ImportPanel final : public GuiPanel
 {
 public:
-	ImportPanel(string title, SystemRegistry& registry, EntityMgr& entities, EntityID* selected)
-		: GuiPanel(move(title), registry, entities, selected), assets(registry.Get<AssetSystem>()){ previewEntities.reserve(512); }
+	ImportPanel(string title, SystemRegistry& registry, EntityID* selected);
 
 public:
 	void Draw() override;
@@ -29,13 +28,15 @@ private:
 	void ImportAll(const filesystem::path& rootFolder, OverWritePolicy overWritePolicy, bool useRecursive);
 
 private:
+	AssetSystem*     assets{};
+	EntitySpawner*   spawner{};
+	WorldSerializer* serializer{};
+
 	filesystem::path baseModelPath;
 	vector<filesystem::path> modelFiles;
 
 	vector<EntityID> previewEntities;
 	_uint previewCounter = 0;
-
-	AssetSystem& assets;
 
 	// UI 상태 메시지
 	string statusMsg;

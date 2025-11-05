@@ -51,7 +51,7 @@ HRESULT Model::InitFromFile(const wstring& fullPath)
 
 void Model::ReadMaterials(ifstream& inFile, const filesystem::path& modelDir)
 {
-    auto& assets = game.GetAssetSystem();
+    auto& assets = game.GetRegistry().Get<AssetSystem>();
 
     const wstring baseKey = logicalKey.empty() ? Utility::Normalize(modelDir.filename().wstring()) : logicalKey;
 
@@ -232,7 +232,7 @@ void Model::TryNormalFromDiffuseMap(Material& targetMaterial, const wstring& dif
     if (sibling.empty()) return;
     if (Utility::FileExists(sibling)) return;
 
-    auto& assets = game.GetAssetSystem();
+    auto& assets = game.GetRegistry().Get<AssetSystem>();
 
     const wstring normalStem = Utility::Normalize(sibling.stem().wstring());
     const wstring normalKey = baseKey + L"/" + normalStem;

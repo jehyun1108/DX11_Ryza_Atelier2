@@ -2,6 +2,14 @@
 
 static constexpr float kFadeDur = 0.05f;
 
+void ActionAnimRegistry::OnBoot()
+{
+	RegisterRyzaAnim();
+	RegisterPatriciaAnim();
+	RegisterKlaudiaAnim();
+	RegisterAngelAnim();
+}
+
 const ActionAnimSpec* ActionAnimRegistry::TryGet(CharacterID character) const
 {
 	auto it = table.find(character);
@@ -42,14 +50,6 @@ AnimChainSpec ActionAnimRegistry::MakeChainSimple(const vector<AnimKey>& keys, A
 	for (AnimKey key : keys)
 		chain.stages.push_back(MakeStage(key, stageForAll, fadeDur, rootMotionForAll));
 	return chain;
-}
-
-void ActionAnimRegistry::RegisterDefaultAnim()
-{
-	RegisterRyzaAnim();
-	RegisterPatriciaAnim();
-	RegisterKlaudiaAnim();
-	RegisterAngelAnim();
 }
 
 void ActionAnimRegistry::RegisterPatriciaAnim()

@@ -2,7 +2,7 @@
 
 NS_BEGIN(Engine)
 // 매 프레임 호출: ECS 수집 -> 큐 구성 -> 씬 스냅샷 채우기
-class ENGINE_DLL RenderSystem
+class ENGINE_DLL RenderSystem : public ISystem
 {
 public:
 	explicit RenderSystem(SystemRegistry& registry) : registry(registry) {}

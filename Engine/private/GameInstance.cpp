@@ -4,9 +4,7 @@
 bool GameInstance::inited = false;
 HWND g_hWnd;
 
-GameInstance::GameInstance(PassKey)
-	: eventBus(registry), entityMgr(registry), tfSys(registry), animatorSys(registry), camSys(registry), lightSys(registry), freeCamSys(registry), faceSys(registry), mouthSys(registry), socketSys(registry), modelSys(registry), layerSys(registry), gridSys(registry), pickingSys(registry), selectionSys(registry), collisionSys(registry), renderSys(registry), moveStateSys(registry), moveProfileSys(registry), moveIntentSys(registry), meshColliderSys(registry), skySys(registry), fieldAnimSys(registry), facingSys(registry),  orbitCamSys(registry), fieldCtrlSys(registry), battleIntroSys(registry), animDataSys(registry), jumpSys(registry), battleSessionSys(registry), fieldSys(registry), battleCtrlSys(registry, battleTimelineSys) ,charaDataSys(registry), battleTimelineSys(registry, eventBus), battleExecSys(registry), uiRegistry(assetSys), uiAnimSys(uiRegistry), uiSys(registry, assetSys,uiRegistry, uiAnimSys), battleSys(registry, eventBus), fieldUIOrchestrator(registry, uiRegistry, uiSys, uiAnimSys), director(registry, fieldSys, battleSys, 1), battleAICtrlSys(registry), battleTargetSys(registry), battleCamDirector(registry)  {
-}
+GameInstance::GameInstance(PassKey) {}
 GameInstance::~GameInstance() = default;
 HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
 {
@@ -14,76 +12,17 @@ HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
 	g_hWnd      = _engineDesc.hWnd;
 	device      = Device::Create(_engineDesc.winMode, opts);
 	timeMgr     = TimeMgr::Create();
+	levelMgr    = LevelMgr::Create();
 
-	assetSys.Init();
+	registry.EmplaceAll<Data>();
+	registry.EmplaceAll<Core>();
+	registry.EmplaceAll<Scene>();
+	registry.EmplaceAll<UI>();
+	registry.EmplaceAll<Battle>();
+	registry.EmplaceAll<Field>();
+	registry.BootAll();
 
-	registry.Register(tfSys);
-	registry.Register(fieldAnimSys);
-	registry.Register(camSys);
-	registry.Register(freeCamSys);
-	registry.Register(lightSys);
-	registry.Register(animatorSys);
-	registry.Register(faceSys);
-	registry.Register(mouthSys);
-	registry.Register(socketSys);
-	registry.Register(modelSys);
-	registry.Register(layerSys);
-	registry.Register(tagSys);
-	registry.Register(gridSys);
-	registry.Register(pickingSys);
-	registry.Register(collisionSys);
-	registry.Register(assetSys);
-	registry.Register(moveStateSys);
-	registry.Register(moveProfileSys);
-	registry.Register(moveIntentSys);
-	registry.Register(meshColliderSys);
-	registry.Register(selectionSys);
-	registry.Register(skySys);
-	registry.Register(orbitCamSys);
-	registry.Register(fieldCtrlSys);
-	registry.Register(battleCtrlSys);
-	registry.Register(battleIntroSys);
-	registry.Register(animDataSys);
-	registry.Register(jumpSys);
-	registry.Register(facingSys);
-	registry.Register(faceBlockSrv);
-	registry.Register(faceForceSrv);
-	registry.Register(battleSessionSys);
-	registry.Register(animRegistry);
-	registry.Register(battleSys);
-	registry.Register(fieldSys);
-	registry.Register(charaDataSys);
-	registry.Register(battleCtrlSys);
-	registry.Register(battleTimelineSys);
-	registry.Register(battleExecSys);
-	registry.Register(uiSys);
-	registry.Register(uiRegistry);
-	registry.Register(uiAnimSys);
-	registry.Register(director);
-	registry.Register(fieldUIOrchestrator);
-	registry.Register(battleAICtrlSys);
-	registry.Register(battleTargetSys);
-	registry.Register(battleFormationSys);
-	registry.Register(battleCamDirector);
-	registry.Register(eventBus);
-
-
-	levelMgr = LevelMgr::Create();
-	
-	animDataSys.RegisterDefaultClips();
-	animRegistry.RegisterDefaultAnim();
-
-	// --------------------------------
-	static HighlightSystem highlightSys;
-	registry.Register(highlightSys);
-	registry.Register(inputService);
-
-	// ----------------------------------
 	registry.Reserve(1024);
-	
-	input       = InputMgr::Create();
-	renderer    = Renderer::Create();
-	guiMgr      = GuiMgr::Create(registry, entityMgr);
 // ---------------------------
 	inited = true;
 	return S_OK;
@@ -99,30 +38,29 @@ void GameInstance::UpdateEngine(float dt)
 	// 0. Level 전용 
 	levelMgr->Update(dt);
 	// 1. Input Frame 시작 (쿨다운 등 시간 경과)
-	inputService.BeginFrame(dt);
-	director.Update(dt);
+	registry.Get<InputService>().BeginFrame(dt);
+	registry.Get<GameModeDirectorSystem>().Update(dt);
 	// 3. Frame 말에 "한번만" Intent Merge & 적용 -> Collector 비움
-	inputService.EndFrameAndApply(registry);
-	jumpSys.Priority_Update(dt);
+	registry.Get<InputService>().EndFrameAndApply(registry);
+	registry.Get<JumpSystem>().Priority_Update(dt);
 	// 4. 이동/물리 -> Transform -> 
-	moveStateSys.Update(dt);
-	tfSys.Update(dt);
+	registry.Get<MoveStateSystem>().Update(dt);
+	registry.Get<TransformSystem>().Update(dt);
 	// 5. AnimSys
-	facingSys.Update(dt);
-	animatorSys.Update(dt, tfSys);
+	registry.Get<FacingSystem>().Update(dt);
+	registry.Get<AnimatorSystem>().Update(dt, registry.Get<TransformSystem>());
 	// 6. 기타
-	socketSys.Update(dt);
-	faceSys.Update(dt);
-	orbitCamSys.Update(dt);
-	camSys.Update(dt);
-	freeCamSys.Update(dt);
-	lightSys.Update(dt);
+	registry.Get<SocketSystem>().Update(dt);
+	registry.Get<FaceSystem>().Update(dt);
+	registry.Get<OrbitCamSystem>().Update(dt);
+	registry.Get<CameraSystem>().Update(dt);
+	registry.Get<FreeCamSystem>().Update(dt);
+	registry.Get<LightSystem>().Update(dt);
 	//pickingSys.Update(dt);
 	//selectionSys.Update(dt);
-	gridSys.Update(dt);
-	collisionSys.Update(dt);
-
-	skySys.Tick(dt);
+	registry.Get<GridSystem>().Update(dt);
+	registry.Get<CollisionSystem>().Update(dt);
+	registry.Get<SkyboxSystem>().Tick(dt);
 }
 
 HRESULT GameInstance::BeginDraw(const _float4 color)
@@ -137,11 +75,11 @@ HRESULT GameInstance::Draw()
 {
 	// Local Static 변수라 한번 할당되고 RenderScene 은 풀링되는중 [프레임간 메모리 풀링중]
 	static RenderScene scene;
-	renderSys.BuildScene(scene);
+	registry.Get<RenderSystem>().BuildScene(scene);
 
-	renderer->Draw(scene);
+	registry.Get<Renderer>().Draw(scene);
 	levelMgr->Render();
-	entityMgr.FlushDestroy();
+	registry.Get<EntityMgr>().FlushDestroy();
 
 	return S_OK;
 }
@@ -165,16 +103,15 @@ void GameInstance::ReleaseEngine()
 
 void GameInstance::BeginFrame(float dt)
 {
-	auto& highlightSys = registry.Get<HighlightSystem>();
-	highlightSys.ClearFrame();
+	registry.Get<HighlightSystem>().ClearFrame();
 
-	guiMgr->Update(dt);
-	input->BeginFrame();
+	registry.Get<GuiMgr>().Update(dt);
+	registry.Get<InputMgr>().BeginFrame();
 }
 
 void GameInstance::EndFrame()
 {
-	input->EndFrame();
+	registry.Get<InputMgr>().EndFrame();
 }
 // ----------------------------Device ------------------------
 const D3D11_VIEWPORT& GameInstance::GetViewport() const
@@ -235,62 +172,15 @@ _uint GameInstance::GetCurLevelID()
 // ---------------------- InputMgr--------------------------------------
 void GameInstance::ProcessWinMsg(UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	input->ProcessWinMsg(msg, wParam, lParam);
+	registry.Get<InputMgr>().ProcessWinMsg(msg, wParam, lParam);
 }
-
-bool GameInstance::KeyPressing(KEY key)
-{
-	return input->KeyPressing(key);
-}
-
-bool GameInstance::KeyDown(KEY key)
-{
-	return input->KeyDown(key);
-}
-
-bool GameInstance::KeyRelease(KEY key)
-{
-	return input->KeyRelease(key);
-}
-
-const _float2& GameInstance::GetMouseDelta() const
-{
-	return input->GetMouseDelta();
-}
-
-const _float2& GameInstance::GetMousePos() const
-{
-	return input->GetMousePos();
-}
-
-// ---------------- Renderer -------------------------------------
-void GameInstance::BindSamplers(SHADER stage, TEXSLOT slot, SAMPLER type)
-{
-	renderer->BindSamplers(stage, slot, type);
-}
-
-void GameInstance::SetRasterizerState(RASTERIZER type)
-{
-	renderer->SetRasterizerState(type);
-}
-
-void GameInstance::SetDepthState(DEPTHSTATE type)
-{
-	renderer->SetDepthState(type);
-}
-
-void GameInstance::SetBlendState(BLENDSTATE type)
-{
-	renderer->SetBlendState(type);
-}
-
 // -------------- Imgui -------------------
 LRESULT GameInstance::ImguiWndProcHandler(_uint msg, WPARAM wParam, LPARAM lParam)
 {
-	return guiMgr->ImguiWndProcHandler(msg, wParam, lParam);
+	return registry.Get<GuiMgr>().ImguiWndProcHandler(msg, wParam, lParam);
 }
 
 void GameInstance::GuiRender()
 {
-	guiMgr->Render();
+	registry.Get<GuiMgr>().Render();
 }

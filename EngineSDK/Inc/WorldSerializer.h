@@ -4,16 +4,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL WorldSerializer
+class ENGINE_DLL WorldSerializer : public ISystem
 {
 public:
-	WorldSerializer(SystemRegistry& registry, EntityMgr& entities) : registry(registry), entities(entities),
-		tfSys(registry.Get<TransformSystem>()),
-		layerSys(registry.Get<LayerSystem>()),
-		modelSys(registry.Get<ModelSystem>()),
-		assets(registry.Get<AssetSystem>())
-	{
-	}
+	explicit WorldSerializer(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 	// 1. 현재 월드에서 Export 대상 Entity 수집 저장
 	bool SaveWorldToFile(const filesystem::path& outPath, const vector<EntityID>& entityList, string& outErrorMsg);
 
@@ -31,12 +26,13 @@ private:
 	EntityID SpawnFromDto(const WorldInstanceDto& dto);
 
 private:
-	SystemRegistry& registry;
-	EntityMgr& entities;
-	TransformSystem& tfSys;
-	LayerSystem& layerSys;
-	ModelSystem& modelSys;
-	AssetSystem& assets;
+	SystemRegistry&  registry;
+	EntityMgr*       entities{};
+	TransformSystem* tfSys{};
+	LayerSystem*     layerSys{};
+	ModelSystem*     modelSys{};
+	AssetSystem*     assets{};
+	EntitySpawner*   spawner{};
 };
 
 NS_END

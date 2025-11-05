@@ -1,5 +1,11 @@
 #include "Enginepch.h"
 
+void OrbitCamSystem::OnBoot()
+{
+	input  = &registry.Get<InputService>();
+	camSys = &registry.Get<CameraSystem>();
+}
+
 Handle OrbitCamSystem::Create(EntityID owner, Handle camHandle, Handle targetTf)
 {
 	Handle handle = CreateComp(owner);
@@ -19,15 +25,12 @@ Handle OrbitCamSystem::Create(EntityID owner, Handle camHandle, Handle targetTf)
 
 void OrbitCamSystem::Update(float dt)
 {
-	auto& camSys = registry.Get<CameraSystem>();
-	GameInstance& game = GameInstance::GetInstance();
-
 	ForEachAliveEx([&](Handle handle, EntityID owner, OrbitCamData& orbit)
 		{
 			if (!orbit.isActive) return;
-			if (!camSys.Validate(orbit.camHandle)) return;
+			if (!camSys->Validate(orbit.camHandle)) return;
 
-			const _float2 mouseDelta = game.GetMouseDelta();
+			const _float2 mouseDelta = input->GetMouseDelta();
 
 			orbit.orbitYaw += (mouseDelta.x * orbit.yawSensitivity) * dt;
 			orbit.orbitPitch += ((mouseDelta.y) * orbit.pitchSensitivity) * dt;
@@ -44,6 +47,6 @@ void OrbitCamSystem::Update(float dt)
 			_float3 orbitDir     = { cosPitch * sinYaw, sinPitch, cosPitch * cosYaw };
 			_float3 followOffset = { orbitDir.x * orbit.orbitDist, orbitDir.y * orbit.orbitDist, orbitDir.z * orbit.orbitDist };
 
-			camSys.SetTarget(orbit.camHandle, orbit.targetTf, XMLoadFloat3(&followOffset));
+			camSys->SetTarget(orbit.camHandle, orbit.targetTf, XMLoadFloat3(&followOffset));
 		});
 }

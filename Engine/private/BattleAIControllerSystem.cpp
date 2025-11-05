@@ -9,7 +9,17 @@ namespace
 		return 1.0 / static_cast<double>(evalHz);
 	}
 }
+
 // ---------------------------------------------------------------------------------
+void BattleAIControllerSystem::OnBoot()
+{
+	timelineSys = &registry.Get<BattleTimelineSystem>();
+	targetSys   = &registry.Get<BattleTargetSystem>();
+	sessionSys  = &registry.Get<BattleSessionSystem>();
+
+	assert(timelineSys && targetSys && sessionSys);
+}
+
 void BattleAIControllerSystem::Update(float dt)
 {
 	elapsedTime += static_cast<double>(dt);
@@ -17,21 +27,18 @@ void BattleAIControllerSystem::Update(float dt)
 	const vector<EntityID> controllable = CollectEntities();
 	if (controllable.empty()) return;
 
-	auto& timelineSys = registry.Get<BattleTimelineSystem>();
-	auto& targetSys   = registry.Get<BattleTargetSystem>();
-
 	for (EntityID entity : controllable)
 	{
 		if (!ShouldEval(entity, elapsedTime)) continue;
-		if (!timelineSys.IsUnitReadyToAct(entity)) continue;
+		if (!timelineSys->IsUnitReadyToAct(entity)) continue;
 
-		EntityID targetEntity = targetSys.Get(entity);
+		EntityID targetEntity = targetSys->Get(entity);
 		if (targetEntity == invalidEntity) continue;
 
 		TimelineActionIntent intent{};
 		if (!BuildBasicIntent(entity, targetEntity, intent)) continue;
 
-		(void)timelineSys.TryCommitIntent(entity, intent);
+		timelineSys->TryCommitIntent(entity, intent);
 	}
 }
 
@@ -40,12 +47,9 @@ vector<EntityID> BattleAIControllerSystem::CollectEntities() const
 	vector<EntityID> result;
 	result.reserve(6);
 
-	auto& sessionSys  = registry.Get<BattleSessionSystem>();
-	auto& timelineSys = registry.Get<BattleTimelineSystem>();
-
-	const BattleParty*   allies  = sessionSys.GetAllies();
-	const BattleEnemies* enemies = sessionSys.GetEnemies();
-	const EntityID       leader  = timelineSys.GetLeader();
+	const BattleParty*   allies  = sessionSys->GetAllies();
+	const BattleEnemies* enemies = sessionSys->GetEnemies();
+	const EntityID       leader  = timelineSys->GetLeader();
 
 	if (enemies)
 		for (int i = 0; i < enemies->memberCount; ++i)
@@ -76,14 +80,12 @@ bool BattleAIControllerSystem::ShouldEval(EntityID id, double now)
 
 EntityID BattleAIControllerSystem::ResolveTargetFirstEnemy(EntityID self) const
 {
-	auto& sessionSys = registry.Get<BattleSessionSystem>();
-
 	BattleTeam selfTeam{};
-	if (!sessionSys.TryGetTeam(self, selfTeam))
+	if (!sessionSys->TryGetTeam(self, selfTeam))
 		return invalidEntity;
 
-	const BattleParty*   allies  = sessionSys.GetAllies();
-	const BattleEnemies* enemies = sessionSys.GetEnemies();
+	const BattleParty*   allies  = sessionSys->GetAllies();
+	const BattleEnemies* enemies = sessionSys->GetEnemies();
 
 	if (selfTeam == BattleTeam::Ally)
 	{
@@ -112,7 +114,6 @@ bool BattleAIControllerSystem::BuildBasicIntent(EntityID self, EntityID target, 
 
 EntityID BattleAIControllerSystem::ResolveTargetViaSystem(EntityID self) const
 {
-	auto& targetSys = registry.Get<BattleTargetSystem>();
-	EntityID target = targetSys.Get(self);
+	EntityID target = targetSys->Get(self);
 	return target;
 }

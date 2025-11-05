@@ -4,13 +4,13 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL UIRegistry
+class ENGINE_DLL UIRegistry : public ISystem
 {
 public:
-	explicit UIRegistry(AssetSystem& assets) : assets(assets) {}
+	explicit UIRegistry(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
-	void RegisterArchetype(const wstring& archetypeKey, const UIArchetypeSpec& spec) { archetypes[archetypeKey] = spec; }
-	
+	void        RegisterArchetype(const wstring& archetypeKey, const UIArchetypeSpec& spec) { archetypes[archetypeKey] = spec; }
 	UIInstance& Ensure(const wstring& archetypeKey, EntityID owner = invalidEntity);
 
 	void SetParent(const wstring&   archetypeKey, EntityID parent);
@@ -31,7 +31,9 @@ public:
 	const unordered_map<wstring, UIInstance>&      GetInstances()  const { return instances; }
 
 private:
-	AssetSystem& assets;
+	SystemRegistry& registry;
+	AssetSystem*    assets{};
+
 	unordered_map<wstring, UIArchetypeSpec>    archetypes;
 	unordered_map<wstring, UIInstance>         instances;
 	unordered_map<wstring, pair<float, float>> sizeCache;

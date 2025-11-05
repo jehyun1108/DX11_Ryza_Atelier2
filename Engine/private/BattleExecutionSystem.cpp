@@ -50,10 +50,22 @@ static inline float DistXZ(const _float3& a, const _float3& b)
 }
 static inline float Clampf(float v, float lo, float hi) { return max(lo, min(v, hi)); }
 // ------------------------------------------------------------------------------------------------------------
+void BattleExecutionSystem::OnBoot()
+{
+    actionReg   = &registry.Get<ActionAnimRegistry>();
+    dataSys     = &registry.Get<CharacterDataSystem>();
+    timelineSys = &registry.Get<BattleTimelineSystem>();
+    animDataSys = &registry.Get<AnimDataSystem>();
+    animator    = &registry.Get<AnimatorSystem>();
+    tfSys       = &registry.Get<TransformSystem>();
+    faceSrv     = &registry.Get<FacingForceService>();
+
+    assert(actionReg && dataSys && timelineSys && animDataSys && animator && tfSys && faceSrv);
+}
+
 const AnimChainSpec* BattleExecutionSystem::TryGetChain(CharacterID ch, AnimContext cx, SpecialAnimTag tag) const
 {
-    auto& actionReg = registry.Get<ActionAnimRegistry>();
-    const ActionAnimSpec* spec = actionReg.TryGet(ch);
+    const ActionAnimSpec* spec = actionReg->TryGet(ch);
     if (!spec) return nullptr;
     auto it = spec->specials.find(tag);
     return (it == spec->specials.end()) ? nullptr : &it->second;
@@ -62,10 +74,9 @@ const AnimChainSpec* BattleExecutionSystem::TryGetChain(CharacterID ch, AnimCont
 bool BattleExecutionSystem::BeginAction(EntityID entity, const TimelineActionIntent& intent)
 {
     if (entity == invalidEntity) return false;
-
-    auto& dataSys = registry.Get<CharacterDataSystem>();
+  
     ExecutionUnitRunTime& rt = runtimeByEntity[entity];
-    rt.character = dataSys.GetCharacterID(entity);
+    rt.character = dataSys->GetCharacterID(entity);
     rt.context = AnimContext::Battle;
     rt.activeIntent = intent;
     rt.cursor = {};
@@ -86,14 +97,14 @@ bool BattleExecutionSystem::BeginAction(EntityID entity, const TimelineActionInt
         BuildPlanForEscape(entity, rt);
         break;
     default:
-        registry.Get<BattleTimelineSystem>().NotifyActionFinished(entity, rt.activeIntent);
+        timelineSys->NotifyActionFinished(entity, rt.activeIntent);
         runtimeByEntity.erase(entity);
         return false;
     }
 
     if (rt.plannedTags.empty())
     {
-        registry.Get<BattleTimelineSystem>().NotifyActionFinished(entity, rt.activeIntent);
+        timelineSys->NotifyActionFinished(entity, rt.activeIntent);
         runtimeByEntity.erase(entity);
         return false;
     }
@@ -124,27 +135,23 @@ void BattleExecutionSystem::Tick(float dt)
     for (auto& pair : runtimeByEntity)
     {
         const EntityID selfEntity = pair.first;
-        ExecutionUnitRunTime& runtime = pair.second;
+        ExecutionUnitRunTime& rt = pair.second;
 
         // 공격 준비/실행 시에는 타깃을 향해 지속적으로 정렬 + 접근/후퇴 유지
-        if (runtime.phase == ExecutionUnitRunTime::Phase::AttackStart ||
-            runtime.phase == ExecutionUnitRunTime::Phase::Execute ||
-            runtime.phase == ExecutionUnitRunTime::Phase::AttackFinished)
-        {
-            MaintainFacing(selfEntity, runtime);
-        }
+        if (rt.phase == ExecutionUnitRunTime::Phase::AttackStart || rt.phase == ExecutionUnitRunTime::Phase::Execute || rt.phase == ExecutionUnitRunTime::Phase::AttackFinished)
+            MaintainFacing(selfEntity, rt);
 
-        ConsumePulse(selfEntity, runtime, dt);
+        ConsumePulse(selfEntity, rt, dt);
 
-        if (!runtime.cursor.isActive)
+        if (!rt.cursor.isActive)
         {
             entitiesToRemove.push_back(selfEntity);
             continue;
         }
 
-        if (!AdvanceIfStageFinished(selfEntity, runtime, dt)) continue;
+        if (!AdvanceIfStageFinished(selfEntity, rt, dt)) continue;
 
-        if (!runtime.cursor.isActive)
+        if (!rt.cursor.isActive)
             entitiesToRemove.push_back(selfEntity);
     }
 
@@ -154,13 +161,11 @@ void BattleExecutionSystem::Tick(float dt)
 
 void BattleExecutionSystem::BuildPlanForAttack(EntityID entity, ExecutionUnitRunTime& rt, const TimelineActionIntent& intent)
 {
-    auto& actionReg   = registry.Get<ActionAnimRegistry>();
-    auto& timelineSys = registry.Get<BattleTimelineSystem>();
-    const ActionAnimSpec* spec = actionReg.TryGet(rt.character);
+    const ActionAnimSpec* spec = actionReg->TryGet(rt.character);
 
     if (!spec)
     {
-        registry.Get<BattleTimelineSystem>().NotifyActionFinished(entity, rt.activeIntent);
+        timelineSys->NotifyActionFinished(entity, rt.activeIntent);
         runtimeByEntity.erase(entity);
         return;
     }
@@ -168,13 +173,12 @@ void BattleExecutionSystem::BuildPlanForAttack(EntityID entity, ExecutionUnitRun
     const bool hasStart  = ContainsTag(*spec, SpecialAnimTag::AttackStarted);
     const bool hasFinish = ContainsTag(*spec, SpecialAnimTag::AttackFinished);
 
-    SpecialAnimTag executeTag = intent.specialTag.has_value() ? intent.specialTag.value() : SpecialAnimTag::BasicAttack;
-
-    const AnimChainSpec* execChain = TryGetChain(rt.character, rt.context, executeTag);
+    SpecialAnimTag       executeTag = intent.specialTag.has_value() ? intent.specialTag.value() : SpecialAnimTag::BasicAttack;
+    const AnimChainSpec* execChain  = TryGetChain(rt.character, rt.context, executeTag);
 
     if (!execChain || execChain->stages.empty())
     {
-        timelineSys.NotifyActionFinished(entity, rt.activeIntent);
+        timelineSys->NotifyActionFinished(entity, rt.activeIntent);
         runtimeByEntity.erase(entity);
         return;
     }
@@ -189,18 +193,15 @@ void BattleExecutionSystem::BuildPlanForAttack(EntityID entity, ExecutionUnitRun
 
 void BattleExecutionSystem::BuildPlanForDefend(EntityID entity, ExecutionUnitRunTime& rt)
 {
-    auto& timelineSys = registry.Get<BattleTimelineSystem>();
-    auto& actionReg   = registry.Get<ActionAnimRegistry>();
-    const ActionAnimSpec* spec = actionReg.TryGet(rt.character);
-    if (!spec) { timelineSys.NotifyActionFinished(entity, rt.activeIntent); runtimeByEntity.erase(entity); return; }
+    const ActionAnimSpec* spec = actionReg->TryGet(rt.character);
+    if (!spec) { timelineSys->NotifyActionFinished(entity, rt.activeIntent); runtimeByEntity.erase(entity); return; }
 
     const bool hasStart = ContainsTag(*spec, SpecialAnimTag::DefendStart);
     const bool hasHold  = ContainsTag(*spec, SpecialAnimTag::Defending);
     const bool hasEnd   = ContainsTag(*spec, SpecialAnimTag::DefendEnd);
-
-    const bool hasTag = rt.activeIntent.specialTag.has_value();
+    const bool hasTag   = rt.activeIntent.specialTag.has_value();
+    
     const SpecialAnimTag tag = hasTag ? rt.activeIntent.specialTag.value() : SpecialAnimTag::DefendStart;
-
     rt.plannedTags.clear();
 
     if (!hasTag)
@@ -223,7 +224,7 @@ void BattleExecutionSystem::BuildPlanForDefend(EntityID entity, ExecutionUnitRun
             if (hasEnd)   rt.plannedTags.push_back(SpecialAnimTag::DefendEnd);
             break;
         default:
-            timelineSys.NotifyActionFinished(entity, rt.activeIntent);
+            timelineSys->NotifyActionFinished(entity, rt.activeIntent);
             runtimeByEntity.erase(entity);
             return;
         }
@@ -231,7 +232,7 @@ void BattleExecutionSystem::BuildPlanForDefend(EntityID entity, ExecutionUnitRun
 
     if (rt.plannedTags.empty())
     {
-        timelineSys.NotifyActionFinished(entity, rt.activeIntent);
+        timelineSys->NotifyActionFinished(entity, rt.activeIntent);
         runtimeByEntity.erase(entity);
         return;
     }
@@ -248,7 +249,7 @@ void BattleExecutionSystem::BuildPlanForDefend(EntityID entity, ExecutionUnitRun
 
 void BattleExecutionSystem::BuildPlanForEscape(EntityID entity, ExecutionUnitRunTime& rt)
 {
-    registry.Get<BattleTimelineSystem>().NotifyActionFinished(entity, rt.activeIntent);
+    timelineSys->NotifyActionFinished(entity, rt.activeIntent);
     runtimeByEntity.erase(entity);
 }
 
@@ -318,19 +319,17 @@ bool BattleExecutionSystem::PlayStage(EntityID entity, ExecutionUnitRunTime& rt,
         curTag = rt.plannedTags[(size_t)rt.plannedIdx];
 
     const AnimStageSpec& stageSpec = chain.stages[(size_t)rt.cursor.curStageIdx];
-    auto& animData = registry.Get<AnimDataSystem>();
-    const wstring& clipName = animData.GetClipName(rt.character, rt.context, stageSpec.clipKey);
+    const wstring& clipName = animDataSys->GetClipName(rt.character, rt.context, stageSpec.clipKey);
     if (clipName.empty())
     {
         FinishAndIdle(entity, rt);
         return false;
     }
 
-    ClipTuning tuning = animData.GetClipTuning(rt.character, rt.context, stageSpec.clipKey);
+    ClipTuning tuning = animDataSys->GetClipTuning(rt.character, rt.context, stageSpec.clipKey);
     if (stageSpec.startNormalizedOverride) tuning.startNormalized = *stageSpec.startNormalizedOverride;
     if (stageSpec.endNormalizedOverride)   tuning.endNormalized = *stageSpec.endNormalizedOverride;
 
-    auto& animator = registry.Get<AnimatorSystem>();
     Handle animHandle = ResolveAnimHandle(entity);
     if (!animHandle.IsValid())
     {
@@ -340,25 +339,24 @@ bool BattleExecutionSystem::PlayStage(EntityID entity, ExecutionUnitRunTime& rt,
     }
 
     const float fadeSeconds = max(0.f, stageSpec.fadeDur);
-    animator.SetPlaybackSpeed(animHandle, 0, tuning.playbackSpeed);
+    animator->SetPlaybackSpeed(animHandle, 0, tuning.playbackSpeed);
 
     const bool loopThisStage = (curTag == SpecialAnimTag::Defending);
 
     if (fadeSeconds > 0.f)
-        animator.CrossFade(animHandle, 0, 1, clipName, fadeSeconds, loopThisStage ? ANIMTYPE::LOOP : ANIMTYPE::ONCE, tuning.startNormalized, tuning.endNormalized);
+        animator->CrossFade(animHandle, 0, 1, clipName, fadeSeconds, loopThisStage ? ANIMTYPE::LOOP : ANIMTYPE::ONCE, tuning.startNormalized, tuning.endNormalized);
     else
-        animator.PlaySection(animHandle, 0, clipName, loopThisStage ? ANIMTYPE::LOOP : ANIMTYPE::ONCE, tuning.startNormalized, tuning.endNormalized);
+        animator->PlaySection(animHandle, 0, clipName, loopThisStage ? ANIMTYPE::LOOP : ANIMTYPE::ONCE, tuning.startNormalized, tuning.endNormalized);
     
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------
     if (rt.activeIntent.targetEntity != invalidEntity && rt.cursor.curStageIdx == 0)
     {
-        auto& tf = registry.Get<TransformSystem>();
         Handle selfTf = ResolveTfHandle(entity);
         Handle tgtTf = ResolveTfHandle(rt.activeIntent.targetEntity);
         if (selfTf.IsValid() && tgtTf.IsValid())
         {
-            const _float3 a = tf.GetPos(selfTf);
-            const _float3 b = tf.GetPos(tgtTf);
+            const _float3 a = tfSys->GetPos(selfTf);
+            const _float3 b = tfSys->GetPos(tgtTf);
             const float dx = b.x - a.x, dz = b.z - a.z;
             const float len = sqrtf(dx * dx + dz * dz);
             if (len > 0.01f)
@@ -366,10 +364,7 @@ bool BattleExecutionSystem::PlayStage(EntityID entity, ExecutionUnitRunTime& rt,
                 const _float2 dir{ dx / len, dz / len };
                 const SpecialAnimTag curTag = rt.plannedTags[(size_t)rt.plannedIdx];
 
-                auto queue_fixed = [&](const _float2& d)
-                    {
-                        QueuePulse(rt, d, kDist, kMoveDur);
-                    };
+                auto queue_fixed = [&](const _float2& d) { QueuePulse(rt, d, kDist, kMoveDur); };
 
                 if (curTag == SpecialAnimTag::AttackStarted)
                     queue_fixed(dir);
@@ -393,34 +388,30 @@ bool BattleExecutionSystem::IsCurStageFinished(EntityID entity, const ExecutionU
         return false;
 
     const AnimStageSpec& stageSpec = chain.stages[(size_t)rt.cursor.curStageIdx];
-    auto& animData = registry.Get<AnimDataSystem>();
-    const wstring& clipName = animData.GetClipName(rt.character, rt.context, stageSpec.clipKey);
+    const wstring& clipName = animDataSys->GetClipName(rt.character, rt.context, stageSpec.clipKey);
     if (clipName.empty()) return true;
 
-    auto& animator = registry.Get<AnimatorSystem>();
     Handle animHand = ResolveAnimHandle(entity);
     if (!animHand.IsValid()) return true;
-    if (!animator.IsPlaying(animHand, 0)) return true;
-    if (animator.IsCrossFading(animHand)) return false;
+    if (!animator->IsPlaying(animHand, 0)) return true;
+    if (animator->IsCrossFading(animHand)) return false;
 
-    const float remainingSeconds = animator.GetRemainingTime(animHand, 0);
+    const float remainingSeconds = animator->GetRemainingTime(animHand, 0);
     const float transitionWindow = max(stageSpec.fadeDur, stageSpec.minOverlapDur);
     return (remainingSeconds <= transitionWindow);
 }
 
 Handle BattleExecutionSystem::ResolveAnimHandle(EntityID entity) const
 {
-    auto& animator = registry.Get<AnimatorSystem>();
     Handle handle{};
-    animator.GetByOwner(entity, &handle);
+    animator->GetByOwner(entity, &handle);
     return handle;
 }
 
 Handle BattleExecutionSystem::ResolveTfHandle(EntityID entity) const
 {
-    auto& tfSys = registry.Get<TransformSystem>();
     Handle tfHandle{};
-    if (tfSys.GetByOwner(entity, &tfHandle)) return tfHandle;
+    if (tfSys->GetByOwner(entity, &tfHandle)) return tfHandle;
     return {};
 }
 
@@ -431,12 +422,11 @@ void BattleExecutionSystem::ConsumePulse(EntityID entity, ExecutionUnitRunTime& 
     const float step = min(rt.pulse.speed * dt, rt.pulse.remainDist);
     if (step <= 0.f) return;
 
-    auto&  tfSys = registry.Get<TransformSystem>();
     Handle tf    = ResolveTfHandle(entity);
     if (tf.IsValid())
     {
         const _float3 delta = _float3{ rt.pulse.dirXZ.x * step, 0.f, rt.pulse.dirXZ.y * step };
-        tfSys.AddWorldOffset(tf, delta);
+        tfSys->AddWorldOffset(tf, delta);
     }
 
     rt.pulse.remainDist -= step;
@@ -448,38 +438,33 @@ void BattleExecutionSystem::MaintainFacing(EntityID self, ExecutionUnitRunTime& 
 {
     if (rt.activeIntent.targetEntity == invalidEntity) return;
 
-    auto& tfSys   = registry.Get<TransformSystem>();
-    auto& faceSrv = registry.Get<FacingForceService>();
-
     Handle selfTf = ResolveTfHandle(self);
     Handle tgtTf = ResolveTfHandle(rt.activeIntent.targetEntity);
     if (!selfTf.IsValid() || !tgtTf.IsValid()) return;
 
-    const _float3 a   = tfSys.GetPos(selfTf);
-    const _float3 b   = tfSys.GetPos(tgtTf);
+    const _float3 a   = tfSys->GetPos(selfTf);
+    const _float3 b   = tfSys->GetPos(tgtTf);
     const float   dx  = b.x - a.x, dz = b.z - a.z;
     const float   len = sqrtf(dx * dx + dz * dz);
     if (len <= 1e-5f) return;
 
-    faceSrv.PushSmoothXZ(self, _float2{ dx / len, dz / len });
+    faceSrv->PushSmoothXZ(self, _float2{ dx / len, dz / len });
 }
 
 void BattleExecutionSystem::FinishAndIdle(EntityID entity, ExecutionUnitRunTime& rt)
 {
-    auto&  animData   = registry.Get<AnimDataSystem>();
-    auto&  animator   = registry.Get<AnimatorSystem>();
     Handle animHandle = ResolveAnimHandle(entity);
 
     if (animHandle.IsValid())
     {
-        const wstring& idle = animData.GetClipName(rt.character, rt.context, AnimKey::Battle_Idle);
+        const wstring& idle = animDataSys->GetClipName(rt.character, rt.context, AnimKey::Battle_Idle);
         if (!idle.empty())
-            animator.CrossFade(animHandle, 0, 1, idle, 0.08f, ANIMTYPE::LOOP);
+            animator->CrossFade(animHandle, 0, 1, idle, 0.08f, ANIMTYPE::LOOP);
     }
 
     rt.pulse.active     = false;
     rt.pulse.remainDist = 0.f;
     rt.cursor.isActive  = false;
 
-    registry.Get<BattleTimelineSystem>().NotifyActionFinished(entity, rt.activeIntent);
+    timelineSys->NotifyActionFinished(entity, rt.activeIntent);
 }

@@ -1,5 +1,13 @@
 #include "Enginepch.h"
 
+void SelectionSystem::OnBoot()
+{
+	input   = &registry.Get<InputService>();
+	camSys  = &registry.Get<CameraSystem>();
+	pickSys = &registry.Get<PickingSystem>();
+	tfSys   = &registry.Get<TransformSystem>();
+}
+
 Handle SelectionSystem::Create(EntityID owner, bool selectable, _uint layerMask)
 {
 	Handle handle = CreateComp(owner);
@@ -28,7 +36,7 @@ void SelectionSystem::ToggleSelect(EntityID id)
 void SelectionSystem::Update(float dt)
 {
 	GameInstance& game   = GameInstance::GetInstance();
-	const _float2& mouse = game.GetMousePos();
+	const _float2& mouse = input->GetMousePos();
 
 #ifdef USE_IMGUI
 	context.wantCaptureMouse = ImGui::GetIO().WantCaptureMouse;
@@ -41,10 +49,10 @@ void SelectionSystem::Update(float dt)
 	context.rayValid         = true;
 
 	// Buttons
-	context.mouseLeftDown = game.KeyDown(KEY::LBUTTON);
-	context.mouseLeftHeld = game.KeyPressing(KEY::LBUTTON);
-	context.mouseLeftUp   = game.KeyRelease(KEY::LBUTTON);
-	context.multiSelect   = game.KeyPressing(KEY::LCTRL);
+	context.mouseLeftDown = input->KeyDown(KEY::LBUTTON);
+	context.mouseLeftHeld = input->KeyPressing(KEY::LBUTTON);
+	context.mouseLeftUp   = input->KeyReleased(KEY::LBUTTON);
+	context.multiSelect   = input->KeyPressing(KEY::LCTRL);
 
 // -------------------------------------------------------------
 	UpdateHover();
@@ -62,8 +70,7 @@ void SelectionSystem::UpdateHover()
 	_float3 origin{}, dir{};
 	if (context.fromScreen)
 	{
-		auto camSys = registry.TryGet<CameraSystem>();
-		if (!camSys || !camSys->Validate(context.cam)) return;
+		if (!camSys->Validate(context.cam)) return;
 
 		_vec rayOrigin{}, rayDir{};
 		camSys->CreateRayFromScreen(context.cam, context.screenPos, context.viewport, rayOrigin, rayDir);
@@ -75,10 +82,6 @@ void SelectionSystem::UpdateHover()
 		origin = context.worldRayOrigin;
 		XMStoreFloat3(&dir, XMVector3Normalize(XMLoadFloat3(&context.worldRayDir)));
 	}
-
-	// Picking
-	auto pickSys = registry.TryGet<PickingSystem>();
-
 	PickingHit hit{};
 	if (pickSys->Pick(PickingRequest{ origin, dir, false, {}, {}, {}, context.layerMask }, hit) && hit.hit)
 		hovered = hit.entity;
@@ -115,8 +118,7 @@ void SelectionSystem::UpdateDrag(float dt)
 	_float3 origin{}, dir{};
 	if (context.fromScreen)
 	{
-		auto camSys = registry.TryGet<CameraSystem>();
-		if (!camSys || !camSys->Validate(context.cam)) return;
+		if (!camSys->Validate(context.cam)) return;
 
 		_vec rayOrigin{}, rayDir{};
 		camSys->CreateRayFromScreen(context.cam, context.screenPos, context.viewport, rayOrigin, rayDir);
@@ -128,8 +130,6 @@ void SelectionSystem::UpdateDrag(float dt)
 		origin = context.worldRayOrigin;
 		XMStoreFloat3(&dir, XMVector3Normalize(XMLoadFloat3(&context.worldRayDir)));
 	}
-
-	auto& tfSys = registry.Get<TransformSystem>();
 
 	if (!drag.active && context.mouseLeftDown)
 	{
@@ -178,7 +178,7 @@ void SelectionSystem::UpdateDrag(float dt)
 		EntityID target = hovered ? hovered : (!selected.empty()) ? *selected.begin() : 0;
 		if (target)
 		{
-			if (auto tf = tfSys.GetByOwner(target))
+			if (auto tf = tfSys->GetByOwner(target))
 				drag.startPos[target] = tf->pos;
 		}
 		return;
@@ -206,7 +206,7 @@ void SelectionSystem::UpdateDrag(float dt)
 			EntityID id = pair.first;
 			const _float3& start = pair.second;
 
-			if (auto* tf = tfSys.GetByOwner(id))
+			if (auto* tf = tfSys->GetByOwner(id))
 			{
 				tf->pos.x = start.x + delta.x;
 				tf->pos.y = start.y + delta.y;

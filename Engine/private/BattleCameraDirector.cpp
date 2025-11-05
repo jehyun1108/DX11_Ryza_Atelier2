@@ -21,6 +21,16 @@ BattleCameraDirector::BattleCameraDirector(SystemRegistry& registry) : registry(
     state.output.lens = state.fixedLens;
 }
 
+void BattleCameraDirector::OnBoot()
+{
+    timelineSys = &registry.Get<BattleTimelineSystem>();
+    targetSys   = &registry.Get<BattleTargetSystem>();
+    tfSys       = &registry.Get<TransformSystem>();
+    camSys      = &registry.Get<CameraSystem>();
+
+    assert(timelineSys && targetSys && tfSys && camSys);
+}
+
 void BattleCameraDirector::SetFixedLens(const Lens& lens)
 {
     state.fixedLens = lens;
@@ -254,11 +264,10 @@ void BattleCameraDirector::AdvanceFollow(TrackState& track, float dt)
     _float2 forwardXZ = { 0.f, 1.f };
     {
         EntityID entity = ResolveAnchorEntity(track.anchor);
-        auto& tfSys = registry.Get<TransformSystem>();
         Handle tfHandle{};
-        tfSys.GetByOwner(entity, &tfHandle);
+        tfSys->GetByOwner(entity, &tfHandle);
         if (tfHandle.IsValid())
-            forwardXZ = tfSys.GetForwardXZ(tfHandle);
+            forwardXZ = tfSys->GetForwardXZ(tfHandle);
         if (fabs(forwardXZ.x) + fabs(forwardXZ.y) < 1e-6f)
             forwardXZ = _float2(0.f, 1.f);
     }
@@ -496,38 +505,46 @@ TrackID BattleCameraDirector::AllocID()
 
 EntityID BattleCameraDirector::ResolveAnchorEntity(const AnchorBinding& anchor) const
 {
-    auto& tl = registry.Get<BattleTimelineSystem>();
-    auto& tg = registry.Get<BattleTargetSystem>();
     switch (anchor.binding)
     {
-    case TargetBinding::None:        break;
-    case TargetBinding::Leader:      return tl.GetLeader();
-    case TargetBinding::CurTarget: { EntityID leader = tl.GetLeader(); return (leader != invalidEntity) ? tg.Get(leader) : 0; }
+    case TargetBinding::None:      
+        break;
+
+    case TargetBinding::Leader:    
+        return timelineSys->GetLeader();
+
+    case TargetBinding::CurTarget: 
+    { 
+        EntityID leader = timelineSys->GetLeader(); 
+        return (leader != invalidEntity) ? targetSys->Get(leader) : 0; 
+    }
     case TargetBinding::Attacker:
     case TargetBinding::Victim:
-    case TargetBinding::CustomEntity: return anchor.entity;
+    case TargetBinding::CustomEntity: 
+        return anchor.entity;
     }
     return 0;
 }
 
 bool BattleCameraDirector::GetEntityWorldPos(EntityID entity, _vec& outPos, _vec& outRot) const
 {
-    auto& tf = registry.Get<TransformSystem>();
-    Handle h{}; tf.GetByOwner(entity, &h);
-    const TransformData* d = tf.Get(h);
-    if (!d) return false;
-    outPos = XMLoadFloat3(&d->pos);
-    outRot = XMQuaternionNormalize(XMLoadFloat4(&d->rot));
+    Handle handle{}; 
+    tfSys->GetByOwner(entity, &handle);
+    const TransformData* data = tfSys->Get(handle);
+    if (!data) return false;
+    outPos = XMLoadFloat3(&data->pos);
+    outRot = XMQuaternionNormalize(XMLoadFloat4(&data->rot));
     return true;
 }
 
 bool BattleCameraDirector::ComputeFollowTarget(const TrackState& track, _vec& outTargetPos) const
 {
     if (track.anchor.binding == TargetBinding::None) return false;
-    _vec p = XMVectorZero(), q = XMQuaternionIdentity();
-    EntityID e = ResolveAnchorEntity(track.anchor);
-    if (!GetEntityWorldPos(e, p, q)) return false;
-    outTargetPos = p + XMVectorSet(0.f, 1.6f, 0.f, 0.f);
+    _vec pos  = XMVectorZero();
+    _vec quat = XMQuaternionIdentity();
+    EntityID entity = ResolveAnchorEntity(track.anchor);
+    if (!GetEntityWorldPos(entity, pos, quat)) return false;
+    outTargetPos = pos + XMVectorSet(0.f, 1.6f, 0.f, 0.f);
     return true;
 }
 
@@ -538,16 +555,14 @@ void BattleCameraDirector::Tick(float dt)
     CamPose raw = MixByGroups(prev);
     state.output = ClampStep(prev, raw, dt);
 
-    auto& camSys = registry.Get<CameraSystem>();
-    if (auto* c = camSys.Get(cam))
+    if (auto* c = camSys->Get(cam))
     {
-        auto& tf = registry.Get<TransformSystem>();
-        if (auto* td = tf.Get(c->transform))
+        if (auto* td = tfSys->Get(c->transform))
         {
             XMStoreFloat3(&td->pos, XMLoadFloat3(&state.output.pos));
             XMStoreFloat4(&td->rot, XMQuaternionNormalize(XMLoadFloat4(&state.output.rot)));
             td->dirty = true;
         }
-        camSys.SetPerspective(cam, state.fixedLens.fovY, c->aspect, state.fixedLens.nearZ, state.fixedLens.farZ);
+        camSys->SetPerspective(cam, state.fixedLens.fovY, c->aspect, state.fixedLens.nearZ, state.fixedLens.farZ);
     }
 }

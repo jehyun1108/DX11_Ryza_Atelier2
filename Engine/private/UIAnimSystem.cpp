@@ -22,6 +22,13 @@ inline static float ApplyEasing(UIEasing easing, float t01)
 }
 // ---------------------------------------------------------------------------------------------------------------------
 
+void UIAnimSystem::OnBoot()
+{
+	uiRegistry = &registry.Get<UIRegistry>();
+
+	assert(uiRegistry);
+}
+
 void UIAnimSystem::Tick(float dt)
 {
 	if (channels.empty()) return;
@@ -52,7 +59,7 @@ void UIAnimSystem::Tick(float dt)
 	{
 		const wstring&  key  = pair.first;
 		UIAnimChannels& set  = pair.second;
-		UIInstance&     inst = uiRegistry.Ensure(key);
+		UIInstance&     inst = uiRegistry->Ensure(key);
 
 		const float offX   = advance(set.offsetX, dt, 0.f);
 		const float offY   = advance(set.offsetY, dt, 0.f);
@@ -71,7 +78,7 @@ void UIAnimSystem::Tick(float dt)
 
 void UIAnimSystem::PlaySlideOnce(const wstring& archetypeKey, float startX, float startY, float endX, float endY, float dur, UIEasing easing)
 {
-	(void)uiRegistry.Ensure(archetypeKey);
+	uiRegistry->Ensure(archetypeKey);
 
 	UIAnimChannels& channel = channels[archetypeKey];
 
@@ -97,7 +104,7 @@ void UIAnimSystem::Nudge(const wstring& archetypeKey, float dx, float dy, float 
 
 void UIAnimSystem::PlayFadeOnce(const wstring& archetypeKey, float fromOpacity, float toOpacity, float dur, UIEasing easing)
 {
-	(void)uiRegistry.Ensure(archetypeKey);
+	uiRegistry->Ensure(archetypeKey);
 
 	UIAnimChannels& channel = channels[archetypeKey];
 
@@ -111,7 +118,7 @@ void UIAnimSystem::PlayFadeOnce(const wstring& archetypeKey, float fromOpacity, 
 
 void UIAnimSystem::PlayScaleOnce(const wstring& archetypeKey, float fromScaleX, float fromScaleY, float toScaleX, float toScaleY, float dur, UIEasing easing)
 {
-	(void)uiRegistry.Ensure(archetypeKey);
+	uiRegistry->Ensure(archetypeKey);
 
 	UIAnimChannels& channel = channels[archetypeKey];
 
@@ -132,8 +139,8 @@ void UIAnimSystem::PlayScaleOnce(const wstring& archetypeKey, float fromScaleX, 
 
 void UIAnimSystem::SetScale(const wstring& key, float scaleX, float scaleY)
 {
-	uiRegistry.Ensure(key);
-	auto& channel = channels[key];
+	uiRegistry->Ensure(key);
+	auto& channel          = channels[key];
 	channel.scaleX.playing = false;
 	channel.scaleX.elapsed = 0.f;
 	channel.scaleX.dur     = 0.f;
@@ -149,8 +156,8 @@ void UIAnimSystem::SetScale(const wstring& key, float scaleX, float scaleY)
 
 void UIAnimSystem::SetOpacity(const wstring& key, float alpha)
 {
-	uiRegistry.Ensure(key);
-	auto& channel = channels[key];
+	uiRegistry->Ensure(key);
+	auto& channel           = channels[key];
 	channel.opacity.playing = false;
 	channel.opacity.elapsed = 0.f;
 	channel.opacity.dur     = 0.f;
@@ -160,8 +167,8 @@ void UIAnimSystem::SetOpacity(const wstring& key, float alpha)
 
 void UIAnimSystem::SetOffSet(const wstring& key, float offsetX, float offsetY)
 {
-	uiRegistry.Ensure(key);
-	auto& channel = channels[key];
+	uiRegistry->Ensure(key);
+	auto& channel           = channels[key];
 	channel.offsetX.playing = false;
 	channel.offsetX.elapsed = 0.f;
 	channel.offsetX.dur     = 0.f;
@@ -177,8 +184,8 @@ void UIAnimSystem::SetOffSet(const wstring& key, float offsetX, float offsetY)
 
 void UIAnimSystem::ScaleTo(const wstring& key, float toX, float toY, float dur, UIEasing easing)
 {
-	UIInstance& inst = uiRegistry.Ensure(key);
-	auto& channel = channels[key];
+	UIInstance& inst = uiRegistry->Ensure(key);
+	auto& channel    = channels[key];
 
 	channel.scaleX.playing = true;
 	channel.scaleX.elapsed = 0.f;

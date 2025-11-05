@@ -4,9 +4,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL TagSystem : public IOwnsEntities
+class ENGINE_DLL TagSystem : public IOwnsEntities, public ISystem
 {
 public:
+	explicit TagSystem(SystemRegistry& registry) : registry(registry) {}
+
 	void     Register(EntityID entity, string tag);
 	void     Unregister(EntityID entity);
 	EntityID Get(TagID tag) const;
@@ -15,9 +17,8 @@ public:
 	void     DestroyOwned(EntityID owner) override;
 
 private:
-	// TagID -> EntityID (빠른조회)
+	SystemRegistry&                registry;
 	unordered_map<TagID, EntityID> byID;
-	// EntityID -> TagID (빠른 제거/ 갱신)
 	unordered_map<EntityID, TagID> reverse;
 
 #ifdef _DEBUG

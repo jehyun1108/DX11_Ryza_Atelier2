@@ -211,9 +211,6 @@
     <Filter Include="01. Utility\00. Levels\Level">
       <UniqueIdentifier>{614a454a-1a5d-43e3-8047-d8535f3344da}</UniqueIdentifier>
     </Filter>
-    <Filter Include="01. Utility\00. Levels\LevelMgr">
-      <UniqueIdentifier>{a498c635-b36b-4fac-ae7a-016f53ca0522}</UniqueIdentifier>
-    </Filter>
     <Filter Include="01. Utility\01. EntityMgr">
       <UniqueIdentifier>{0934c0ab-fab4-4865-bbda-7c2b08f5a109}</UniqueIdentifier>
     </Filter>
@@ -373,6 +370,12 @@
     <Filter Include="00. Engine\01. Device">
       <UniqueIdentifier>{6570d520-af07-4dde-b272-a8d637f85028}</UniqueIdentifier>
     </Filter>
+    <Filter Include="01. Utility\00. SystemRegistrty">
+      <UniqueIdentifier>{cc33cfe7-86dc-4c21-bf93-a8ffdc7d7f2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\00. Levels\LevelMgr">
+      <UniqueIdentifier>{a498c635-b36b-4fac-ae7a-016f53ca0522}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Singleton.h">
@@ -504,9 +507,6 @@
     </ClInclude>
     <ClInclude Include="..\public\TransformSystem.h">
       <Filter>03. EntitySystem\00. Transform\TransformSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\SystemRegistry.h">
-      <Filter>01. Utility</Filter>
     </ClInclude>
     <ClInclude Include="..\public\AnimatorSystem.h">
       <Filter>03. EntitySystem\01. Animator\00. AnimatorSystem</Filter>
@@ -934,6 +934,15 @@
     <ClInclude Include="..\public\GameInstance.h">
       <Filter>00. Engine\00. GameInstance</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\SystemRegistry.h">
+      <Filter>01. Utility\00. SystemRegistrty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ISystem.h">
+      <Filter>01. Utility\00. SystemRegistrty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EngineSystems.h">
+      <Filter>01. Utility\00. SystemRegistrty</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\Enginepch.cpp">
@@ -1235,6 +1244,9 @@
     </ClCompile>
     <ClCompile Include="..\private\GameInstance.cpp">
       <Filter>00. Engine\00. GameInstance</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\SystemRegistry.cpp">
+      <Filter>01. Utility\00. SystemRegistrty</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

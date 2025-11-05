@@ -5,6 +5,12 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 
+GuiPanel::GuiPanel(string title, SystemRegistry& registry, EntityID* selected)
+	:title(move(title)), registry(registry), selected(selected)
+{
+	entities = &registry.Get<EntityMgr>();
+}
+
 void GuiPanel::DrawPanel()
 {
 #ifdef USE_IMGUI

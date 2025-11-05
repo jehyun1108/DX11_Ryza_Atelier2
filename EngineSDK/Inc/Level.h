@@ -16,27 +16,29 @@ public:
 	virtual void    Render()         = 0;
 
 protected:
+	GameInstance& game = GameInstance::GetInstance();
 	ID3D11Device*          device{};
 	ID3D11DeviceContext*   context{};
-	GameInstance&          game = GameInstance::GetInstance();
 	SystemRegistry&        registry;
-	EntityMgr&             entityMgr;
-	EntitySpawner          spawner;
-	AssetSystem&           assets;
-	GridSystem&            gridSys;
-	CameraSystem&          camSys;
-	TagSystem&             tagSys;
-	LayerSystem&           layerSys;
-	TransformSystem&       tfSys;
-	ModelSystem&           modelSys;
-	PickingSystem&         pickSys;
-	SelectionSystem&       selectSys;
-	CollisionSystem&       collisionSys;
-	InputService&          inputSerivce;
-	FieldAnimSystem&       fieldAnimSys;
-	FacingSystem&          faceAnimSys;
-	FieldControllerSystem& fieldCtrlSys;
-	CharacterDataSystem&   charaDataSys;
+
+	EntityMgr*             entityMgr{};
+	EntitySpawner*         spawner{};
+	AssetSystem*           assets{};
+	GridSystem*            gridSys{};
+	CameraSystem*          camSys{};
+	TagSystem*             tagSys{};
+	LayerSystem*           layerSys{};
+	TransformSystem*       tfSys{};
+	ModelSystem*           modelSys{};
+	PickingSystem*         pickSys{};
+	SelectionSystem*       selectSys{};
+	CollisionSystem*       collisionSys{};
+	InputService*          input{};
+	FieldAnimSystem*       fieldAnimSys{};
+	FacingSystem*          faceSys{};
+	FieldControllerSystem* fieldCtrlSys{};
+	CharacterDataSystem*   dataSys{};
+	UIRegistry*            uiRegistry{};
 
 	EntityID               playerID{};
 	EntityHandles          playerHandle{};

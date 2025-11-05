@@ -8,6 +8,7 @@ class ENGINE_DLL FreeCamSystem : public EntitySystem<FreeCamData>, public IGuiRe
 {
 public:
 	explicit FreeCamSystem(SystemRegistry& registry) : EntitySystem(registry) {}
+	void     OnBoot() override;
 
 	Handle Create(EntityID owner, Handle transform, float moveSpeed = 200.f, float sens = 0.25f);
 
@@ -17,6 +18,10 @@ public:
 
 	void Update(float dt);
 	void RenderGui(EntityID id) override;
+
+private:
+	InputService*    input{};
+	TransformSystem* tfSys{};
 };
 
 NS_END

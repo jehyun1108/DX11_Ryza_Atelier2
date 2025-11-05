@@ -1,20 +1,17 @@
 #include "Enginepch.h"
 
-HRESULT InputMgr::Init()
+void InputMgr::OnBoot()
 {
 	keyStates.resize(KEY_COUNT);
 
 	// ---- RawInput ----
 	RAWINPUTDEVICE rid{};
 	rid.usUsagePage = 0x01;
-	rid.usUsage     = 0x02;
-	rid.dwFlags     = RIDEV_INPUTSINK;
-	rid.hwndTarget  = g_hWnd;
+	rid.usUsage = 0x02;
+	rid.dwFlags = RIDEV_INPUTSINK;
+	rid.hwndTarget = g_hWnd;
 
-	if (RegisterRawInputDevices(&rid, 1, sizeof(RAWINPUTDEVICE)) == FALSE)
-		return E_FAIL;
-
-	return S_OK;
+	RegisterRawInputDevices(&rid, 1, sizeof(RAWINPUTDEVICE));
 }
 
 void InputMgr::BeginFrame()
@@ -115,14 +112,4 @@ void InputMgr::ProcessWinMsg(UINT msg, WPARAM wParam, LPARAM lParam)
 
 	default: break;
 	}
-}
-
-unique_ptr<InputMgr> InputMgr::Create()
-{
-	auto instance = make_unique<InputMgr>();
-
-	if (FAILED(instance->Init()))
-		return nullptr;
-
-	return instance;
 }

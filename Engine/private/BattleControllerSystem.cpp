@@ -6,12 +6,23 @@ static inline int FindIndexIn(const array<KEY, 4>& keys, KEY k)
     for (int i = 0; i < 4; ++i) if (keys[(size_t)i] == k) return i;
     return -1;
 }
+
 // ------------------------------------------------------------------------------------------------------------------------------
+void BattleControllerSystem::OnBoot()
+{
+    timelineSys = &registry.Get<BattleTimelineSystem>();
+    sessionSys  = &registry.Get<BattleSessionSystem>();
+    input       = &registry.Get<InputService>();
+    execSys     = &registry.Get<BattleExecutionSystem>();
+
+    assert(timelineSys && sessionSys && input && execSys);
+}
+
 void BattleControllerSystem::Update(EntityID leaderEntity, float dt)
 {
     g_controllerTimeSec += static_cast<double>(dt);
 
-    runtime.leaderEntity = timelineSys.GetLeader();
+    runtime.leaderEntity = timelineSys->GetLeader();
     if (runtime.leaderEntity == invalidEntity)
     {
         runtime.menu.page       = CommandMenuPage::Hidden;
@@ -70,7 +81,7 @@ bool BattleControllerSystem::BuildIntent_Skill(EntityID leaderEntity, SpecialAni
     if (leaderEntity == invalidEntity) return false;
     EntityID target{};
     if (!ResolveSingleTarget(leaderEntity, target)) return false;
-    const int cost = registry.Get<BattleTimelineSystem>().ResolveSkillApCost(leaderEntity, tag);
+    const int cost = timelineSys->ResolveSkillApCost(leaderEntity, tag);
     outIntent              = {};
     outIntent.battleCmd    = BattleCommand::Skill;
     outIntent.targetEntity = target;
@@ -101,13 +112,12 @@ bool BattleControllerSystem::BuildIntent_Escape(EntityID leaderEntity, TimelineA
 
 bool BattleControllerSystem::ResolveSingleTarget(EntityID leaderEntity, EntityID& outTarget) const
 {
-    auto& sessionSys             = registry.Get<BattleSessionSystem>();
-    const BattleParty*   allies  = sessionSys.GetAllies();
-    const BattleEnemies* enemies = sessionSys.GetEnemies();
+    const BattleParty*   allies  = sessionSys->GetAllies();
+    const BattleEnemies* enemies = sessionSys->GetEnemies();
     if (!allies || !enemies) return false;
 
     BattleTeam myTeam{};
-    if (sessionSys.TryGetTeam(leaderEntity, myTeam))
+    if (sessionSys->TryGetTeam(leaderEntity, myTeam))
     {
         if (myTeam == BattleTeam::Ally)
         {
@@ -142,15 +152,13 @@ void BattleControllerSystem::PushToBuffer(const TimelineActionIntent& intent)
 
 void BattleControllerSystem::HandleLeaderSwitching()
 {
-    auto& input = registry.Get<InputService>();
-    
     auto trySwitchTo = [&](int idx)
         {
             EntityID candidate = PickAllyByIdx(idx);
             if (candidate == invalidEntity) return;
 
             EntityID prev = runtime.leaderEntity;
-            if (timelineSys.TrySetLeader(candidate))
+            if (timelineSys->TrySetLeader(candidate))
             {
                 CleanupPrevLeaderIfDefending(prev);
                 runtime.isDefendingHold = false;
@@ -158,18 +166,17 @@ void BattleControllerSystem::HandleLeaderSwitching()
             }
         };
 
-    if (input.KeyDown(KEY::NUM1)) trySwitchTo(0);
-    if (input.KeyDown(KEY::NUM2)) trySwitchTo(1);
-    if (input.KeyDown(KEY::NUM3)) trySwitchTo(2);
+    if (input->KeyDown(KEY::NUM1)) trySwitchTo(0);
+    if (input->KeyDown(KEY::NUM2)) trySwitchTo(1);
+    if (input->KeyDown(KEY::NUM3)) trySwitchTo(2);
 }
 
 void BattleControllerSystem::HandleDefendHold(float t)
 {
-    auto& input = registry.Get<InputService>();
     auto& exec = registry.Get<BattleExecutionSystem>();
 
-    const bool defendHolding = input.KeyPressing(config.keymap.primary.defend);
-    if (defendHolding && !timelineSys.IsDefendAllowed(runtime.leaderEntity)) return;
+    const bool defendHolding = input->KeyPressing(config.keymap.primary.defend);
+    if (defendHolding && !timelineSys->IsDefendAllowed(runtime.leaderEntity)) return;
 
     if (defendHolding && !runtime.isDefendingHold)
     {
@@ -179,9 +186,9 @@ void BattleControllerSystem::HandleDefendHold(float t)
         if (BuildIntent_Defend(runtime.leaderEntity, intent))
         {
             exec.BeginAction(runtime.leaderEntity, intent);
-            timelineSys.SetUnitGate(runtime.leaderEntity, TimelineUnitGate::Closed);
-            timelineSys.SetUnitCanAction(runtime.leaderEntity, false);
-            timelineSys.FreezeATB(runtime.leaderEntity, true);
+            timelineSys->SetUnitGate(runtime.leaderEntity, TimelineUnitGate::Closed);
+            timelineSys->SetUnitCanAction(runtime.leaderEntity, false);
+            timelineSys->FreezeATB(runtime.leaderEntity, true);
         }
     }
     else if (!defendHolding && runtime.isDefendingHold)
@@ -193,17 +200,15 @@ void BattleControllerSystem::HandleDefendHold(float t)
         endIntent.specialTag = SpecialAnimTag::DefendEnd;
 
         exec.BeginAction(runtime.leaderEntity, endIntent);
-        timelineSys.SetUnitGate(runtime.leaderEntity, TimelineUnitGate::Open);
-        timelineSys.SetUnitCanAction(runtime.leaderEntity, true);
-        timelineSys.FreezeATB(runtime.leaderEntity, false);
+        timelineSys->SetUnitGate(runtime.leaderEntity, TimelineUnitGate::Open);
+        timelineSys->SetUnitCanAction(runtime.leaderEntity, true);
+        timelineSys->FreezeATB(runtime.leaderEntity, false);
     }
 }
 
 void BattleControllerSystem::HandleEscapeHold(float t)
 {
-    auto& input = registry.Get<InputService>();
-
-    if (input.KeyPressing(config.keymap.primary.flee))
+    if (input->KeyPressing(config.keymap.primary.flee))
     {
         if (!runtime.isEscapeHolding)
         {
@@ -213,10 +218,9 @@ void BattleControllerSystem::HandleEscapeHold(float t)
         const double heldSec = t - runtime.escapeHoldStartSec;
         if (heldSec >= config.tuning.escapeHoldNeedSec)
         {
-            auto& timeline = registry.Get<BattleTimelineSystem>();
             TimelineActionIntent intent{};
             if (BuildIntent_Escape(runtime.leaderEntity, intent))
-                (void)timeline.TryCommitIntent(runtime.leaderEntity, intent);
+                timelineSys->TryCommitIntent(runtime.leaderEntity, intent);
             runtime.isEscapeHolding = false;
         }
     }
@@ -226,8 +230,7 @@ void BattleControllerSystem::HandleEscapeHold(float t)
 
 void BattleControllerSystem::HandleActionMenusAndCommit(bool isReady)
 {
-    auto& input = registry.Get<InputService>();
-    const bool isSkillPageHeld = input.KeyPressing(KEY::SPACE);
+    const bool isSkillPageHeld = input->KeyPressing(KEY::SPACE);
     runtime.menu.page = isSkillPageHeld ? CommandMenuPage::Skill : CommandMenuPage::Primary;
 
     if (runtime.menu.page == CommandMenuPage::Skill)
@@ -240,11 +243,9 @@ void BattleControllerSystem::HandleSkillPage(bool isReady)
 {
     if (!isReady) return;
 
-    auto& input = registry.Get<InputService>();
-
     auto tryCommitSkillKey = [&](KEY key)
         {
-            if (!input.KeyDown(key)) return;
+            if (!input->KeyDown(key)) return;
             const int idx = FindIndexIn(config.keymap.skill.skillKeys, key);
             if (idx < 0) return;
 
@@ -254,7 +255,7 @@ void BattleControllerSystem::HandleSkillPage(bool isReady)
             TimelineActionIntent intent{};
             if (BuildIntent_Skill(runtime.leaderEntity, tag, intent))
             {
-                if (timelineSys.TryCommitIntent(runtime.leaderEntity, intent))
+                if (timelineSys->TryCommitIntent(runtime.leaderEntity, intent))
                 {
                     MarkSkillUsedThisTurn(tag);
                     runtime.queuedSkillSlotFlags[(size_t)idx] = true;
@@ -270,21 +271,19 @@ void BattleControllerSystem::HandlePrimaryPage(bool isReady)
 {
     if (!isReady) return;
 
-    auto& input = registry.Get<InputService>();
-
-    if (input.KeyDown(config.keymap.primary.attack))
+    if (input->KeyDown(config.keymap.primary.attack))
     {
         TimelineActionIntent intent{};
         if (BuildIntent_Basic(runtime.leaderEntity, intent))
-            (void)timelineSys.TryCommitIntent(runtime.leaderEntity, intent);
+            timelineSys->TryCommitIntent(runtime.leaderEntity, intent);
         return;
     }
 
-    if (input.KeyDown(config.keymap.primary.item))
+    if (input->KeyDown(config.keymap.primary.item))
     {
         TimelineActionIntent intent{};
         if (BuildIntent_Skill(runtime.leaderEntity, SpecialAnimTag::ItemRush, intent))
-            (void)timelineSys.TryCommitIntent(runtime.leaderEntity, intent);
+            timelineSys->TryCommitIntent(runtime.leaderEntity, intent);
         return;
     }
 }
@@ -294,22 +293,19 @@ void BattleControllerSystem::CleanupPrevLeaderIfDefending(EntityID prevLeader)
     if (prevLeader == invalidEntity) return;
     if (!runtime.isDefendingHold)    return;
 
-    auto& exec = registry.Get<BattleExecutionSystem>();
-
     TimelineActionIntent endIntent{};
     endIntent.battleCmd  = BattleCommand::Defend;
     endIntent.specialTag = SpecialAnimTag::DefendEnd;
-    exec.BeginAction(prevLeader, endIntent);
+    execSys->BeginAction(prevLeader, endIntent);
 
-    timelineSys.SetUnitGate(prevLeader, TimelineUnitGate::Open);
-    timelineSys.SetUnitCanAction(prevLeader, true);
-    timelineSys.FreezeATB(prevLeader, false);
+    timelineSys->SetUnitGate(prevLeader, TimelineUnitGate::Open);
+    timelineSys->SetUnitCanAction(prevLeader, true);
+    timelineSys->FreezeATB(prevLeader, false);
 }
 
 EntityID BattleControllerSystem::PickAllyByIdx(int idx) const
 {
-    auto& session = registry.Get<BattleSessionSystem>();
-    const BattleParty* allies = session.GetAllies();
+    const BattleParty* allies = sessionSys->GetAllies();
     if (!allies) return invalidEntity;
     if (idx < 0 || idx >= allies->memberCount) return invalidEntity;
     return allies->members[idx];

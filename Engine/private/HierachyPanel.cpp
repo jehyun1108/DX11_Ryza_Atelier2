@@ -1,6 +1,13 @@
 #include "Enginepch.h"
 #include "HierachyPanel.h"
 
+HierachyPanel::HierachyPanel(string title, SystemRegistry& registry, EntityID* selected)
+	:GuiPanel(move(title), registry, selected)
+{
+	layerSys = &registry.Get<LayerSystem>();
+	modelSys = &registry.Get<ModelSystem>();
+}
+
 void HierachyPanel::Draw()
 {
 #ifdef USE_IMGUI
@@ -9,9 +16,6 @@ void HierachyPanel::Draw()
 
 	string loweredFilter = filter;
 	transform(loweredFilter.begin(), loweredFilter.end(), loweredFilter.begin(), ::tolower);
-
-	auto& layerSys = registry.Get<LayerSystem>();
-	auto& modelSys = registry.Get<ModelSystem>();
 
 	for (_uint i = 0; i < ENUM(LAYER::END); ++i)
 	{
@@ -24,14 +28,14 @@ void HierachyPanel::Draw()
 		vector<pair<EntityID, string>> items;
 		items.reserve(64);
 
-		layerSys.ForEachByMask(mask, [&](EntityID owner, Handle handle, const LayerData& layer)
+		layerSys->ForEachByMask(mask, [&](EntityID owner, Handle handle, const LayerData& layer)
 			{
 				char baseLabel[64];
 				sprintf_s(baseLabel, "Entity %u", owner);
 				string displayLabel = baseLabel;
 
 				Handle modelHandle{};
-				const ModelData* modelComp = modelSys.GetByOwner(owner, &modelHandle);
+				const ModelData* modelComp = modelSys->GetByOwner(owner, &modelHandle);
 				if (modelComp && modelComp->model)
 				{
 					const wstring& logicalKey = modelComp->model->GetLogicalKey();

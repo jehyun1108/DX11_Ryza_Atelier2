@@ -227,6 +227,7 @@
     <ClInclude Include="..\public\CharacterDataSystem.h" />
     <ClInclude Include="..\public\CollisionData.h" />
     <ClInclude Include="..\public\CollisionSystem.h" />
+    <ClInclude Include="..\public\EngineSystems.h" />
     <ClInclude Include="..\public\FacingBlockData.h" />
     <ClInclude Include="..\public\FacingBlockService.h" />
     <ClInclude Include="..\public\FacingData.h" />
@@ -253,6 +254,7 @@
     <ClInclude Include="..\public\IntentCollector.h" />
     <ClInclude Include="..\public\IntentMerger.h" />
     <ClInclude Include="..\public\IReservable.h" />
+    <ClInclude Include="..\public\ISystem.h" />
     <ClInclude Include="..\public\JsonUtil.h" />
     <ClInclude Include="..\public\JumpData.h" />
     <ClInclude Include="..\public\JumpSystem.h" />
@@ -497,6 +499,7 @@
     <ClCompile Include="..\private\SkyboxSystem.cpp" />
     <ClCompile Include="..\private\BattleTimelinePresenter.cpp" />
     <ClCompile Include="..\private\SocketSystem.cpp" />
+    <ClCompile Include="..\private\SystemRegistry.cpp" />
     <ClCompile Include="..\private\TagSystem.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />
     <ClCompile Include="..\private\TimeMgr.cpp" />

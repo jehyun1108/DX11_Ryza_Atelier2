@@ -1,11 +1,13 @@
 #include "Enginepch.h"
 
-// =================================================================================================================
-void CamRegistry::BindDirector(BattleCameraDirector& d)
+void CamRegistry::OnBoot()
 {
-    director = &d;
-    if (!director) return;
+    director = &registry.Get<BattleCameraDirector>();
+}
 
+// =================================================================================================================
+void CamRegistry::BindDirector()
+{
     director->SetSequenceSampler([this](ClipId clip, double tLocal, const SequenceTrackDesc& desc, CamPose& outLocal)
         {
             auto it = samplers.find(clip);
@@ -16,14 +18,12 @@ void CamRegistry::BindDirector(BattleCameraDirector& d)
 
 void CamRegistry::BindCam(Handle cam)
 {
-	if (director)
-		director->BindCam(cam);
+	director->BindCam(cam);
 }
 
 void CamRegistry::SetSequenceSampler(BattleCameraDirector::SeqSampleFunc func)
 {
-	if (director)
-		director->SetSequenceSampler(move(func));
+	director->SetSequenceSampler(move(func));
 }
 
 void CamRegistry::RegisterDefaults()

@@ -4,10 +4,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL BattleExecutionSystem
+class ENGINE_DLL BattleExecutionSystem : public ISystem
 {
 public:
 	explicit BattleExecutionSystem(SystemRegistry& registry) : registry(registry) {}
+    void     OnBoot() override;
 
 	bool BeginAction(EntityID entity, const TimelineActionIntent& intent);
 	void Tick(float dt);
@@ -34,7 +35,15 @@ private:
     void   FinishAndIdle(EntityID entity, ExecutionUnitRunTime& rt);
 
 private:
-	SystemRegistry& registry;
+	SystemRegistry&       registry;
+    ActionAnimRegistry*   actionReg{};
+    CharacterDataSystem*  dataSys{};
+    BattleTimelineSystem* timelineSys{};
+    AnimDataSystem*       animDataSys{};
+    AnimatorSystem*       animator{};
+    TransformSystem*      tfSys{};
+    FacingForceService*   faceSrv{};
+
     unordered_map<EntityID, ExecutionUnitRunTime> runtimeByEntity;
 };
 

@@ -1,5 +1,10 @@
 #include "Enginepch.h"
 
+void InputService::OnBoot()
+{
+	input = &registry.Get<InputMgr>();
+}
+
 void InputService::EndFrameAndApply(SystemRegistry& registry)
 {
 	const IntentSnapShot snapShot = intentCollector.GetSnapShot();
@@ -11,54 +16,39 @@ bool InputService::KeyDown(KEY key) const
 {
 	const EntityID activeEntity = inputGate.GetActiveEntity();
 	if (!PassPolicy(InputChannel::Manual, activeEntity)) return false;
-	return GAME.KeyDown(key);
+	return input->KeyDown(key);
 }
 
 bool InputService::KeyPressing(KEY key) const
 {
 	const EntityID activeEntity = inputGate.GetActiveEntity();
 	if (!PassPolicy(InputChannel::Manual, activeEntity)) return false;
-	return GAME.KeyPressing(key);
+	return input->KeyPressing(key);
 }
 
 bool InputService::KeyReleased(KEY key) const
 {
 	const EntityID activeEntity = inputGate.GetActiveEntity();
 	if (!PassPolicy(InputChannel::Manual, activeEntity)) return false;
-	return GAME.KeyRelease(key);
+	return input->KeyRelease(key);
 }
 
 bool InputService::KeyDownAllowed(KEY key, InputChannel channel, EntityID target) const
 {
 	if (!PassPolicy(channel, target)) return false;
-	return GAME.KeyDown(key);
+	return input->KeyDown(key);
 }
 
 bool InputService::KeyPressingAllowed(KEY key, InputChannel channel, EntityID target) const
 {
 	if (!PassPolicy(channel, target)) return false;
-	return GAME.KeyPressing(key);
+	return input->KeyPressing(key);
 }
 
 bool InputService::KeyReleasedAllowed(KEY key, InputChannel channel, EntityID target) const
 {
 	if (!PassPolicy(channel, target)) return false;
-	return GAME.KeyRelease(key);
-}
-
-bool InputService::KeyDownGlobal(KEY key) const
-{
-	return GAME.KeyDown(key);
-}
-
-bool InputService::KeyPressingGlobal(KEY key) const
-{
-	return GAME.KeyPressing(key);
-}
-
-bool InputService::KeyReleasedGlobal(KEY key) const
-{
-	return GAME.KeyRelease(key);
+	return input->KeyRelease(key);
 }
 
 void InputService::Submit(const IntentWrite& write)

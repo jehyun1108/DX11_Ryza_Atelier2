@@ -35,6 +35,16 @@ static inline pair<float, float> ToNorm(UIPivot pivot)
 }
 // ------------------------------------------------------------------------------------------------------------------
 
+void UISystem::OnBoot()
+{
+	assets     = &registry.Get<AssetSystem>();
+	uiRegistry = &registry.Get<UIRegistry>();
+	uiAnimSys  = &registry.Get<UIAnimSystem>();
+	director   = &registry.Get<GameModeDirectorSystem>();
+
+	assert(assets && uiRegistry && uiAnimSys && director);
+}
+
 void UISystem::Tick(float dt)
 {
 
@@ -42,16 +52,13 @@ void UISystem::Tick(float dt)
 
 void UISystem::ExtractUIProxies(UISnapShot& out)
 {
-	auto& gameDirector = registry.Get<GameModeDirectorSystem>();
-
 	out.drawItems.clear();
 	out.drawItems.reserve(64);
 
-	auto& director = registry.Get<GameModeDirectorSystem>();
-	const UIContext activeContext = (director.GetMode() == GameMode::Battle) ? UIContext::Battle : UIContext::Field;
+	const UIContext activeContext = (director->GetMode() == GameMode::Battle) ? UIContext::Battle : UIContext::Field;
 
 	vector<const UIInstance*> candidates;
-	uiRegistry.CollectForContext(activeContext, candidates);
+	uiRegistry->CollectForContext(activeContext, candidates);
 
 	const auto& viewport = GAME.GetViewport();
 	const float screenW = static_cast<float>(viewport.Width);
@@ -61,7 +68,7 @@ void UISystem::ExtractUIProxies(UISnapShot& out)
 	{
 		const UIArchetypeSpec& spec = *inst->spec;
 
-		auto [srcW, srcH] = uiRegistry.GetOrCacheTexSize(spec.texKey);
+		auto [srcW, srcH] = uiRegistry->GetOrCacheTexSize(spec.texKey);
 
 		float drawW = srcW, drawH = srcH;
 		switch (spec.sizeMode)

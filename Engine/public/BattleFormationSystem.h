@@ -4,9 +4,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL BattleFormationSystem
+class ENGINE_DLL BattleFormationSystem : public ISystem
 {
 public:
+	explicit BattleFormationSystem(SystemRegistry& registry) : registry(registry) {}
+
 	void Init(const _float3 center, int allyCount, int enemyCount, const FormationParams& fParams);
 
 	void SetCenter(const _float3& center)                 { centerWorld             = center;                                    dirty = true; }
@@ -35,8 +37,9 @@ private:
 	static inline vector<float> MakeAngles(int n, float centerDeg, float spanDeg);
 
 private:
-	_float3 centerWorld{};
+	SystemRegistry& registry;
 
+	_float3 centerWorld{};
 	int allyCount  = 0;
 	int enemyCount = 0;
 

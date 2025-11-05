@@ -33,7 +33,7 @@ private:
 	void ForEachRange(_uint mask, const function<void(_uint begin, _uint end)>& func);
 
 private:
-	GameInstance& game = GameInstance::GetInstance();
+	SystemRegistry& registry = GameInstance::GetInstance().GetRegistry();
 	MaterialMeta meta{};
 	
 	shared_ptr<Shader> shader;

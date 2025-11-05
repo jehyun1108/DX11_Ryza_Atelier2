@@ -12,15 +12,10 @@ GuiMgr::~GuiMgr()
 #endif
 }
 
-unique_ptr<GuiMgr> GuiMgr::Create(SystemRegistry& registry, EntityMgr& entities)
+void GuiMgr::OnBoot()
 {
-#ifdef USE_IMGUI
-	auto instance = make_unique<GuiMgr>(registry, entities);
-	instance->Init();
-	return instance;
-#else
-	return make_unique<GuiMgr>(registry, entities);
-#endif
+	entities = &registry.Get<EntityMgr>();
+	Init();
 }
 
 void GuiMgr::Init()

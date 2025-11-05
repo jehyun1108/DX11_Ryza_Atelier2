@@ -4,10 +4,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL UIAnimSystem
+class ENGINE_DLL UIAnimSystem : public ISystem
 {
 public:
-	explicit UIAnimSystem(UIRegistry& uiRegistry) : uiRegistry(uiRegistry) {}
+	explicit UIAnimSystem(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
 	void Tick(float dt);
 
@@ -26,7 +27,9 @@ public:
 	void OffsetTo(const wstring& key, float toX, float toY, float dur, UIEasing easing);
 
 private:
-	UIRegistry& uiRegistry;
+	SystemRegistry& registry;
+	UIRegistry*     uiRegistry{};
+
 	unordered_map<wstring, UIAnimChannels> channels;
 };
 

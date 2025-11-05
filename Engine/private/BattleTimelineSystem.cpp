@@ -1,5 +1,16 @@
 #include "Enginepch.h"
 
+void BattleTimelineSystem::OnBoot()
+{
+    eventBus  = &registry.Get<BattleEventBus>();
+    dataSys   = &registry.Get<CharacterDataSystem>();
+    execSys   = &registry.Get<BattleExecutionSystem>();
+    targetSys = &registry.Get<BattleTargetSystem>();
+    actionReg = &registry.Get<ActionAnimRegistry>();
+
+    assert(eventBus && dataSys && execSys && targetSys && actionReg);
+}
+
 void BattleTimelineSystem::InitSession(const BattleSessionState& sessionState, const BattleTimelineConfig& timelineConfig)
 {
     timelineState.emplace();
@@ -98,20 +109,16 @@ bool BattleTimelineSystem::TryCommitIntent(EntityID entity, const TimelineAction
 
     if (intent.battleCmd == BattleCommand::AttackBasic || intent.battleCmd == BattleCommand::Skill)
     {
-        auto& dataSys = registry.Get<CharacterDataSystem>();
-        auto& execSys = registry.Get<BattleExecutionSystem>();
-        const CharacterID    characterId = dataSys.GetCharacterID(entity);
+        const CharacterID    characterId = dataSys->GetCharacterID(entity);
         const SpecialAnimTag execTag     = intent.specialTag.value_or(SpecialAnimTag::BasicAttack);
-        const AnimChainSpec* chain       = execSys.TryGetChain(characterId, AnimContext::Battle, execTag);
+        const AnimChainSpec* chain       = execSys->TryGetChain(characterId, AnimContext::Battle, execTag);
         if (!chain || chain->stages.empty()) return false;
 
-        auto& targetSys = registry.Get<BattleTargetSystem>();
         if (effectiveIntent.targetEntity == invalidEntity)
-            effectiveIntent.targetEntity = targetSys.Get(entity);
+            effectiveIntent.targetEntity = targetSys->Get(entity);
         if (effectiveIntent.targetEntity == invalidEntity)
             return false;
     }
-
     if (!timelineState.has_value()) return false;
 
     BattleTeam team{};  int slotIdx{};
@@ -149,7 +156,7 @@ bool BattleTimelineSystem::TrySetLeader(EntityID newLeader)
     if (newTeam != BattleTeam::Ally) return false;
 
     BattleTimelineState& state = *timelineState;
-    const EntityID prevLeader = state.leader.curLeader;
+    const EntityID prevLeader  = state.leader.curLeader;
     if (prevLeader == newLeader) return true;
 
     if (prevLeader != invalidEntity)
@@ -265,8 +272,7 @@ void BattleTimelineSystem::SetClock(TimelineClockState newState)
     if (state.clockState == newState) return;
     state.clockState = newState;
 
-    PushEvent((newState == TimelineClockState::Stopped) ? BattleTimelineEventType::TimelinePaused : BattleTimelineEventType::TimelineResumed, 
-        invalidEntity,  BattleTeam::Ally, 0);
+    PushEvent((newState == TimelineClockState::Stopped) ? BattleTimelineEventType::TimelinePaused : BattleTimelineEventType::TimelineResumed, invalidEntity, BattleTeam::Ally, 0);
 }
 
 void BattleTimelineSystem::SetUnitGate(EntityID entity, TimelineUnitGate gate)
@@ -278,7 +284,7 @@ void BattleTimelineSystem::SetUnitGate(EntityID entity, TimelineUnitGate gate)
     if (!ResolveIdxByEntity(entity, team, slotIdx)) return;
 
     BattleTimelineState& state = *timelineState;
-    TimelineUnitState& unit = (team == BattleTeam::Ally) ? state.allies[slotIdx] : state.enemies[slotIdx];
+    TimelineUnitState&   unit  = (team == BattleTeam::Ally) ? state.allies[slotIdx] : state.enemies[slotIdx];
     unit.gateState = gate;
 }
 
@@ -316,7 +322,7 @@ void BattleTimelineSystem::PublishLeaderChanged(EntityID newLeader)
     BattleEvent event{};
     event.eventType = BattleBusEventType::LeaderChanged;
     event.subjectEntity = newLeader;
-    eventBus.Publish(event);
+    eventBus->Publish(event);
 }
 
 bool BattleTimelineSystem::ResolveIdxByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx) const
@@ -412,9 +418,7 @@ void BattleTimelineSystem::ApplyApDelta(TimelineUnitState& unit, EntityID entity
         PushEvent(BattleTimelineEventType::ApChanged, entity, team, applied);
 }
 
-void BattleTimelineSystem::ApplyResolveReward(TimelineUnitState& unitState,
-    const TimelineUnitRunTime& unitRuntime,
-    const TimelineActionIntent& resolvedIntent,
+void BattleTimelineSystem::ApplyResolveReward(TimelineUnitState& unitState, const TimelineUnitRunTime& unitRuntime, const TimelineActionIntent& resolvedIntent,
     EntityID entity, BattleTeam team)
 {
     const bool isBasic = (resolvedIntent.specialTag.has_value() &&  resolvedIntent.specialTag.value() == SpecialAnimTag::BasicAttack);
@@ -427,11 +431,8 @@ int BattleTimelineSystem::ResolveSkillApCost(EntityID entity, const optional<Spe
 {
     if (!specialTag.has_value()) return 0;
 
-    auto& actionReg = registry.Get<ActionAnimRegistry>();
-    auto& dataSys   = registry.Get<CharacterDataSystem>();
-
-    const auto  characterId = dataSys.GetCharacterID(entity);
-    const auto* spec        = actionReg.TryGet(characterId);
+    const auto  characterId = dataSys->GetCharacterID(entity);
+    const auto* spec        = actionReg->TryGet(characterId);
     if (!spec) return 0;
 
     auto it = spec->apCostByTag.find(specialTag.value());
@@ -442,8 +443,6 @@ void BattleTimelineSystem::FillSkillCatalog(EntityID entity, vector<TimelineSkil
 {
     outCatalog.clear();
 
-    auto* actionReg = registry.TryGet<ActionAnimRegistry>();
-    auto* dataSys   = registry.TryGet<CharacterDataSystem>();
     if (!actionReg || !dataSys) return;
 
     const auto characterId = dataSys->GetCharacterID(entity);

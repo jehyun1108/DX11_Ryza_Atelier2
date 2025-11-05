@@ -192,7 +192,7 @@ void Material::Bind(ID3D11DeviceContext* context)
 	{
 		if (!dirtySampler[i]) continue;
 		if (textures[i]) 
-			game.BindSamplers(stages[i], static_cast<TEXSLOT>(i), samplers[i]);
+			registry.Get<Renderer>().BindSamplers(stages[i], static_cast<TEXSLOT>(i), samplers[i]);
 		dirtySampler[i] = false;
 	}
 	prevUsedMasks = usedMasks;

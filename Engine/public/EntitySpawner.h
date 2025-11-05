@@ -4,11 +4,12 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL EntitySpawner
+class ENGINE_DLL EntitySpawner : public ISystem
 {
 public:
-	EntitySpawner(SystemRegistry& registry, EntityMgr& entities, class AssetSystem& assets) 
-		: registry(registry), entities(entities), assets(assets) {}
+	explicit EntitySpawner(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
+	
 	EntitySpawner& NewEntity();
 
 // ---------- Transform --------------
@@ -78,9 +79,10 @@ private:
 	EntitySpawner& WithMouth(Handle anim, const wstring& clip, _uint layer = 2, float weight = 1.f, float speed = 1.f);
 
 private:
-	AssetSystem&    assets;
 	SystemRegistry& registry;
-	EntityMgr&      entities;
+	AssetSystem*    assets{};
+	EntityMgr*      entities{};
+
 	EntityHandles   handles;
 	bool            started = false; // NewEntity ∑Œ Ω√¿€?
 };

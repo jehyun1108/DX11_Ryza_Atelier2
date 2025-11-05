@@ -4,13 +4,15 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL ActionAnimRegistry
+class ENGINE_DLL ActionAnimRegistry : public ISystem
 {
 public:
-	void Register(CharacterID character, const ActionAnimSpec& spec) { table[character] = spec; }
+	explicit ActionAnimRegistry(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
+
+	void                  Register(CharacterID character, const ActionAnimSpec& spec) { table[character] = spec; }
 	const ActionAnimSpec* TryGet(CharacterID character)                            const;
 	const AnimChainSpec*  TryGetSpecial(CharacterID character, SpecialAnimTag tag) const;
-	void RegisterDefaultAnim();
 
 	void RegisterSpecial(CharacterID character, SpecialAnimTag tag, const vector<AnimKey>& animKeys, ActionStage stageForAll = ActionStage::Preparation, bool rootMotionForAll = true, float fadeDur = 0.06f, int apCost = 0);
 	
@@ -25,6 +27,8 @@ private:
 	void RegisterAngelAnim();
 
 private:
+	SystemRegistry& registry;
+
 	unordered_map<CharacterID, ActionAnimSpec> table;
 };
 

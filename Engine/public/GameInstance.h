@@ -44,117 +44,29 @@ public:
 	void   UpdateDt(TIMER timerID);
 
 	// --------------- InputMgr --------------------------------------------------------------------------------
-	void           ProcessWinMsg(UINT msg, WPARAM wParam, LPARAM lParam);
-	bool           KeyPressing(KEY key);
-	bool           KeyDown(KEY key);
-	bool           KeyRelease(KEY key);
-	const _float2& GetMouseDelta() const;
-	const _float2& GetMousePos() const;
+	void  ProcessWinMsg(UINT msg, WPARAM wParam, LPARAM lParam);
 
 	// --------------- LevelMgr --------------------------------------------------------------------------------
 	void  ChangeLevel(_uint levelID, unique_ptr<Level> newLevel);
 	_uint GetCurLevelID();
-
-	// --------------- Renderer ---------------------------------------------------
-	void BindSamplers(SHADER stage, TEXSLOT slot, SAMPLER type);
-	void SetRasterizerState(RASTERIZER type);
-	void SetDepthState(DEPTHSTATE type);
-	void SetBlendState(BLENDSTATE type);
-
 	// ------------ Imgui -----------------------------------------------
 	LRESULT ImguiWndProcHandler(_uint msg, WPARAM wParam, LPARAM lParam);
 
 	template<typename T, typename...Args>
-	T* AddPanel(string title, Args&&... args) { return guiMgr->AddPanel<T>(title); }
+	T* AddPanel(string title, Args&&... args) { return registry.Get<GuiMgr>().AddPanel<T>(title); }
 
 	void GuiRender();
 
 	// ----------- System -----------------------------------------------
 	SystemRegistry&    GetRegistry()          { return registry; }
-	EntityMgr&         GetEntityMgr()         { return entityMgr; }
-	AssetSystem&       GetAssetSystem()       { return assetSys; }
-	const AssetSystem& GetAssetSystem() const { return assetSys; }
-	InputService&      GetInputService()      { return inputService; }
 
 private:
-	static bool inited;
+	static bool             inited;
+	SystemRegistry          registry;
 
 	unique_ptr<Device>      device{};
 	unique_ptr<TimeMgr>     timeMgr{};
-	unique_ptr<InputMgr>    input{};
 	unique_ptr<LevelMgr>    levelMgr{};
-	unique_ptr<Renderer>    renderer{};
-	unique_ptr<GuiMgr>      guiMgr{};
-	unique_ptr<RenderScene> renderScene{};
-
-	// -------------------------------
-	EntityMgr          entityMgr;
-	SystemRegistry     registry;
-	TransformSystem    tfSys;
-	CameraSystem       camSys;
-	LightSystem        lightSys;
-	FreeCamSystem      freeCamSys;
-	AnimatorSystem     animatorSys;
-	FaceSystem         faceSys;
-	MouthSystem        mouthSys;
-	SocketSystem       socketSys;
-	ModelSystem        modelSys;
-	LayerSystem        layerSys;
-	TagSystem          tagSys;
-	GridSystem         gridSys;
-	PickingSystem      pickingSys;
-	SelectionSystem    selectionSys;
-	CollisionSystem    collisionSys;
-	MeshColliderSystem meshColliderSys;
-	SkyboxSystem       skySys;
-	OrbitCamSystem     orbitCamSys;
-
-	RenderSystem      renderSys;
-	AssetSystem       assetSys;
-
-	// MoveSys
-	MoveStateSystem   moveStateSys;
-	MoveIntentSystem  moveIntentSys;
-	MoveProfileSystem moveProfileSys;
-	JumpSystem        jumpSys;
-
-	// Input
-	InputService        inputService;
-	CharacterDataSystem charaDataSys;
-	
-	// AnimSys
-	FacingSystem       facingSys;
-	FacingBlockService faceBlockSrv;
-	FacingForceService faceForceSrv;
-	AnimDataSystem     animDataSys;
-	ActionAnimRegistry animRegistry;
-
-	// Field
-	FieldAnimSystem       fieldAnimSys;
-	FieldControllerSystem fieldCtrlSys;
-	FieldOrchestraSystem  fieldSys;
-
-	// Battle
-	BattleOrchestraSystem    battleSys;
-	BattleControllerSystem   battleCtrlSys;
-	BattleIntroSystem        battleIntroSys;
-	BattleSessionSystem      battleSessionSys;
-	BattleTimelineSystem     battleTimelineSys;
-	BattleExecutionSystem    battleExecSys;
-	BattleAIControllerSystem battleAICtrlSys;
-	BattleTargetSystem       battleTargetSys;
-	BattleFormationSystem    battleFormationSys;
-	BattleCameraDirector     battleCamDirector;
-	BattleEventBus           eventBus;
-
-	// UI
-	UISystem               uiSys;
-	UIRegistry             uiRegistry;
-	UIAnimSystem           uiAnimSys;
-	FieldUIOrchestrator    fieldUIOrchestrator;
-
-	// GameModeDirector
-	GameModeDirectorSystem director;
 };
 
 NS_END

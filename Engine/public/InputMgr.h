@@ -1,14 +1,12 @@
-#include "InputService.h"
 #pragma once
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL InputMgr final
+class ENGINE_DLL InputMgr : public ISystem
 {
 public:
-	static unique_ptr<InputMgr> Create();
-
-	HRESULT Init();
+	explicit InputMgr(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
 	void BeginFrame();
 	void EndFrame();
@@ -23,6 +21,8 @@ public:
 	const _float2& GetMouseDelta() const { return mouseDelta; } 
 
 private:
+	SystemRegistry& registry;
+
 	vector<KeyInfo> keyStates;
 	_float2 mousePos{};
 	_float2 mouseDelta{}; 

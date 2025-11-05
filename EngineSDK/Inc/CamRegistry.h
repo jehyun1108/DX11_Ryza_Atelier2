@@ -4,12 +4,13 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL CamRegistry
+class ENGINE_DLL CamRegistry : public ISystem
 {
 public:
 	explicit CamRegistry(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
-	void BindDirector(BattleCameraDirector& director);
+	void BindDirector();
 	void BindCam(Handle cam);
 	void SetSequenceSampler(BattleCameraDirector::SeqSampleFunc func);
 

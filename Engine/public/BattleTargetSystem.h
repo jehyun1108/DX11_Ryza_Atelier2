@@ -8,6 +8,7 @@ class ENGINE_DLL BattleTargetSystem : public EntitySystem<Target>, public IGuiRe
 {
 public:
 	explicit BattleTargetSystem(SystemRegistry& registry);
+	void     OnBoot() override;
 
 	void Init();
 	void OnUnitDowned(EntityID downed);
@@ -26,6 +27,8 @@ private:
 	void             Set(EntityID attacker, EntityID target);
 
 private:
+	BattleSessionSystem* sessionSys{};
+
 	mt19937 rng;
 };
 

@@ -1,35 +1,40 @@
 #include "Enginepch.h"
 
+void BattleUIOrchestrator::OnBoot()
+{
+	eventBus   = &registry.Get<BattleEventBus>();
+	uiRegistry = &registry.Get<UIRegistry>();
+	uiSys      = &registry.Get<UISystem>();
+	uiAnimSys  = &registry.Get<UIAnimSystem>();
+	presenter  = &registry.Get<BattleTimelinePresenter>();
+
+	assert(eventBus && uiRegistry && uiSys && uiAnimSys && presenter);
+}
+
 void BattleUIOrchestrator::Enter()
 {
-	auto& timelineSys = registry.Get<BattleTimelineSystem>();
+	presenter->Enter();
+	presenter->SetAbsoluteLayout(700.f, 900.f, 1200.f, 1000.f, 540.f);
 
-	timelinePresenter = make_unique<BattleTimelinePresenter>(registry, bus, uiRegistry, uiAnimSys, timelineSys);
-
-	timelinePresenter->Enter();
-	timelinePresenter->SetAbsoluteLayout(700.f, 900.f, 1200.f, 1000.f, 540.f);
-
-	for (auto& [key, spec] : uiRegistry.GetArchetypes())
+	for (auto& [key, spec] : uiRegistry->GetArchetypes())
 	{
 		if (spec.context == UIContext::Battle && spec.startEnabled)
-			uiRegistry.Ensure(key);
+			uiRegistry->Ensure(key);
 	}
 }
 
 void BattleUIOrchestrator::Tick(float dt)
 {
-	uiAnimSys.Tick(dt);
-	uiSys.Tick(dt);
+	uiAnimSys->Tick(dt);
+	uiSys->Tick(dt);
 
-	if (timelinePresenter)
-		timelinePresenter->Tick(dt);
+	presenter->Tick(dt);
 }
 
 void BattleUIOrchestrator::Exit()
 {
-	if (timelinePresenter)
-		timelinePresenter->Exit();
+	presenter->Exit();
 
-	for (auto& [key, inst] : uiRegistry.GetInstances())
-		uiRegistry.SetEnabled(key, false);
+	for (auto& [key, inst] : uiRegistry->GetInstances())
+		uiRegistry->SetEnabled(key, false);
 }

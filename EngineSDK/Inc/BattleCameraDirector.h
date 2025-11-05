@@ -5,12 +5,13 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL BattleCameraDirector
+class ENGINE_DLL BattleCameraDirector : public ISystem
 {
 public:
 	using SeqSampleFunc = function<bool(ClipId clip, double tLocal, const SequenceTrackDesc& desc, CamPose& outLocalPose)>;
 
 	explicit BattleCameraDirector(SystemRegistry& registry);
+	void     OnBoot() override;
 
 	void     BindCam(Handle camHandle)                { cam = camHandle; }
 	void     SetSequenceSampler(SeqSampleFunc func)    { seqSampler = move(func); }
@@ -53,6 +54,11 @@ private:
 
 private:
 	SystemRegistry&             registry;
+	BattleTimelineSystem*       timelineSys{};
+	BattleTargetSystem*         targetSys{};
+	TransformSystem*            tfSys{};
+	CameraSystem*               camSys{};
+
 	DirectorState               state;
 	SmoothingConfig             smooth{};
 	Handle                      cam{};

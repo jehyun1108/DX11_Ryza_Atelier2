@@ -2,7 +2,7 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL EntityMgr
+class ENGINE_DLL EntityMgr : public ISystem
 {
 public:
 	explicit EntityMgr(SystemRegistry& registry) : registry(registry) {}
@@ -27,15 +27,15 @@ public:
 	void Clear();
 
 private:
-	static constexpr _uint invalidIdx = 0xFFFFFFFFu;
-	EntityID          nextID = 1;
-	
-	vector<EntityID>  freeList;
-	vector<EntityID>  deferred;	      	   
-	vector<EntityID> aliveIndices;
-	vector<_uint>    sparseIndices;
+	SystemRegistry& registry;
 
-	SystemRegistry&         registry;
+	static constexpr _uint invalidIdx = 0xFFFFFFFFu;
+	EntityID               nextID = 1;
+					       
+	vector<EntityID>       freeList;
+	vector<EntityID>       deferred;	      	   
+	vector<EntityID>       aliveIndices;
+	vector<_uint>          sparseIndices;
 };
 
 NS_END

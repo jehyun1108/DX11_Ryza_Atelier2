@@ -1,7 +1,8 @@
 #include "Enginepch.h"
 
-AssetSystem::AssetSystem()
-	:textureCache(textureRegistry, [](const wstring& normalizedKey, const TextureMeta& meta) -> shared_ptr<Texture>
+AssetSystem::AssetSystem(SystemRegistry& registry) 
+	: registry(registry),
+	textureCache(textureRegistry, [](const wstring& normalizedKey, const TextureMeta& meta) -> shared_ptr<Texture>
 		{ 
 			return Texture::LoadFromFile(meta.fullPath, meta.colorSpace);
 		}), 
@@ -94,6 +95,11 @@ AssetSystem::AssetSystem()
 				return material;
 		})
 {
+}
+
+void AssetSystem::OnBoot()
+{
+	Init();
 }
 
 // ------------------ Texture --------------------------------------------

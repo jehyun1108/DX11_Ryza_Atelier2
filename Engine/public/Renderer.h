@@ -2,10 +2,11 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL Renderer
+class ENGINE_DLL Renderer : public ISystem
 {
 public:
-	static unique_ptr<Renderer> Create();
+	explicit Renderer(SystemRegistry& registry) : registry(registry) {}
+	void     OnBoot() override;
 
 	HRESULT Init();
 	void Draw(const RenderScene& scene);
@@ -36,14 +37,16 @@ private:
 	void    DrawUI(const vector<UIDrawItem>& items);
 
 	// Skybox
-	void  ApplySkyCull(SkyCull cullMode);
-	void  ApplySkyBlend(bool transparent, bool premultiplied);
+	void         ApplySkyCull(SkyCull cullMode);
+	void         ApplySkyBlend(bool transparent, bool premultiplied);
 	SkyDrawLists BuildSkyDrawLists(const vector<SkySubmesh>& submeshes);
 
 private:
-	GameInstance&   game     = GameInstance::GetInstance();
-	SystemRegistry& registry = game.GetRegistry();
-	AssetSystem&    assets   = game.GetAssetSystem();
+	GameInstance&    game = GameInstance::GetInstance();
+	SystemRegistry&  registry;
+	AssetSystem*     assets{};
+	GridSystem*      gridSys{};
+	SelectionSystem* selectSys{};
 	
 	ID3D11Device*        device{};
 	ID3D11DeviceContext* context{};
