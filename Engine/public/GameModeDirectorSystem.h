@@ -16,11 +16,18 @@ public:
 	void     Start()         { fieldSys->Enter(); }
 
 private:
-	SystemRegistry&        registry;
-	FieldOrchestraSystem*  fieldSys;
-	BattleOrchestraSystem* battleSys;
 	GameMode               curMode;
-	EntityID               playerLeader{};
+
+private:
+	SystemRegistry&         registry;
+	UISystem*               uiSys{};
+	FieldOrchestraSystem*   fieldSys{};
+	BattleOrchestraSystem*  battleSys{};
+	LogoOrchestraSystem*    logoSys{};
+	ScreenFadeSystem*       fadeSys{};
+	UIAnimSystem*           uiAnimSys{};
+	ScreenDistortionSystem* distortSys{};
+	SoundSystem*            soundSys{};
 };
 
 NS_END

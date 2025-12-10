@@ -5,58 +5,42 @@ NS_BEGIN(Engine)
 enum class BattleBusEventType
 {
 	None,
-	// Session
-	SessionBegan,
-	SessionActivated,
-	SessionResultDecided,
-	SessionEnded,
-	// Session-Intro
-	IntroReady,
-	// Timeline
-	TimelineFullGauge,
-	TimelineActionCommitted,
-	TimelineActionFinished,
-	TimelinePaused,
-	TimelineResumed,
+	SessionBegan, SessionActivated, SessionResultDecided,SessionEnded, 	// Session
+	IntroReady, 	// Session-Intro
+	TimelineFullGauge, TimelineActionCommitted, TimelineActionFinished, TimelinePaused, TimelineResumed,	// Timeline
 	TimelineApChanged,
-	// Execution
-	ExecutionStageAdvanced,
-	ExecutionInterrupted,
-	// Resolve
-	UnitDowned,
-	ResolveDamageApplied,
-	LeaderChanged,
+	ExecutionStageAdvanced, ExecutionInterrupted,	// Execution
+	UnitDowned, ResolveDamageApplied, LeaderChanged, 	// Resolve
+	TacticChanged, TacticLevelUp, TacticMaxBlinkOn, TacticMaxBlinkOff	// Tactic
 };
-
 struct EventPayload_None {};
-
+struct EventPayload_Tactic
+{
+	int             level    = 1;
+	int             pips     = 0;
+	bool            maxBlink = false;
+	TacticEventType type     = TacticEventType::Changed;
+};
 struct EventPayload_SessionPhase
 {
 	BattlePhase newPhase{};
 };
-
-// Timeline
 struct EventPayload_ApChanged
 {
 	int deltaAp = 0;
 	int curAp   = 0;
 	int maxAp   = 0;
 };
-
 struct EventPayload_ActionIntent
 {
 	TimelineActionIntent intent{};
 };
-
-// Execution
 struct EventPayload_ExecutionStage
 {
 	int  curChainIdx  = 0;
 	int  curStageIdx  = 0;
 	bool isFinalStage = false;
 };
-
-// Resolve
 struct EventPayload_Damage
 {
 	EntityID attackerEntity = 0;
@@ -64,29 +48,24 @@ struct EventPayload_Damage
 	int      damageAmount   = 0;
 	bool     isCritical     = false;
 };
-
 struct BattleEvent
 {
-	BattleBusEventType eventType = BattleBusEventType::SessionBegan;
-
-	EntityID   subjectEntity = 0;
-	BattleTeam subjectTeam = BattleTeam::Neutral;
-
-	int     frameIdx = -1;
+	BattleBusEventType eventType     = BattleBusEventType::SessionBegan;
+	EntityID           subjectEntity = 0;
+	BattleTeam         subjectTeam   = BattleTeam::Neutral;
+	int                frameIdx      = -1;
 
 	// Payload
-	using PayloadVariant = variant<
-		EventPayload_None,
+	using PayloadVariant = variant< EventPayload_None,
 		EventPayload_SessionPhase,
-		EventPayload_ApChanged,
+		EventPayload_ApChanged, 
 		EventPayload_ActionIntent,
-		EventPayload_ExecutionStage, 
-		EventPayload_Damage>;
+		EventPayload_ExecutionStage,
+		EventPayload_Damage,
+		EventPayload_Tactic>;
 
 	PayloadVariant payload{ EventPayload_None{} };
 };
-
-using BattleEventListenerId = _uint;
-using BattleEventListener   = function<void(const BattleEvent&)>;
+using BattleEventListener = function<void(const BattleEvent&)>;
 
 NS_END

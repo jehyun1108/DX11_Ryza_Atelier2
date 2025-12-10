@@ -7,7 +7,8 @@ NS_BEGIN(Engine)
 class ENGINE_DLL FieldAnimSystem : public EntitySystem<LocomotionAnim>, public IGuiRenderable
 {
 public:
-	explicit FieldAnimSystem(SystemRegistry& registry) : EntitySystem(registry){}
+	explicit FieldAnimSystem(SystemRegistry& registry) : EntitySystem(registry) {}
+	void     OnBoot() override;
 
 	Handle Create(EntityID owner, Handle animHandle);
 	Handle Create(EntityID owner, Handle animHandle, const AnimProfile& profile);
@@ -21,6 +22,16 @@ private:
 	void  PlayKey(LocomotionAnim& loco, AnimKey key, ANIMTYPE type, float fadeSec = 0.f);
 
 private:
+	AnimatorSystem*      animator{};
+	MoveStateSystem*     moveSys{};
+	MoveIntentSystem*    intentSys{};
+	InputService*        input{};
+	AnimDataSystem*      animDataSys{};
+	EffectSystem*        effectSys{};
+	CharacterDataSystem* dataSys{};
+	TransformSystem*     tfSys{};
+	SoundSystem*         soundSys{};
+
 	LocoParams params;
 };
 

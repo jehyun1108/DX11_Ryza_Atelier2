@@ -1,9 +1,16 @@
 #include "Enginepch.h"
 
+void PickingSystem::OnBoot()
+{
+	tfSys  = &registry.Get<TransformSystem>();
+	mcSys  = &registry.Get<MeshColliderSystem>();
+	camSys = &registry.Get<CameraSystem>();
+}
+
 Handle PickingSystem::Create(EntityID owner, Handle transform, _uint layerMask, bool enabled)
 {
-	Handle handle = CreateComp(owner);
-	auto& comp = *Get(handle);
+	Handle handle   = CreateComp(owner);
+	auto& comp      = *Get(handle);
     comp.transform  = transform;
     comp.layerMask  = layerMask;
     comp.enabled    = enabled;
@@ -23,49 +30,50 @@ void PickingSystem::SetLayerMask(Handle handle, _uint mask)
 		comp->layerMask = mask;
 }
 
-bool PickingSystem::MakeWorldRay(const PickingRequest& request, const CameraSystem& camSys, _float3& outOrigin, _float3& outDir)
+bool PickingSystem::MakeWorldRay(const PickingRequest& request, _float3& outOrigin, _float3& outDir) const
 {
 	if (!request.fromScreen)
 	{
 		outOrigin = request.rayOrigin;
 		const _vec vDir = XMVector3Normalize(XMLoadFloat3(&request.rayDir));
+		assert(XMVectorGetX(XMVector3LengthSq(vDir)) > 0.0f && "MakeWorldRay: zero-length rayDir");
 		XMStoreFloat3(&outDir, vDir);
 		return true;
 	}
 
-	if (!camSys.Validate(request.cam))
-		return false;
-
 	_vec vOrigin{}, vDir{};
-	camSys.CreateRayFromScreen(request.cam, request.screenpos, request.viewport, vOrigin, vDir);
+	camSys->CreateRayFromScreen(request.cam, request.screenpos, request.viewport, vOrigin, vDir);
+
+	const float len2 = XMVectorGetX(XMVector3LengthSq(vDir));
+	assert(len2 > 0.0f && "MakeWorldRay: computed screen ray has zero length");
+
 	XMStoreFloat3(&outOrigin, vOrigin);
 	XMStoreFloat3(&outDir, XMVector3Normalize(vDir));
 	return true;
 }
 
-bool PickingSystem::Pick(const PickingRequest& request, PickingHit& outHit) const
+bool PickingSystem::Pick(const PickingRequest& request, PickingHit& outHit)
 {
-	const auto& cameraSystem = registry.Get<CameraSystem>();
-
 	_float3 originWorld{}, dirWorld{};
-	if (!MakeWorldRay(request, cameraSystem, originWorld, dirWorld))
-	{
-		outHit = {};
-		return false;
-	}
-
+	const bool ok = MakeWorldRay(request, originWorld, dirWorld);
+	assert(ok && "Pick: MakeWorldRay failed (invalid state)");
 	return RayCastAll(originWorld, dirWorld, request.layerMask, outHit);
 }
 
-bool PickingSystem::RayCastAll(const _float3& originWorld, const _float3& dirWorld, _uint layerMask, PickingHit& outNearest) const
+bool PickingSystem::RayCastAll(const _float3& originWorld, const _float3& dirWorld, _uint layerMask, PickingHit& outNearest)
 {
+	{
+		const _vec dist = XMLoadFloat3(&dirWorld);
+		assert(XMVectorGetX(XMVector3LengthSq(dist)) > 0.0f && "RayCastAll: dirWorld is zero");
+	}
+
 	outNearest = {};
 	outNearest.hit = false;
 	outNearest.distance = FLT_MAX;
 
 	bool anyHit = false;
 
-	ForEachAliveEx([&](Handle handle, EntityID owner, const PickingData& comp)
+	ForEachAliveEx([&](Handle handle, EntityID owner, PickingData& comp)
 		{
 			if (!comp.enabled) return;
 			if ((comp.layerMask & layerMask) == 0) return;
@@ -73,11 +81,22 @@ bool PickingSystem::RayCastAll(const _float3& originWorld, const _float3& dirWor
 			PickingHit hit{};
 			if (RayCastMeshCollider(owner, originWorld, dirWorld, hit))
 			{
+				comp.lastHit = true;
+				comp.lastDist = hit.distance;
+
+				comp.lastHitPos = hit.point;
+				comp.lastHitNormal = hit.normal;
+
 				if (hit.distance < outNearest.distance)
 				{
 					anyHit = true;
 					outNearest = hit;
 				}
+			}
+			else
+			{
+				comp.lastHit = false;
+				comp.lastDist = FLT_MAX;
 			}
 		});
 
@@ -87,37 +106,36 @@ bool PickingSystem::RayCastAll(const _float3& originWorld, const _float3& dirWor
 bool PickingSystem::RayCastMeshCollider(EntityID entity, const _float3& originWorld, const _float3& dirWorld, PickingHit& outHit) const
 {
 	const MeshColliderData* collider = TryGetMeshCollider(entity);
-	if (!collider || !collider->enabled) return false;
+	assert(collider && "RayCastMeshCollider: MeshCollider missing");
+	assert(collider->enabled && "RayCastMeshCollider: collider disabled");
 
-	auto& transformSystem = registry.Get<TransformSystem>();
-	const TransformData* transformData = transformSystem.Get(collider->tf);
-	if (!transformData) return false;
+	const TransformData* tfData = tfSys->Get(collider->tf);
+	assert(tfData && "RayCastMeshCollider: TransformData missing");
 
-	const _mat worldMat    = transformData->dirty ? Utility::MakeWorldMat(*transformData) : XMLoadFloat4x4(&transformData->world);
+	const _mat worldMat = tfData->dirty ? Utility::MakeWorldMat(*tfData) : XMLoadFloat4x4(&tfData->world);
 	const _mat invWorldMat = XMMatrixInverse(nullptr, worldMat);
 
 	const _vec vOriginWorld = XMLoadFloat3(&originWorld);
-	const _vec vDirWorld    = XMVector3Normalize(XMLoadFloat3(&dirWorld));
+	const _vec vDirWorld = XMVector3Normalize(XMLoadFloat3(&dirWorld));
 
 	const _vec vOriginLocal = XMVector3TransformCoord(vOriginWorld, invWorldMat);
-	const _vec vDirLocal    = XMVector3Normalize(XMVector3TransformNormal(vDirWorld, invWorldMat));
+	const _vec vDirLocal = XMVector3Normalize(XMVector3TransformNormal(vDirWorld, invWorldMat));
 
 	_float3 originLocal{}; XMStoreFloat3(&originLocal, vOriginLocal);
 	_float3 dirLocal{};    XMStoreFloat3(&dirLocal, vDirLocal);
 
-	// 1. LocalAABB BroadCast
 	float boxT = 0.f;
-	if (!collider->localAABB.Intersects(vOriginLocal, vDirLocal, boxT)) return false;
-	if (boxT < 0.f) return false;
+	if (!collider->localAABB.Intersects(vOriginLocal, vDirLocal, boxT))
+		return false;
 
-	// ★ 2) 삼각형 루프 (최근접 t 상한)
 	float  nearestT = FLT_MAX;
 	_uint  nearestTriIndex = UINT32_MAX;
 	float  nearestU = 0.f, nearestV = 0.f;
 
-	const auto& pos       = collider->posLocal;
-	const auto& indices   = collider->indices;
+	const auto& pos = collider->posLocal;
+	const auto& indices = collider->indices;
 	const size_t triCount = indices.size() / 3;
+	assert((indices.size() % 3) == 0 && "RayCastMeshCollider: indices not multiple of 3");
 
 	for (size_t tri = 0; tri < triCount; ++tri)
 	{
@@ -138,7 +156,8 @@ bool PickingSystem::RayCastMeshCollider(EntityID entity, const _float3& originWo
 		}
 	}
 
-	if (nearestTriIndex == UINT32_MAX) return false;
+	if (nearestTriIndex == UINT32_MAX)
+		return false;
 
 	const _vec hitLocal = XMVectorMultiplyAdd(vDirLocal, XMVectorReplicate(nearestT), vOriginLocal);
 	const _vec hitWorld = XMVector3TransformCoord(hitLocal, worldMat);
@@ -216,15 +235,57 @@ bool PickingSystem::RayTriangleMT(const _float3& localRayOrigin, const _float3& 
 
 const MeshColliderData* PickingSystem::TryGetMeshCollider(EntityID owner) const
 {
-	const auto& mcSys = registry.Get<MeshColliderSystem>();
-	return mcSys.TryGetByOwner(owner, nullptr);
+	return mcSys->TryGetByOwner(owner, nullptr);
 }
 
 void PickingSystem::RenderGui(EntityID id)
 {
 #ifdef USE_IMGUI
-// ------------------------------------------------------------------------------------------
-	
+	bool any = false;
+
+	ForEachOwned(id, [&](Handle handle, PickingData& c)
+		{
+			any = true;
+			ImGui::PushID(static_cast<int>(handle.idx));
+
+			const ImGuiTreeNodeFlags flags =
+				ImGuiTreeNodeFlags_DefaultOpen |
+				ImGuiTreeNodeFlags_Framed |
+				ImGuiTreeNodeFlags_AllowItemOverlap;
+
+			if (ImGui::TreeNodeEx("Picking", flags))
+			{
+				ImGui::Checkbox("Enabled", &c.enabled);
+
+				uint32_t mask = c.layerMask;
+				if (ImGui::InputScalar("LayerMask", ImGuiDataType_U32, &mask))
+					c.layerMask = mask;
+
+				ImGui::Separator();
+				ImGui::Text("LastHit : %s", c.lastHit ? "true" : "false");
+				ImGui::Text("LastDist: %.3f", c.lastDist);
+
+				if (c.lastHit)
+				{
+					ImGui::Text("HitPos : (%.3f, %.3f, %.3f)",
+						c.lastHitPos.x, c.lastHitPos.y, c.lastHitPos.z);
+					ImGui::Text("HitN   : (%.3f, %.3f, %.3f)",
+						c.lastHitNormal.x, c.lastHitNormal.y, c.lastHitNormal.z);
+				}
+
+				//if (ImGui::Button("Refresh World Cache", ImVec2(-1, 0)))
+				//{
+				//	const TransformData* tf = tfSys->Get(c.transform);
+				//	c.cacheWorld = tf->dirty ? Utility::MakeWorldMat(*tf) : tf->world;
+				//}
+
+				ImGui::TreePop();
+			}
+
+			ImGui::PopID();
+		});
+
+	if (!any)
+		ImGui::TextUnformatted("No PickingData");
 #endif
 }
-

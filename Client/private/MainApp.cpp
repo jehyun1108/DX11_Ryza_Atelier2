@@ -4,6 +4,9 @@
 #include "Logo.h"
 #include "Central.h"
 #include "loading.h"
+#include "UILoader.h"
+#include "LoadingPresenter.h"
+#include "ScreenFadeSystem.h"
 
 HRESULT MainApp::Init()
 {
@@ -15,7 +18,7 @@ HRESULT MainApp::Init()
 	desc.levelCount = ENUM(LEVEL::END);
 
 	if (FAILED(game.InitEngine(desc))) return E_FAIL;
-	
+	LoadLoadingResources();
 	game.ChangeLevel(ENUM(LEVEL::LOADING), Loading::Create());
 
 	return S_OK;
@@ -23,18 +26,39 @@ HRESULT MainApp::Init()
 
 void MainApp::Update(_float dt)
 {
+	//RECT rect{0.f, 0.f, WinX, WinY};
+	//ClipCursor(&rect);
 	game.UpdateEngine(dt);
 }
 
 HRESULT MainApp::Render()
 {
-	_float4 clearColor = _float4(0.f, 0.f, 1.f, 1.f);
-	game.BeginDraw(clearColor);
 	game.Draw();
 	game.GuiRender();
 	game.EndDraw();
 	return S_OK;
 }
+
+void MainApp::LoadLoadingResources()
+{
+	auto& registry = game.GetRegistry();
+	auto& assets = registry.Get<AssetSystem>();
+	auto& uiRegistry = registry.Get<UIRegistry>();
+
+	UILoader::RegisterOverlayUI(&assets);
+	UIArchetypeLoader::RegisterOverlayUI(&uiRegistry);
+	UILoader::RegisterLoadingUI(&assets);
+	UIArchetypeLoader::RegisterLoadingUI(&uiRegistry);
+
+
+	auto& loadingPresenter = registry.Get<LoadingPresenter>();
+	loadingPresenter.Enter();
+	
+	auto& fadeSys = registry.Get<ScreenFadeSystem>();
+	fadeSys.Init();
+	//fadeSys.FadeToBlack(0.5f);
+}
+
 
 unique_ptr<MainApp> MainApp::Create()
 {

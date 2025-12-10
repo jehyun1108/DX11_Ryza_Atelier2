@@ -7,6 +7,7 @@ class ENGINE_DLL Shader final
 public:
 	Shader();
 	static shared_ptr<Shader> CreateFromBlobs(const ShaderCreateDesc& desc);
+	
 	void Bind(ID3D11DeviceContext* context);
 
 	bool hasTessellation() const { return (stages & SHADER::HS) && (stages & SHADER::DS); }

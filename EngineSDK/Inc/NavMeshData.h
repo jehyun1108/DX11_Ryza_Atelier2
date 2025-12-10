@@ -2,29 +2,30 @@
 
 NS_BEGIN(Engine)
 
-struct NavMeshComponent
+struct NavVertex
 {
-	vector<_float3> localPos{};
-	vector<_uint>   indices;
+	_float3 posWorld;
 };
-
-struct BoundaryEdge
+struct NavTriangle
 {
-	_uint start;
-	_uint end;
+	_uint a, b, c;
 };
-
-struct NavMeshRenderParams
+struct NavTempBuffer
 {
-    _float4 colorSolid    = { 0.20f, 0.80f, 0.40f, 0.35f }; 
-    _float4 colorWire     = { 0.05f, 0.05f, 0.05f, 1.00f }; 
-    _float4 colorBoundary = { 1.00f, 0.60f, 0.10f, 1.00f }; 
-
-    bool  showSolid    = true;
-    bool  showWire     = true;
-    bool  showBoundary = true;
-
-    float epsilon = 0.001f; // Z-fighting ¹æÁö
+	_uint   count = 0;
+	_float3 p[3];
+	_uint   snappedVid[3]      = {UINT32_MAX, UINT32_MAX , UINT32_MAX };
+	bool    snappedExisting[3] = { false, false, false };
+};
+struct NavStore 
+{
+	vector<NavVertex>   vertices;
+	vector<NavTriangle> triangles;
+};
+struct NavigationData 
+{
+	NavStore       store;
+	NavTempBuffer  temp;
 };
 
 NS_END

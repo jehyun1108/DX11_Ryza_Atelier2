@@ -1,184 +1,308 @@
 #include "Enginepch.h"
+// ================================================================================================
+static bool IntersectRaySphere(const _float3& ro, const _float3& rd, const _float3& c, float r, float& outT, _float3& outN)
+{
+    _float3 oc{ ro.x - c.x, ro.y - c.y, ro.z - c.z };
+    float b = oc.x * rd.x + oc.y * rd.y + oc.z * rd.z;
+    float c2 = oc.x * oc.x + oc.y * oc.y + oc.z * oc.z - r * r;
+    float disc = b * b - c2;
+    if (disc < 0.f) return false;
+    float t = -b - sqrtf(disc);
+    if (t < 0.f) t = -b + sqrtf(disc);
+    if (t < 0.f) return false;
+    outT = t;
+    _float3 p{ ro.x + rd.x * t, ro.y + rd.y * t, ro.z + rd.z * t };
+    _float3 n{ (p.x - c.x) / r, (p.y - c.y) / r, (p.z - c.z) / r };
+    outN = n;
+    return true;
+}
 
+static bool IntersectRayAABB(const _float3& ro, const _float3& rd, const BoundingBox& b, float& outT, _float3& outN)
+{
+    _float3 mn = b.Center; mn.x -= b.Extents.x; mn.y -= b.Extents.y; mn.z -= b.Extents.z;
+    _float3 mx = b.Center; mx.x += b.Extents.x; mx.y += b.Extents.y; mx.z += b.Extents.z;
+
+    float tmin = 0.f, tmax = FLT_MAX; _float3 n{ 0, 0, 0 };
+
+    auto axis = [&](float roA, float rdA, float mnA, float mxA, _float3 faceN)->bool
+        {
+            if (fabsf(rdA) < 1e-8f) { if (roA < mnA || roA > mxA) return false; return true; }
+            float ood = 1.f / rdA;
+            float t1 = (mnA - roA) * ood;
+            float t2 = (mxA - roA) * ood;
+            _float3 n1 = faceN, n2{ -faceN.x, -faceN.y, -faceN.z };
+            if (t1 > t2) { std::swap(t1, t2); std::swap(n1, n2); }
+            if (t1 > tmin) { tmin = t1; n = n1; }
+            if (t2 < tmax) { tmax = t2; }
+            return tmin <= tmax;
+        };
+
+    if (!axis(ro.x, rd.x, mn.x, mx.x, { -1, 0, 0 })) return false;
+    if (!axis(ro.y, rd.y, mn.y, mx.y, { 0, -1, 0 })) return false;
+    if (!axis(ro.z, rd.z, mn.z, mx.z, { 0, 0, -1 })) return false;
+
+    if (tmin < 0.f) { outT = 0.f; outN = n; return true; } 
+    outT = tmin; outN = n; return true;
+}
+
+static bool IntersectRayOBB(const _float3& ro, const _float3& rd, const BoundingOrientedBox& o, float& outT, _float3& outN)
+{
+    _float3 C = o.Center, E = o.Extents;
+    auto q = XMLoadFloat4(&o.Orientation);
+    auto R = XMMatrixRotationQuaternion(q);
+    auto Rt = XMMatrixTranspose(R);
+
+    auto roW = XMLoadFloat3(&ro);
+    auto rdW = XMLoadFloat3(&rd);
+    auto cW = XMLoadFloat3(&C);
+
+    auto roL = XMVector3Transform(roW - cW, Rt);
+    auto rdL = XMVector3TransformNormal(rdW, Rt);
+
+    _float3 roL3, rdL3; XMStoreFloat3(&roL3, roL); XMStoreFloat3(&rdL3, rdL);
+
+    BoundingBox aabbL({ 0, 0, 0 }, E);
+    float t; _float3 nL;
+    if (!IntersectRayAABB(roL3, rdL3, aabbL, t, nL)) return false;
+
+    outT = t;
+    auto nW4 = XMVector3TransformNormal(XMLoadFloat3(&nL), R);
+    XMStoreFloat3(&outN, XMVector3Normalize(nW4));
+    return true;
+}
+static bool IntersectRayTri(const _float3& ro, const _float3& rd, const _float3& a, const _float3& b, const _float3& c, float& t, _float3& n)
+{
+    const _float3 ab{ b.x - a.x, b.y - a.y, b.z - a.z };
+    const _float3 ac{ c.x - a.x, c.y - a.y, c.z - a.z };
+    _float3 p{ rd.y * ac.z - rd.z * ac.y,
+        rd.z * ac.x - rd.x * ac.z,
+        rd.x * ac.y - rd.y * ac.x };
+    float det = ab.x * p.x + ab.y * p.y + ab.z * p.z;
+    if (fabsf(det) < 1e-8f) return false;
+    float inv = 1.0f / det;
+
+    _float3 s{ ro.x - a.x, ro.y - a.y, ro.z - a.z };
+    float u = (s.x * p.x + s.y * p.y + s.z * p.z) * inv;
+    if (u < 0.f || u > 1.f) return false;
+
+    _float3 q{ s.y * ab.z - s.z * ab.y,
+        s.z * ab.x - s.x * ab.z,
+        s.x * ab.y - s.y * ab.x };
+    float v = (rd.x * q.x + rd.y * q.y + rd.z * q.z) * inv;
+    if (v < 0.f || u + v > 1.f) return false;
+
+    float tt = (ac.x * q.x + ac.y * q.y + ac.z * q.z) * inv;
+    if (tt < 0.f) return false;
+
+    t = tt;
+
+    _float3 nn{
+        ab.y * ac.z - ab.z * ac.y,
+        ab.z * ac.x - ab.x * ac.z,
+        ab.x * ac.y - ab.y * ac.x
+    };
+    float len = sqrtf(nn.x * nn.x + nn.y * nn.y + nn.z * nn.z);
+    if (len > 1e-8f) { nn.x /= len; nn.y /= len; nn.z /= len; }
+    n = nn;
+    return true;
+}
+inline _float3 ReadPos(const Mesh* m, uint32_t vi)
+{
+    const uint8_t* base = m->GetCPUVertexBytes();
+    const uint32_t stride = m->GetVertexStride();
+    const _float3* p = reinterpret_cast<const _float3*>(base + stride * vi);
+    return *p; 
+}
+
+inline uint32_t ReadIdx(const Mesh* m, uint32_t ii)
+{
+    const uint8_t* ib = m->GetCPUIndexBytes();
+    if (m->GetIdxFormat() == DXGI_FORMAT_R16_UINT)
+        return reinterpret_cast<const uint16_t*>(ib)[ii];
+    else
+        return reinterpret_cast<const uint32_t*>(ib)[ii];
+}
+
+inline _float3 TransformPoint(const _float3& v, const _float4x4& wm)
+{
+    _vec p = XMVectorSet(v.x, v.y, v.z, 1.f);
+    _vec q = XMVector3TransformCoord(p, XMLoadFloat4x4(&wm));
+    _float3 o; XMStoreFloat3(&o, q);
+    return o;
+}
+// A,B가 충돌 대상?
+inline bool CanCollide(Mask aBelongs, Mask aMask, Mask bBelongs, Mask bMask)
+{
+    return (aMask & bBelongs) && (bMask & aBelongs);
+}
+// Raycast, Overlap 검사에서 target이 후보인가 ? 
+inline bool MatchesQuery(Mask queryMask, Mask targetBelongs)
+{
+    return (queryMask & targetBelongs) != 0;
+}
 // ------------------------------- Create ---------------------------------------------------------
-Handle CollisionSystem::CreateAABB(EntityID owner, Handle tfHandle, const BoundingBox& localBox, _uint layer)
+void CollisionSystem::OnBoot()
+{
+    tfSys    = &registry.Get<TransformSystem>();
+    modelSys = &registry.Get<ModelSystem>();
+}
+
+Handle CollisionSystem::CreateAABB(EntityID owner, Handle tfHandle, const BoundingBox& localBox)
 {
 	Handle handle = CreateComp(owner);
-	if (auto data = Get(handle))
-	{
-		data->type       = ColliderType::AABB;
-		data->enabled    = true;
-		data->layerMask  = layer;
-		data->tf         = tfHandle;
-		data->aabb.local = localBox;
-		data->aabb.world = localBox;
-	}
+    auto data = Get(handle);
+	data->type          = ColliderType::AABB;
+	data->enabled       = true;
+	data->tf            = tfHandle;
+	data->aabb.local    = localBox;
+	data->aabb.world    = localBox;
+    data->belongsTo     = Bit(CollisionLayer::Prop);
+    data->collidesWith  = Bit(CollisionLayer::Ground) | Bit(CollisionLayer::Prop);
 	return handle;
 }
 
-Handle CollisionSystem::CreateSphere(EntityID owner, Handle tfHandle, const _float3& centerLocal, float radiusLocal, _uint layer)
+Handle CollisionSystem::CreateSphere(EntityID owner, Handle tfHandle, const _float3& centerLocal, float radiusLocal)
 {
-	Handle handle = CreateComp(owner);
-	if (auto data = Get(handle))
-	{
-		data->type = ColliderType::Sphere;
-		data->enabled = true;
-		data->layerMask = layer;
-		data->tf = tfHandle;
-
-		data->sphere.centerLocal = centerLocal;
-		data->sphere.radiusLocal = radiusLocal;
-		data->sphere.centerWorld = centerLocal;
-		data->sphere.radiusWorld = radiusLocal;
-	}
+	Handle handle            = CreateComp(owner);
+    auto data                = Get(handle);
+	data->type               = ColliderType::Sphere;
+	data->enabled            = true;
+	data->tf                 = tfHandle;
+	data->sphere.centerLocal = centerLocal;
+	data->sphere.radiusLocal = radiusLocal;
+	data->sphere.centerWorld = centerLocal;
+	data->sphere.radiusWorld = radiusLocal;
+    data->belongsTo          = Bit(CollisionLayer::Prop);
+    data->collidesWith       = Bit(CollisionLayer::Ground) | Bit(CollisionLayer::Prop);
 	return handle;
 }
 
-Handle CollisionSystem::CreateOBB(EntityID owner, Handle tfHandle, const BoundingOrientedBox& localOBB, _uint layer)
+Handle CollisionSystem::CreateOBB(EntityID owner, Handle tfHandle, const BoundingOrientedBox& localOBB)
 {
-	Handle handle = CreateComp(owner);
-	if (auto data = Get(handle))
-	{
-		data->type        = ColliderType::OBB;
-		data->enabled     = true;
-		data->layerMask   = layer;
-		data->tf          = tfHandle;
-
-		data->obb.local   = localOBB;
-		data->obb.world   = localOBB;
-	}					  
+	Handle handle      = CreateComp(owner);
+    auto data          = Get(handle);
+	data->type         = ColliderType::OBB;
+	data->enabled      = true;
+	data->tf           = tfHandle;
+	data->obb.local    = localOBB;
+	data->obb.world    = localOBB;
+    data->belongsTo    = Bit(CollisionLayer::Prop);
+    data->collidesWith = Bit(CollisionLayer::Ground) | Bit(CollisionLayer::Prop);				  
 	return handle;
+}
+
+Handle CollisionSystem::CreateMeshRay(EntityID owner, Handle tfHandle, const Mesh* mesh, Mask belongs, Mask collides)
+{
+    Handle handle       = CreateComp(owner);
+    auto& data          = *Get(handle);
+    data.type           = ColliderType::MeshRay;
+    data.enabled        = true;
+    data.tf             = tfHandle;
+    data.mesh.mesh      = mesh;
+    data.mesh.tf        = tfHandle;
+    data.belongsTo      = belongs;
+    data.collidesWith   = collides;
+    data.mesh.localAABB = mesh->GetLocalAABB();
+    data.mesh.worldAABB = data.mesh.localAABB;
+    data.mesh.worldMat  = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+    return handle;
 }
 
 // ----------------------- Runtime switching --------------------------------------
 void CollisionSystem::SetAABB(Handle handle, const BoundingBox& localBox)
 {
-	if (auto data = Get(handle))
-	{
-		data->type = ColliderType::AABB;
-		data->aabb.local = localBox;
-	}
+    auto data = Get(handle);
+	data->type = ColliderType::AABB;
+	data->aabb.local = localBox;
 }
 
 void CollisionSystem::SetSphere(Handle handle, const _float3& centerLocal, float radiusLocal)
 {
-	if (auto data = Get(handle))
-	{
-		data->type               = ColliderType::Sphere;
-		data->sphere.centerLocal = centerLocal;
-		data->sphere.radiusLocal = radiusLocal;
-	}
+    auto data = Get(handle);
+	data->type               = ColliderType::Sphere;
+	data->sphere.centerLocal = centerLocal;
+	data->sphere.radiusLocal = radiusLocal;
 }
 
 void CollisionSystem::SetOBB(Handle handle, const BoundingOrientedBox& localOBB)
 {
-	if (auto data = Get(handle))
-	{
-		data->type = ColliderType::OBB;
-		data->obb.local = localOBB;
-	}
+    auto data = Get(handle);
+	data->type = ColliderType::OBB;
+	data->obb.local = localOBB;
 }
 
 // ----------------------------- Utility --------------------------------------------
 void CollisionSystem::SetEnabled(Handle handle, bool enabled)
 {
-	if (auto data = Get(handle))
-		data->enabled = enabled;
-}
-
-void CollisionSystem::SetLayer(Handle handle, _uint mask)
-{
-	if (auto data = Get(handle))
-		data->layerMask = mask;
+    auto data = Get(handle);
+	data->enabled = enabled;
 }
 
 void CollisionSystem::SetTransform(Handle handle, Handle tfHandle)
 {
-	if (auto data = Get(handle))
-		data->tf = tfHandle;
+    auto data = Get(handle);
+	data->tf = tfHandle;
 }
 
-void CollisionSystem::Update(float dt)
+void CollisionSystem::SetBelongsTo(Handle handle, _uint layer)
 {
-	auto& tfSys = registry.Get<TransformSystem>();
+    auto data = Get(handle);
+    data->belongsTo = layer;
+}
 
+void CollisionSystem::SetCollidesWith(Handle handle, _uint mask)
+{
+    auto data = Get(handle);
+    data->collidesWith = mask;
+}
+
+void CollisionSystem::Tick(float dt)
+{
 	ForEachAliveEx([&](Handle handle, EntityID owner, CollisionData& data)
 		{
 			if (!data.enabled) return;
 
-			const TransformData* tf = tfSys.Get(data.tf);
-			if (!tf)
-			{
-				switch (data.type)
-				{
-				case ColliderType::AABB:
-					data.aabb.world = data.aabb.local;
-					break;
+			const TransformData* tf  = tfSys->Get(data.tf);
+            const _float4x4&     mat = tf->world;
+            _mat worldMat = XMLoadFloat4x4(&mat);
 
-				case ColliderType::Sphere:
-					data.sphere.centerWorld = data.sphere.centerLocal;
-					data.sphere.radiusWorld = data.sphere.radiusLocal;
-					break;
+            switch (data.type)
+            {
+            case ColliderType::AABB:
+                data.aabb.local.Transform(data.aabb.world, worldMat);
+                break;
 
-				case ColliderType::OBB:
-					data.obb.world = data.obb.local;
-					break;
-				}
-				return;
-			}
-
-			const _mat worldMat = XMLoadFloat4x4(&tf->world);
-
-			switch (data.type)
-			{
-			case ColliderType::AABB:
-				data.aabb.local.Transform(data.aabb.world, worldMat);
-				break;
-
-			case ColliderType::Sphere:
-			{
-				// Center 변환 (평행이동 포함)
-                const _vec centerLocal = XMLoadFloat3(&data.sphere.centerLocal);
-                const _vec centerWorld = XMVector3TransformCoord(centerLocal, worldMat);
+            case ColliderType::Sphere:
+            {
+                _vec centerLeft = XMLoadFloat3(&data.sphere.centerLocal);
+                _vec centerWorld = XMVector3TransformCoord(centerLeft, worldMat);
                 XMStoreFloat3(&data.sphere.centerWorld, centerWorld);
 
-                // Decompose 로 Scale 추출 (비등방 스케일 대응)
-                _vec scale, rot, trans;
-                if (XMMatrixDecompose(&scale, &rot, &trans, worldMat))
-                {
-                    const float scaleX = XMVectorGetX(scale);
-                    const float scaleY = XMVectorGetY(scale);
-                    const float scaleZ = XMVectorGetZ(scale);
-                    const float maxScale = max(scaleX, max(scaleY, scaleZ));
-                    data.sphere.radiusWorld = data.sphere.radiusLocal * max(1e-6f, maxScale);
-                }
-                else
-                {
-                    // column 벡터 길이로 근사 (혹시모를 대비)
-                    const _float4x4& m = tf->world;
-                    const _float3 columnX = { m._11, m._21, m._31 };
-                    const _float3 columnY = { m._12, m._22, m._32 };
-                    const _float3 columnZ = { m._13, m._23, m._33 };
-                    const float scaleX = Utility::Length(columnX);
-                    const float scaleY = Utility::Length(columnY);
-                    const float scaleZ = Utility::Length(columnZ);
-                    const float maxScale = max(scaleX, max(scaleY, scaleZ));
-                    data.sphere.radiusWorld = data.sphere.radiusLocal * max(1e-6f, maxScale);
-                }
-			}
+                _float3 centerX{ mat._11, mat._21, mat._31 };
+                _float3 centerY{ mat._12, mat._22, mat._32 };
+                _float3 centerZ{ mat._13, mat._23, mat._33 };
+                float scaleX = Utility::Length(centerX);
+                float scaleY = Utility::Length(centerY);
+                float scaleZ = Utility::Length(centerZ);
+                float maxScale = max(scaleX, max(scaleY, scaleZ));
+                data.sphere.radiusWorld = data.sphere.radiusLocal * maxScale;
+            }
             break;
 
-			case ColliderType::OBB:
-				data.obb.local.Transform(data.obb.world, worldMat);
-				break;
-			}
+            case ColliderType::OBB:
+                data.obb.local.Transform(data.obb.world, worldMat);
+                break;
+
+            case ColliderType::MeshRay:
+                data.mesh.localAABB.Transform(data.mesh.worldAABB, worldMat);
+                data.mesh.worldMat = mat;
+                break;
+            }
 		});
 }
 
 void CollisionSystem::ExtractColliderProxies(vector<ColliderProxy>& out) const
 {
-    if (!debugEnabled) return;
-
     const_cast<CollisionSystem*>(this)->ForEachAliveEx([&](Handle handle, EntityID owner, CollisionData& data)
         {
             if (!data.enabled) return;
@@ -206,6 +330,216 @@ void CollisionSystem::ExtractColliderProxies(vector<ColliderProxy>& out) const
         });
 }
 
+RayHit CollisionSystem::RayCast(const RayDesc& ray) const
+{
+    RayHit best{};
+
+    const_cast<CollisionSystem*>(this)->ForEachAliveEx([&](Handle handle, EntityID owner, CollisionData& data) 
+        {
+            if (!data.enabled) return;
+            if (!MatchesQuery(ray.queryMask, data.belongsTo)) return;
+
+            float t; _float3 normal; bool ok = false;
+            switch (data.type)
+            {
+            case ColliderType::Sphere:
+                ok = IntersectRaySphere(ray.origin, ray.dir, data.sphere.centerWorld, data.sphere.radiusWorld, t, normal);
+                break;
+                
+            case ColliderType::AABB:
+                ok = IntersectRayAABB(ray.origin, ray.dir, data.aabb.world, t, normal);
+                break;
+
+            case ColliderType::OBB:
+                ok = IntersectRayOBB(ray.origin, ray.dir, data.obb.world, t, normal);
+                break;
+
+            case ColliderType::MeshRay:
+            {
+                float tbox; _float3 nbox;
+                if (!IntersectRayAABB(ray.origin, ray.dir, data.mesh.worldAABB, tbox, nbox))
+                    return;
+
+                const Mesh* m = data.mesh.mesh;
+                const _uint triCount = m->GetIdxCount() / 3;
+
+                for (_uint i = 0; i < triCount; ++i)
+                {
+                    const _uint i0 = ReadIdx(m, i * 3 + 0);
+                    const _uint i1 = ReadIdx(m, i * 3 + 1);
+                    const _uint i2 = ReadIdx(m, i * 3 + 2);
+
+                    _float3 aL = ReadPos(m, i0);
+                    _float3 bL = ReadPos(m, i1);
+                    _float3 cL = ReadPos(m, i2);
+
+                    _float3 a = TransformPoint(aL, data.mesh.worldMat);
+                    _float3 b = TransformPoint(bL, data.mesh.worldMat);
+                    _float3 c = TransformPoint(cL, data.mesh.worldMat);
+
+                    float tt; _float3 nn;
+                    if (!IntersectRayTri(ray.origin, ray.dir, a, b, c, tt, nn)) continue;
+                    if (tt < 0.f || tt > ray.maxDist) continue;
+
+                    if (!best.hit || tt < best.t)
+                    {
+                        best.hit = true;
+                        best.t = tt;
+                        best.normal = nn;
+                        best.pos = { ray.origin.x + ray.dir.x * tt,
+                            ray.origin.y + ray.dir.y * tt,
+                            ray.origin.z + ray.dir.z * tt };
+                        best.handle = handle;
+                        best.owner = owner;
+                    }
+                }
+                return; 
+            }
+            }
+
+            if (!ok) return;
+            if (t < 0.f || t > ray.maxDist) return;
+
+            if (!best.hit || t < best.t)
+            {
+                best.hit = true;
+                best.t = t;
+                best.normal = normal;
+                best.pos = { ray.origin.x + ray.dir.x * t,
+                    ray.origin.y + ray.dir.y * t,
+                    ray.origin.z + ray.dir.z * t };
+                best.handle = handle;
+                best.owner = owner;
+            }
+        });
+    return best;
+}
+
+
+bool CollisionSystem::GetObbTipPoint(EntityID owner, _float3& outTip) const
+{
+    const CollisionData* bestData = nullptr;
+    float    bestExtent = 0.f;
+    int      bestAxis = 0;
+
+    const_cast<CollisionSystem*>(this)->ForEachAliveEx(
+        [&](Handle h, EntityID e, CollisionData& data)
+        {
+            if (e != owner) return;
+            if (!data.enabled) return;
+            if (data.type != ColliderType::OBB) return;
+
+            const auto& obb = data.obb.world;
+            const _float3& ext = obb.Extents;
+
+            float axisExt[3] = { ext.x, ext.y, ext.z };
+            for (int i = 0; i < 3; ++i)
+            {
+                if (axisExt[i] > bestExtent)
+                {
+                    bestExtent = axisExt[i];
+                    bestAxis = i;
+                    bestData = &data;
+                }
+            }
+        });
+
+    if (!bestData)
+        return false;
+
+    const auto& obb = bestData->obb.world;
+    const _float3& c = obb.Center;
+    const _float3& ext = obb.Extents;
+
+    _vec q = XMLoadFloat4(&obb.Orientation);
+    _mat R = XMMatrixRotationQuaternion(q);
+
+    _float3 axisLocal;
+    if (bestAxis == 0)      axisLocal = _float3{ 1.f, 0.f, 0.f };
+    else if (bestAxis == 1) axisLocal = _float3{ 0.f, 1.f, 0.f };
+    else                    axisLocal = _float3{ 0.f, 0.f, 1.f };
+
+    _vec aL = XMLoadFloat3(&axisLocal);
+    _vec aW = XMVector3Normalize(XMVector3TransformNormal(aL, R));
+    _float3 axis;
+    XMStoreFloat3(&axis, aW);
+
+    float len = (bestAxis == 0) ? ext.x : (bestAxis == 1 ? ext.y : ext.z);
+
+    _float3 endA{
+        c.x + axis.x * len,
+        c.y + axis.y * len,
+        c.z + axis.z * len
+    };
+    _float3 endB{
+        c.x - axis.x * len,
+        c.y - axis.y * len,
+        c.z - axis.z * len
+    };
+
+    Handle dummy{};
+    TransformData* rootTf = tfSys->GetByOwner(owner, &dummy);
+    _float3 rootPos = rootTf ? rootTf->pos : c;
+
+    auto Dist2 = [&rootPos](_float3 p)
+        {
+            float dx = p.x - rootPos.x;
+            float dy = p.y - rootPos.y;
+            float dz = p.z - rootPos.z;
+            return dx * dx + dy * dy + dz * dz;
+        };
+
+    outTip = (Dist2(endA) > Dist2(endB)) ? endA : endB;
+    return true;
+}
+
+bool CollisionSystem::FindWeaponHit(EntityID attacker, BattleHitInfo& outHit) const
+{
+    const CollisionData* weapon = nullptr;
+    vector<pair<const CollisionData*, EntityID>> monsters;
+
+    const_cast<CollisionSystem*>(this)->ForEachAliveEx( [&](Handle handle, EntityID owner, CollisionData& data)
+        {
+            if (!data.enabled) return;
+            if (data.type != ColliderType::OBB) return;
+
+            if (Has(data.belongsTo, CollisionLayer::Trigger))
+            {
+                    weapon = &data;
+            }
+            else if (Has(data.belongsTo, CollisionLayer::Character))
+            {
+                if (owner != attacker)
+                    monsters.emplace_back(&data, owner);
+            }
+        });
+
+    if (!weapon)
+        return false;
+
+    const BoundingOrientedBox& wob = weapon->obb.world;
+
+    for (auto& pair : monsters)
+    {
+        const CollisionData* mData = pair.first;
+        EntityID             mOwner = pair.second;
+
+        if (!CanCollide(weapon->belongsTo, weapon->collidesWith,
+            mData->belongsTo, mData->collidesWith))
+            continue;
+
+        if (!wob.Intersects(mData->obb.world))
+            continue;
+
+        outHit.attacker = attacker;
+        outHit.target = mOwner;
+        outHit.centerWorld = mData->obb.world.Center; // 부딪힌 몬스터 위치
+        return true;
+    }
+
+    return false;
+}
+
 void CollisionSystem::RenderGui(EntityID id)
 {
 #ifdef USE_IMGUI
@@ -215,9 +549,6 @@ void CollisionSystem::RenderGui(EntityID id)
 
             if (ImGui::CollapsingHeader("Collision"))
             {
-                bool on = IsDebugEnabled();
-                if (ImGui::Checkbox("Show Colliders", &on))
-                    SetDebugEnabled(on);
 
                 GuiUtility::BeginPanel("Collision", PanelMode::Lines, 12);
                 {
@@ -232,8 +563,6 @@ void CollisionSystem::RenderGui(EntityID id)
                     if (ImGui::Checkbox("Enabled", &enabled))
                         SetEnabled(handle, enabled);
 
-                    ImGui::SameLine();
-                    ImGui::Text("Layer: 0x%08X", data.layerMask);
                 }
 
                 ImGui::Separator();

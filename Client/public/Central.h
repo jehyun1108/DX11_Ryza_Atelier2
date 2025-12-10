@@ -12,15 +12,6 @@ public:
 	virtual void Render() override;
 
 private:
-	EntityHandles SpawnPatricia();
-	EntityHandles SpawnKlaudia();
-	EntityHandles SpawnRyza();
-
-	EntityHandles SpawnAngel();
-
-	void DrawSkyBox(bool isNight = true);
-
-private:
 	Handle fieldCtrlHandle{};
 };
 

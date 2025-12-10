@@ -1,12 +1,15 @@
 #include "Enginepch.h"
 
+void SocketSystem::OnBoot()
+{
+    animator = &registry.Get<AnimatorSystem>();
+    tfSys    = &registry.Get<TransformSystem>();
+}
+
 Handle SocketSystem::Create(EntityID owner, Handle childTf, Handle parentAnim, Handle parentTf, const string& boneName, const _float3& offsetPos, const _float3& offsetRot)
 {
-	auto& animSys = registry.Get<AnimatorSystem>();
-	const _uint boneIdx = animSys.GetBoneIdxByName(parentAnim, boneName);
+	const _uint boneIdx = animator->GetBoneIdxByName(parentAnim, boneName);
 	assert(boneIdx != static_cast<_uint>(-1) && "SocketSystem: bone name not found");
-	if (boneIdx == static_cast<_uint>(-1)) return {};
-
 	return Create(owner, childTf, parentAnim, parentTf, boneIdx, offsetPos, offsetRot);
 }
 
@@ -27,86 +30,95 @@ Handle SocketSystem::Create(EntityID owner, Handle childTf, Handle parentAnim, H
 
 void SocketSystem::SetOffsetMat(Handle handle, _fmat mat)
 {
-	if (auto socket = Get(handle))
-	{
-		XMStoreFloat4x4(&socket->offsetMat, mat);
-		socket->offsetDirty = false;
-	}
+    auto socket = Get(handle);
+    XMStoreFloat4x4(&socket->offsetMat, mat);
+    socket->offsetDirty = false;
 }
 
 void SocketSystem::SetOffsetMat(Handle handle, const _float4x4& mat)
 {
-	if (auto socket = Get(handle))
-	{
-		socket->offsetMat   = mat;
-		socket->offsetDirty = false;
-	}
+    auto socket = Get(handle);
+	socket->offsetMat   = mat;
+	socket->offsetDirty = false;
 }
 
 void SocketSystem::SetOffsetPos(Handle handle, _float3 pos)
 {
-	if (auto socket = Get(handle))
-	{
-		socket->offsetPos   = pos;
-		socket->offsetDirty = true;
-	}
+    auto socket = Get(handle);
+	socket->offsetPos   = pos;
+	socket->offsetDirty = true;
 }
 
 void SocketSystem::SetOffsetRot(Handle handle, _float3 euler)
 {
-	if (auto socket = Get(handle))
-	{
-		socket->offsetRot   = euler;
-		socket->offsetDirty = true;
-	}
+    auto socket = Get(handle);
+	socket->offsetRot   = euler;
+	socket->offsetDirty = true;
+}
+
+void SocketSystem::SetPosOnly(Handle handle, bool posOnly)
+{
+    auto socket = Get(handle);
+    socket->posOnly = posOnly;
+    socket->offsetDirty = true;
 }
 
 void SocketSystem::Update(float dt)
 {
-	auto& animSys = registry.Get<AnimatorSystem>();
-	auto& tfSys   = registry.Get<TransformSystem>();
+    ForEachAliveEx([&](Handle handle, EntityID owner, SocketData& socket)
+        {
+            if (socket.offsetDirty)
+                RebuildOffset(socket);
 
-	ForEachAliveEx([&](Handle handle, EntityID owner, SocketData& socket)
-		{
-			if (socket.offsetDirty) RebuildOffset(socket);
+            const _float4x4* pBoneWorld = animator->GetBoneWorld(socket.parentAnim, socket.boneIdx);
+            const _float4x4* pParentWorld = tfSys->GetWorld(socket.parentTf);
 
-			const _float4x4* pBoneWorld = animSys.GetBoneWorld(socket.parentAnim, socket.boneIdx);
-			if (!pBoneWorld) return;
-
-            const _float4x4* pParentWorld = tfSys.GetWorld(socket.parentTf);
-            if (!pParentWorld) return;
-
-			const _mat boneWorld   = XMLoadFloat4x4(pBoneWorld);
+            const _mat boneWorld = XMLoadFloat4x4(pBoneWorld);
             const _mat parentWorld = XMLoadFloat4x4(pParentWorld);
-			const _mat offset      = XMLoadFloat4x4(&socket.offsetMat);
+            const _mat offset = XMLoadFloat4x4(&socket.offsetMat);
 
             const bool removeScale = true;
-            const _mat boneMat     = removeScale ? Utility::RemoveScaleKeepRotTrans(boneWorld) : boneWorld;
-            
-            const _float3 vScale = tfSys.GetScale(socket.childTf);
-            const _mat mScale    = XMMatrixScaling(vScale.x, vScale.y, vScale.z);
+            const _mat boneMat = removeScale ? Utility::RemoveScaleKeepRotTrans(boneWorld) : boneWorld;
 
-            const _mat world = mScale * offset * boneMat * parentWorld;
-			tfSys.SetWorld(socket.childTf, world);
-		});
+            const _float3 vScale = tfSys->GetScale(socket.childTf);
+            const _mat mScale = XMMatrixScaling(vScale.x, vScale.y, vScale.z);
+
+            _mat world = mScale * offset * boneMat * parentWorld;
+
+            if (socket.posOnly)
+            {
+                _float4x4 tmp{};
+                XMStoreFloat4x4(&tmp, world);
+
+                const _mat trans = XMMatrixTranslation(tmp._41, tmp._42, tmp._43);
+                world = trans;
+            }
+
+            tfSys->SetWorld(socket.childTf, world);
+        });
 }
 
 void SocketSystem::RebuildOffset(SocketData& socket) const
 {
-	const _mat trans = XMMatrixTranslation(socket.offsetPos.x, socket.offsetPos.y, socket.offsetPos.z);
-	const _mat rot = XMMatrixRotationRollPitchYaw(XMConvertToRadians(socket.offsetRot.x),
-		                                          XMConvertToRadians(socket.offsetRot.y),
-		                                          XMConvertToRadians(socket.offsetRot.z));
-	XMStoreFloat4x4(&socket.offsetMat, rot * trans);
-	socket.offsetDirty = false;
+    const _mat trans = XMMatrixTranslation(socket.offsetPos.x, socket.offsetPos.y, socket.offsetPos.z);
+
+    if (socket.posOnly)
+        XMStoreFloat4x4(&socket.offsetMat, trans);
+    else
+    {
+        const _mat rot = XMMatrixRotationRollPitchYaw(
+            XMConvertToRadians(socket.offsetRot.x),
+            XMConvertToRadians(socket.offsetRot.y),
+            XMConvertToRadians(socket.offsetRot.z));
+        XMStoreFloat4x4(&socket.offsetMat, rot * trans);
+    }
+
+    socket.offsetDirty = false;
 }
 
 void SocketSystem::RenderGui(EntityID id)
 {
 #ifdef USE_IMGUI
-	auto& animSys = registry.Get<AnimatorSystem>();
-	auto& tfSys   = registry.Get<TransformSystem>();
-
 	struct NameBuffer { char text[128] = {}; };
 	static unordered_map<_uint, NameBuffer> nameBuffers;
 
@@ -128,7 +140,7 @@ void SocketSystem::RenderGui(EntityID id)
                     if (ImGui::SmallButton("Find & Set"))
                     {
                         const string boneName(nb.text);
-                        const _uint foundIdx = animSys.GetBoneIdxByName(socket.parentAnim, boneName);
+                        const _uint foundIdx = animator->GetBoneIdxByName(socket.parentAnim, boneName);
                         if (foundIdx != (_uint)-1)
                             socket.boneIdx = foundIdx;
                         else
@@ -186,14 +198,14 @@ void SocketSystem::RenderGui(EntityID id)
                 ImGui::SameLine();
                 if (ImGui::SmallButton("Capture Offset From Current"))
                 {
-                    const _float4x4* pChildWorld = tfSys.GetWorld(socket.childTf);
-                    const _float4x4* pBoneWorld  = animSys.GetBoneWorld(socket.parentAnim, socket.boneIdx);
+                    const _float4x4* pChildWorld = tfSys->GetWorld(socket.childTf);
+                    const _float4x4* pBoneWorld  = animator->GetBoneWorld(socket.parentAnim, socket.boneIdx);
                     if (pChildWorld && pBoneWorld)
                     {
                         const _mat mWorld     = XMLoadFloat4x4(pChildWorld);
                         const _mat mBoneWorld = XMLoadFloat4x4(pBoneWorld);
 
-                        const _float3 scale = tfSys.GetScale(socket.childTf);
+                        const _float3 scale = tfSys->GetScale(socket.childTf);
                         const _mat mInvScale = XMMatrixScaling(
                             (fabsf(scale.x) > 1e-6f) ? 1.f / scale.x : 0.f,
                             (fabsf(scale.y) > 1e-6f) ? 1.f / scale.y : 0.f,

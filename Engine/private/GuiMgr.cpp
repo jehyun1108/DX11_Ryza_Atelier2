@@ -50,6 +50,9 @@ void GuiMgr::Init()
 	// --------------- Panel  --------------------------
 	AddPanel<HierachyPanel>("Hierarchy");
 	AddPanel<InspectorPanel>("Inspector");
+#ifdef USE_MAPTOOL
+
+#endif
 	AddPanel<FpsPanel>("FPS");
 #endif
 }
@@ -129,8 +132,15 @@ void GuiMgr::Render()
 
 		ImGui::DockBuilderDockWindow("Hierarchy", dock_left);
 		ImGui::DockBuilderDockWindow("Inspector", dock_right);
+#ifdef USE_EFFECTTOOL
+		ImGui::DockBuilderDockWindow("EffectTool", dock_right);
+		ImGui::DockBuilderDockWindow("Inspector", dock_bottom);
+#endif
+#ifdef USE_MAPTOOL
+		ImGui::DockBuilderDockWindow("Inspector", dock_right);
 		ImGui::DockBuilderDockWindow("Importer", dock_bottom);
 		ImGui::DockBuilderDockWindow("MapTool", dock_bottom);
+#endif
 		ImGui::DockBuilderDockWindow("FPS", dock_top_right);
 
 		// 탭바 숨김(필요한 곳만)
@@ -150,12 +160,12 @@ void GuiMgr::Render()
 	ImGui::End();
 
 	ImGui::Render();
-	// FLIP_DISCARD 사용시, 백버퍼 RTV를 다시 바인딩
-	{
-		ID3D11RenderTargetView* rtv = GAME.GetBackBufferRTV();
-		ID3D11DepthStencilView* dsv = GAME.GetDSV();
-		DC->OMSetRenderTargets(1, &rtv, dsv);
-	}
+	//// FLIP_DISCARD 사용시, 백버퍼 RTV를 다시 바인딩
+	//{
+	//	ID3D11RenderTargetView* rtv = GAME.GetBackBufferRTV();
+	//	ID3D11DepthStencilView* dsv = GAME.GetDSV();
+	//	DC->OMSetRenderTargets(1, &rtv, dsv);
+	//}
 
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 

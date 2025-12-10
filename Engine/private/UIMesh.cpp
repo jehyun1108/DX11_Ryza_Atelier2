@@ -1,4 +1,5 @@
 #include "Enginepch.h"
+#include "EffectSystem.h"
 
 inline static bool IsSameScissor(const UIDrawItem& a, const UIDrawItem& b)
 {
@@ -14,7 +15,6 @@ HRESULT UIMesh::Create(ID3D11Device* device, size_t maxQuads)
 {
     Destroy();
     this->maxQuads = maxQuads; 
-
     {
         D3D11_BUFFER_DESC vb{};
         vb.ByteWidth      = static_cast<UINT>(sizeof(UIVertex) * 4 * maxQuads);
@@ -23,7 +23,6 @@ HRESULT UIMesh::Create(ID3D11Device* device, size_t maxQuads)
         vb.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         HR(device->CreateBuffer(&vb, nullptr, vbDynamic.GetAddressOf()));
     }
-
     {
         vector<uint16_t> indices(6 * maxQuads);
         for (size_t quadIndex = 0; quadIndex < maxQuads; ++quadIndex)
@@ -46,10 +45,9 @@ HRESULT UIMesh::Create(ID3D11Device* device, size_t maxQuads)
 
         D3D11_SUBRESOURCE_DATA sd{};
         sd.pSysMem = indices.data();
-
         HR(device->CreateBuffer(&ib, &sd, ibStatic.GetAddressOf()));
+        assert(ibStatic);
     }
-
     return S_OK;
 }
 
@@ -60,10 +58,9 @@ void UIMesh::Destroy()
     maxQuads = 0;
 }
 
-void UIMesh::Bind(ID3D11DeviceContext* context, Shader& uiShader, CBuffer& uiCBuffer, const UICB& uiCB)
+void UIMesh::Bind(ID3D11DeviceContext* context, CBuffer& uiCBuffer, const UICB& uiCB)
 {
-    uiShader.Bind(context);
-    uiCBuffer.UpdateAndBind(uiCB, SHADER::VS, CBUFFERSLOT::UI);
+    uiCBuffer.UpdateAndBind(uiCB, SHADER::VS | SHADER::PS, CBUFFERSLOT::UI);
 
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -78,13 +75,10 @@ void UIMesh::Draw(ID3D11DeviceContext* context, const vector<UIDrawItem>& items,
 {
     if (items.empty()) return;
 
-    // 정렬: zOrder → texKey → scissor (상태 변경 최소화)
     vector<const UIDrawItem*> sorted(items.size());
-    for (size_t i = 0; i < items.size(); ++i)
-        sorted[i] = &items[i];
+    for (size_t i = 0; i < items.size(); ++i) sorted[i] = &items[i];
 
-    sort(sorted.begin(), sorted.end(),
-        [](const UIDrawItem* a, const UIDrawItem* b)
+    sort(sorted.begin(), sorted.end(), [](const UIDrawItem* a, const UIDrawItem* b)
         {
             if (a->zOrder != b->zOrder) return a->zOrder < b->zOrder;
             if (a->texKey != b->texKey) return a->texKey < b->texKey;
@@ -108,55 +102,165 @@ void UIMesh::Draw(ID3D11DeviceContext* context, const vector<UIDrawItem>& items,
 
 size_t UIMesh::FillVB(ID3D11DeviceContext* context, const vector<const UIDrawItem*>& sorted, size_t quadCount)
 {
+    assert(quadCount <= maxQuads);
+
     D3D11_MAPPED_SUBRESOURCE mapped{};
     HR(context->Map(vbDynamic.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped));
+    auto* dst = reinterpret_cast<UIVertex*>(mapped.pData);
 
-    auto* vertexDst = reinterpret_cast<UIVertex*>(mapped.pData);
-
-    // UV는 항상 0~1 (전체 텍스처)
-    constexpr float u0 = 0.f, v0 = 0.f, u1 = 1.f, v1 = 1.f;
-
-    for (size_t quadIndex = 0; quadIndex < quadCount; ++quadIndex)
+    for (size_t i = 0; i < quadCount; ++i)
     {
-        const UIDrawItem& item = *sorted[quadIndex];
+        const UIDrawItem& it = *sorted[i];
 
-        const float left = item.dstRect.x;
-        const float top = item.dstRect.y;
-        const float right = item.dstRect.x + item.dstRect.width;
-        const float bottom = item.dstRect.y + item.dstRect.height;
+        const float x = it.dstRect.x;
+        const float y = it.dstRect.y;
+        const float w = it.dstRect.width;
+        const float h = it.dstRect.height;
 
-        // CCW 사각형(두 개의 삼각형)
-        vertexDst[0] = { left,  top,    u0, v0 };
-        vertexDst[1] = { right, top,    u1, v0 };
-        vertexDst[2] = { right, bottom, u1, v1 };
-        vertexDst[3] = { left,  bottom, u0, v1 };
+        const float px = x + it.pivotNX * w;
+        const float py = y + it.pivotNY * h;
 
-        vertexDst += 4;
+        const float rad = it.rotDeg * 0.01745329251994329577f;
+        const float c = cosf(rad);
+        const float s = sinf(rad);
+
+        float x0 = x;       float y0 = y;
+        float x1 = x + w;   float y1 = y;
+        float x2 = x + w;   float y2 = y + h;
+        float x3 = x;       float y3 = y + h;
+
+        auto rot = [&](float ox, float oy) -> pair<float, float>
+            {
+                const float dx = ox - px;
+                const float dy = oy - py;
+                return { px + dx * c - dy * s, py + dx * s + dy * c };
+            };
+
+        auto [rx0, ry0] = rot(x0, y0);
+        auto [rx1, ry1] = rot(x1, y1);
+        auto [rx2, ry2] = rot(x2, y2);
+        auto [rx3, ry3] = rot(x3, y3);
+
+        float uLeft  = it.srcU0;
+        float uRight = it.srcU1;
+        float vTop   = it.srcV0;
+        float vBot   = it.srcV1;
+
+        float u00 = uLeft,  v00 = vTop; // LT
+        float u10 = uRight, v10 = vTop; // RT
+        float u11 = uRight, v11 = vBot; // RB
+        float u01 = uLeft,  v01 = vBot; // LB
+
+        switch (it.flipMode)
+        {
+        case UIFlipMode::None:   break;
+        case UIFlipMode::FlipX:  swap(u00, u10); swap(u01, u11); break;
+        case UIFlipMode::FlipY:  swap(v00, v01); swap(v10, v11); break;
+        case UIFlipMode::FlipXY: swap(u00, u10); swap(u01, u11); swap(v00, v01); swap(v10, v11); break;
+        }
+
+        const float fillX = it.fillRatioX;
+        const float fillY = it.fillRatioY;
+        const float fillMode = (it.fillMode == UIFillMode::RingCW) ? 1.f : 0.f;
+        const float alpha = it.alpha;
+        const float mask = (it.maskType == UIMaskType::Circle) ? 1.f : 0.f;
+        const _float4 color = it.color;
+
+        // v0 (LT)
+        dst[0].posX     = rx0;
+        dst[0].posY     = ry0;
+        dst[0].uvX      = u00;
+        dst[0].uvY      = v00;
+        dst[0].fillX    = fillX;
+        dst[0].fillY    = fillY;
+        dst[0].mode     = fillMode;
+        dst[0].alpha    = alpha;
+        dst[0].maskType = mask;
+        dst[0].color    = color;
+
+        // v1 (RT)
+        dst[1].posX     = rx1;
+        dst[1].posY     = ry1;
+        dst[1].uvX      = u10;
+        dst[1].uvY      = v10;
+        dst[1].fillX    = fillX;
+        dst[1].fillY    = fillY;
+        dst[1].mode     = fillMode;
+        dst[1].alpha    = alpha;
+        dst[1].maskType = mask;
+        dst[1].color    = color;
+        // v2 (RB)
+        dst[2].posX     = rx2;
+        dst[2].posY     = ry2;
+        dst[2].uvX      = u11;
+        dst[2].uvY      = v11;
+        dst[2].fillX    = fillX;
+        dst[2].fillY    = fillY;
+        dst[2].mode     = fillMode;
+        dst[2].alpha    = alpha;
+        dst[2].maskType = mask;
+        dst[2].color    = color;
+        // v3 (LB)
+        dst[3].posX     = rx3;
+        dst[3].posY     = ry3;
+        dst[3].uvX      = u01;
+        dst[3].uvY      = v01;
+        dst[3].fillX    = fillX;
+        dst[3].fillY    = fillY;
+        dst[3].mode     = fillMode;
+        dst[3].alpha    = alpha;
+        dst[3].maskType = mask;
+        dst[3].color    = color;
+
+        dst += 4;
     }
 
     context->Unmap(vbDynamic.Get(), 0);
     return quadCount;
 }
-
 void UIMesh::IssueBatches(ID3D11DeviceContext* context, const vector<const UIDrawItem*>& sorted, ResolveTexture resolveTexture, size_t quadCount)
 {
-    size_t runStart = 0;
+    assert(quadCount <= maxQuads);
+    assert(quadCount <= sorted.size());
 
+    size_t runStart = 0;
     bool   scissorActive = false;
     UIRect curScissor{};
 
-    auto ApplyScissorIfNeeded = [&](const UIDrawItem& item)
-        {
-            if (!item.useScissor) return;
-            if (!scissorActive || !IsSameScissor(item, UIDrawItem{ .useScissor = true, .scissorRect = curScissor }))
-            {
-                const LONG left = static_cast<LONG>(floor(item.scissorRect.x));
-                const LONG top = static_cast<LONG>(floor(item.scissorRect.y));
-                const LONG right = static_cast<LONG>(ceil(item.scissorRect.x + item.scissorRect.width));
-                const LONG bottom = static_cast<LONG>(ceil(item.scissorRect.y + item.scissorRect.height));
-                const D3D11_RECT rect = { left, top, right, bottom };
-                context->RSSetScissorRects(1, &rect);
+    D3D11_VIEWPORT vp{};
+    UINT numVP = 1;
+    context->RSGetViewports(&numVP, &vp);
+    const D3D11_RECT fullRect = { 0, 0, (LONG)vp.Width, (LONG)vp.Height };
 
+    auto SetFullScissor = [&]()
+        {
+            context->RSSetScissorRects(1, &fullRect);
+            scissorActive = false;
+        };
+
+    auto ApplyScissor = [&](const UIDrawItem& item)
+        {
+            if (!item.useScissor)
+            {
+                if (scissorActive)
+                    SetFullScissor();
+                return;
+            }
+
+            if (!scissorActive ||
+                curScissor.x != item.scissorRect.x ||
+                curScissor.y != item.scissorRect.y ||
+                curScissor.width != item.scissorRect.width ||
+                curScissor.height != item.scissorRect.height)
+            {
+                const D3D11_RECT rect =
+                {
+                    (LONG)floor(item.scissorRect.x),
+                    (LONG)floor(item.scissorRect.y),
+                    (LONG)ceil(item.scissorRect.x + item.scissorRect.width),
+                    (LONG)ceil(item.scissorRect.y + item.scissorRect.height)
+                };
+                context->RSSetScissorRects(1, &rect);
                 scissorActive = true;
                 curScissor = item.scissorRect;
             }
@@ -165,12 +269,11 @@ void UIMesh::IssueBatches(ID3D11DeviceContext* context, const vector<const UIDra
     while (runStart < quadCount)
     {
         const UIDrawItem& first = *sorted[runStart];
-        const Texture* texture = resolveTexture(first.texKey);
-        assert(texture && "Texture missing!");
+        ID3D11ShaderResourceView* srv = resolveTexture(first.texKey);
+        assert(srv && "srv missing");
 
-        ApplyScissorIfNeeded(first);
+        ApplyScissor(first);
 
-        // 같은 텍스처 + 같은 시저를 하나의 드로우로 묶기
         size_t runEnd = runStart + 1;
         while (runEnd < quadCount)
         {
@@ -180,7 +283,6 @@ void UIMesh::IssueBatches(ID3D11DeviceContext* context, const vector<const UIDra
             ++runEnd;
         }
 
-        ID3D11ShaderResourceView* srv = texture->GetSrv();
         context->PSSetShaderResources(0, 1, &srv);
 
         const UINT indexCount = static_cast<UINT>((runEnd - runStart) * 6);
@@ -192,4 +294,7 @@ void UIMesh::IssueBatches(ID3D11DeviceContext* context, const vector<const UIDra
 
         runStart = runEnd;
     }
+
+    if (scissorActive)
+        SetFullScissor();
 }

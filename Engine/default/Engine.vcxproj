@@ -119,11 +119,12 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <ExceptionHandling>Sync</ExceptionHandling>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxguid.lib;DirectXTKd.lib;DirectXTexd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxguid.lib;DirectXTKd.lib;DirectXTexd.lib;fmod_vc.lib;fmodstudio_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../ThirdPartyLib/</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -160,11 +161,12 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <ExceptionHandling>false</ExceptionHandling>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxguid.lib;DirectXTK.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxguid.lib;DirectXTK.lib;DirectXTex.lib;fmodL_vc.lib;fmodstudioL_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../ThirdPartyLib/</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -187,6 +189,10 @@
   <ItemGroup>
     <ClInclude Include="..\public\ActionAnimData.h" />
     <ClInclude Include="..\public\ActionAnimRegistry.h" />
+    <ClInclude Include="..\public\ActionCamData.h" />
+    <ClInclude Include="..\public\ActionCamRegistry.h" />
+    <ClInclude Include="..\public\ActionFxData.h" />
+    <ClInclude Include="..\public\ActionFxRegistry.h" />
     <ClInclude Include="..\public\AnimatorSystem.h" />
     <ClInclude Include="..\public\AnimData.h" />
     <ClInclude Include="..\public\AnimDataSystem.h" />
@@ -195,38 +201,67 @@
     <ClInclude Include="..\public\AssetSystem.h" />
     <ClInclude Include="..\public\BattleAIControllerSystem.h" />
     <ClInclude Include="..\public\BattleAIData.h" />
+    <ClInclude Include="..\public\BattleAttributeData.h" />
+    <ClInclude Include="..\public\BattleAttributeSystem.h" />
+    <ClInclude Include="..\public\BattleBoardData.h" />
+    <ClInclude Include="..\public\BattleBoardPresenter.h" />
     <ClInclude Include="..\public\BattleCamera_Enum.h" />
     <ClInclude Include="..\public\BattleCameraDirector.h" />
     <ClInclude Include="..\public\BattleCamera_Struct.h" />
+    <ClInclude Include="..\public\BattleRewardPresenter.h" />
     <ClInclude Include="..\public\BattleControllerData.h" />
     <ClInclude Include="..\public\BattleControllerSystem.h" />
+    <ClInclude Include="..\public\BattleDamageData.h" />
+    <ClInclude Include="..\public\BattleDamagePresenter.h" />
     <ClInclude Include="..\public\BattleData.h" />
     <ClInclude Include="..\public\BattleEventBus.h" />
     <ClInclude Include="..\public\BattleEventBusData.h" />
     <ClInclude Include="..\public\BattleExecutionData.h" />
     <ClInclude Include="..\public\BattleExecutionSystem.h" />
+    <ClInclude Include="..\public\BattleFatalDriveData.h" />
+    <ClInclude Include="..\public\BattleFatalDrivePresenter.h" />
     <ClInclude Include="..\public\BattleFormationData.h" />
     <ClInclude Include="..\public\BattleFormationSystem.h" />
+    <ClInclude Include="..\public\BattleHUDPresenter.h" />
+    <ClInclude Include="..\public\BattleHUDPresenterData.h" />
     <ClInclude Include="..\public\BattleIntroSystem.h" />
     <ClInclude Include="..\public\BattleIntroData.h" />
+    <ClInclude Include="..\public\BattleMinimapPresenter.h" />
     <ClInclude Include="..\public\BattleOrchestraData.h" />
     <ClInclude Include="..\public\BattleOrchestraSystem.h" />
     <ClInclude Include="..\public\BattleSessionData.h" />
     <ClInclude Include="..\public\BattleSessionSystem.h" />
+    <ClInclude Include="..\public\BattleTacticData.h" />
+    <ClInclude Include="..\public\BattleTacticSystem.h" />
     <ClInclude Include="..\public\BattleTargetData.h" />
+    <ClInclude Include="..\public\BattleTargetHUDData.h" />
+    <ClInclude Include="..\public\BattleTargetHUDPresenter.h" />
     <ClInclude Include="..\public\BattleTargetSystem.h" />
     <ClInclude Include="..\public\BattleTimelineData.h" />
     <ClInclude Include="..\public\BattleTimelineSystem.h" />
     <ClInclude Include="..\public\BattleUIOrchestrator.h" />
     <ClInclude Include="..\public\BinaryUtil.h" />
+    <ClInclude Include="..\public\CamBinaryData.h" />
     <ClInclude Include="..\public\CamRegistryData.h" />
     <ClInclude Include="..\public\CamRegistry.h" />
+    <ClInclude Include="..\public\CamSerializer.h" />
+    <ClInclude Include="..\public\CBufferBank.h" />
     <ClInclude Include="..\public\CBufferTypes.h" />
     <ClInclude Include="..\public\CharaAnimData.h" />
     <ClInclude Include="..\public\CharacterData.h" />
     <ClInclude Include="..\public\CharacterDataSystem.h" />
     <ClInclude Include="..\public\CollisionData.h" />
     <ClInclude Include="..\public\CollisionSystem.h" />
+    <ClInclude Include="..\public\CorePch.h" />
+    <ClInclude Include="..\public\DebugUtility.h" />
+    <ClInclude Include="..\public\Device.h" />
+    <ClInclude Include="..\public\DeviceOptions.h" />
+    <ClInclude Include="..\public\DressingRoomData.h" />
+    <ClInclude Include="..\public\DressingRoomPresenter.h" />
+    <ClInclude Include="..\public\EffectData.h" />
+    <ClInclude Include="..\public\EffectSerializer.h" />
+    <ClInclude Include="..\public\EffectSystem.h" />
+    <ClInclude Include="..\public\EffectUtility.h" />
     <ClInclude Include="..\public\EngineSystems.h" />
     <ClInclude Include="..\public\FacingBlockData.h" />
     <ClInclude Include="..\public\FacingBlockService.h" />
@@ -235,22 +270,45 @@
     <ClInclude Include="..\public\FacingSystem.h" />
     <ClInclude Include="..\public\FieldAnimData.h" />
     <ClInclude Include="..\public\FieldAnimSystem.h" />
+    <ClInclude Include="..\public\FieldMinimapData.h" />
+    <ClInclude Include="..\public\FieldMinimapPresenter.h" />
     <ClInclude Include="..\public\FieldOrchestraSystem.h" />
     <ClInclude Include="..\public\FieldUIOrchestrator.h" />
+    <ClInclude Include="..\public\FontData.h" />
+    <ClInclude Include="..\public\FontLoader.h" />
+    <ClInclude Include="..\public\FontSystem.h" />
+    <ClInclude Include="..\public\FpsPanel.h" />
+    <ClInclude Include="..\public\GameInstance.h" />
     <ClInclude Include="..\public\GameModeDirectorSystem.h" />
+    <ClInclude Include="..\public\GBufferData.h" />
     <ClInclude Include="..\public\GpuUtil.h" />
     <ClInclude Include="..\public\GridData.h" />
     <ClInclude Include="..\public\GridSystem.h" />
+    <ClInclude Include="..\public\GuiMgr.h" />
+    <ClInclude Include="..\public\GuiPanel.h" />
     <ClInclude Include="..\public\GuiUtil.h" />
     <ClInclude Include="..\public\GuiUtility.h" />
+    <ClInclude Include="..\public\HierachyPanel.h" />
     <ClInclude Include="..\public\HighlightData.h" />
     <ClInclude Include="..\public\HighlightSystem.h" />
-    <ClInclude Include="..\public\ICamTrack.h" />
+    <ClInclude Include="..\public\imconfig.h" />
+    <ClInclude Include="..\public\imgui.h" />
+    <ClInclude Include="..\public\ImGuiPrettyTheme.h" />
+    <ClInclude Include="..\public\imgui_impl_dx11.h" />
+    <ClInclude Include="..\public\imgui_impl_win32.h" />
+    <ClInclude Include="..\public\imgui_internal.h" />
     <ClInclude Include="..\public\IModeOrchestra.h" />
+    <ClInclude Include="..\public\imstb_rectpack.h" />
+    <ClInclude Include="..\public\imstb_textedit.h" />
+    <ClInclude Include="..\public\imstb_truetype.h" />
     <ClInclude Include="..\public\InputLayoutUtil.h" />
+    <ClInclude Include="..\public\InputMgr.h" />
+    <ClInclude Include="..\public\InputPresenterData.h" />
     <ClInclude Include="..\public\InputRouting.h" />
     <ClInclude Include="..\public\InputGate.h" />
     <ClInclude Include="..\public\InputService.h" />
+    <ClInclude Include="..\public\InputUtil.h" />
+    <ClInclude Include="..\public\InspectorPanel.h" />
     <ClInclude Include="..\public\IntentCollector.h" />
     <ClInclude Include="..\public\IntentMerger.h" />
     <ClInclude Include="..\public\IReservable.h" />
@@ -258,6 +316,11 @@
     <ClInclude Include="..\public\JsonUtil.h" />
     <ClInclude Include="..\public\JumpData.h" />
     <ClInclude Include="..\public\JumpSystem.h" />
+    <ClInclude Include="..\public\LoadingPresenter.h" />
+    <ClInclude Include="..\public\LogoMenuData.h" />
+    <ClInclude Include="..\public\LogoMenuPresenter.h" />
+    <ClInclude Include="..\public\LogoOrchestraSystem.h" />
+    <ClInclude Include="..\public\LogoUIOrchestrator.h" />
     <ClInclude Include="..\public\MaterialUtil.h" />
     <ClInclude Include="..\public\MeshColliderData.h" />
     <ClInclude Include="..\public\MeshColliderSystem.h" />
@@ -273,13 +336,26 @@
     <ClInclude Include="..\public\NavMeshSystem.h" />
     <ClInclude Include="..\public\OrbitCamSystem.h" />
     <ClInclude Include="..\public\OrbitCamData.h" />
+    <ClInclude Include="..\public\ParticleData.h" />
+    <ClInclude Include="..\public\ParticleMesh.h" />
+    <ClInclude Include="..\public\ParticleMeshData.h" />
+    <ClInclude Include="..\public\ParticleSystem.h" />
     <ClInclude Include="..\public\PickingData.h" />
     <ClInclude Include="..\public\PickingSystem.h" />
     <ClInclude Include="..\public\FieldControllerSystem.h" />
     <ClInclude Include="..\public\FieldControllerData.h" />
+    <ClInclude Include="..\public\PlayerInputPresenter.h" />
+    <ClInclude Include="..\public\RendererData.h" />
     <ClInclude Include="..\public\RenderProxies.h" />
     <ClInclude Include="..\public\RenderSystem.h" />
     <ClInclude Include="..\public\RenderSystemData.h" />
+    <ClInclude Include="..\public\RenderTargetMinimap.h" />
+    <ClInclude Include="..\public\RenderTargetMinimapData.h" />
+    <ClInclude Include="..\public\RenderTargetSystem.h" />
+    <ClInclude Include="..\public\RingCBAllocator.h" />
+    <ClInclude Include="..\public\ScreenDistortionData.h" />
+    <ClInclude Include="..\public\ScreenDistortionSystem.h" />
+    <ClInclude Include="..\public\ScreenFadeSystem.h" />
     <ClInclude Include="..\public\SelectionData.h" />
     <ClInclude Include="..\public\SelectionSystem.h" />
     <ClInclude Include="..\public\ShaderUtil.h" />
@@ -287,8 +363,6 @@
     <ClInclude Include="..\public\CameraData.h" />
     <ClInclude Include="..\public\CameraSystem.h" />
     <ClInclude Include="..\public\CBuffer.h" />
-    <ClInclude Include="..\public\Device.h" />
-    <ClInclude Include="..\public\DeviceOptions.h" />
     <ClInclude Include="..\public\Engine_Colors.h" />
     <ClInclude Include="..\public\Engine_InputLayout.h" />
     <ClInclude Include="..\public\Entity.h" />
@@ -298,31 +372,14 @@
     <ClInclude Include="..\public\EntitySystem.h" />
     <ClInclude Include="..\public\FaceData.h" />
     <ClInclude Include="..\public\FaceSystem.h" />
-    <ClInclude Include="..\public\FpsPanel.h" />
     <ClInclude Include="..\public\FreeCamData.h" />
     <ClInclude Include="..\public\FreeCamSystem.h" />
-    <ClInclude Include="..\public\GameInstance.h" />
     <ClInclude Include="..\public\Enginepch.h" />
     <ClInclude Include="..\public\Engine_Enum.h" />
     <ClInclude Include="..\public\Engine_Macro.h" />
     <ClInclude Include="..\public\Engine_Struct.h" />
     <ClInclude Include="..\public\Engine_Typedef.h" />
-    <ClInclude Include="..\public\GuiMgr.h" />
-    <ClInclude Include="..\public\GuiPanel.h" />
-    <ClInclude Include="..\public\HierachyPanel.h" />
     <ClInclude Include="..\public\IGuiRenderable.h" />
-    <ClInclude Include="..\public\imconfig.h" />
-    <ClInclude Include="..\public\imgui.h" />
-    <ClInclude Include="..\public\ImGuiPrettyTheme.h" />
-    <ClInclude Include="..\public\imgui_impl_dx11.h" />
-    <ClInclude Include="..\public\imgui_impl_win32.h" />
-    <ClInclude Include="..\public\imgui_internal.h" />
-    <ClInclude Include="..\public\imstb_rectpack.h" />
-    <ClInclude Include="..\public\imstb_textedit.h" />
-    <ClInclude Include="..\public\imstb_truetype.h" />
-    <ClInclude Include="..\public\InputMgr.h" />
-    <ClInclude Include="..\public\InputUtil.h" />
-    <ClInclude Include="..\public\InspectorPanel.h" />
     <ClInclude Include="..\public\IOwnsEntities.h" />
     <ClInclude Include="..\public\LayerData.h" />
     <ClInclude Include="..\public\LayerSystem.h" />
@@ -350,14 +407,24 @@
     <ClInclude Include="..\public\BattleTimelinePresenter.h" />
     <ClInclude Include="..\public\SocketData.h" />
     <ClInclude Include="..\public\SocketSystem.h" />
+    <ClInclude Include="..\public\SoundData.h" />
+    <ClInclude Include="..\public\SoundRegistry.h" />
+    <ClInclude Include="..\public\SoundSystem.h" />
+    <ClInclude Include="..\public\StructuredBoneAllocator.h" />
     <ClInclude Include="..\public\SystemRegistry.h" />
     <ClInclude Include="..\public\TagSystem.h" />
     <ClInclude Include="..\public\TagUtil.h" />
+    <ClInclude Include="..\public\TextLayoutData.h" />
+    <ClInclude Include="..\public\TextLayoutSystem.h" />
     <ClInclude Include="..\public\Texture.h" />
     <ClInclude Include="..\public\TextureUtil.h" />
     <ClInclude Include="..\public\TimelinePresenterData.h" />
     <ClInclude Include="..\public\TimeMgr.h" />
     <ClInclude Include="..\public\Timer.h" />
+    <ClInclude Include="..\public\TrailData.h" />
+    <ClInclude Include="..\public\TrailMesh.h" />
+    <ClInclude Include="..\public\TrailMeshData.h" />
+    <ClInclude Include="..\public\TrailSystem.h" />
     <ClInclude Include="..\public\TransformData.h" />
     <ClInclude Include="..\public\InputLayoutBuilder.h" />
     <ClInclude Include="..\public\TransformSystem.h" />
@@ -366,29 +433,44 @@
     <ClInclude Include="..\public\UIData_Enum.h" />
     <ClInclude Include="..\public\UIData_Struct.h" />
     <ClInclude Include="..\public\UIMesh.h" />
+    <ClInclude Include="..\public\UIMinimapDatah.h" />
+    <ClInclude Include="..\public\UIMinimapSystem.h" />
     <ClInclude Include="..\public\UIRegistry.h" />
     <ClInclude Include="..\public\UIRegistryData.h" />
     <ClInclude Include="..\public\UISystem.h" />
     <ClInclude Include="..\public\Utility.h" />
     <ClInclude Include="..\public\WorldInstanceData.h" />
+    <ClInclude Include="..\public\WorldMapData.h" />
+    <ClInclude Include="..\public\WorldMapPresenter.h" />
     <ClInclude Include="..\public\WorldSerializer.h" />
     <ClInclude Include="..\public\FacingForceData.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\ActionAnimRegistry.cpp" />
+    <ClCompile Include="..\private\ActionCamRegistry.cpp" />
+    <ClCompile Include="..\private\ActionFxRegistry.cpp" />
     <ClCompile Include="..\private\AnimatorSystem.cpp" />
     <ClCompile Include="..\private\AnimDataSystem.cpp" />
     <ClCompile Include="..\private\AssetSystem.cpp" />
     <ClCompile Include="..\private\BattleAIControllerSystem.cpp" />
+    <ClCompile Include="..\private\BattleAttributeSystem.cpp" />
+    <ClCompile Include="..\private\BattleBoardPresenter.cpp" />
     <ClCompile Include="..\private\BattleCameraDirector.cpp" />
+    <ClCompile Include="..\private\BattleRewardPresenter.cpp" />
     <ClCompile Include="..\private\BattleControllerSystem.cpp" />
+    <ClCompile Include="..\private\BattleDamagePresenter.cpp" />
     <ClCompile Include="..\private\BattleEventBus.cpp" />
     <ClCompile Include="..\private\BattleExecutionSystem.cpp" />
+    <ClCompile Include="..\private\BattleFatalDrivePresenter.cpp" />
     <ClCompile Include="..\private\BattleFormationSystem.cpp" />
+    <ClCompile Include="..\private\BattleHUDPresenter.cpp" />
     <ClCompile Include="..\private\BattleIntroSystem.cpp" />
+    <ClCompile Include="..\private\BattleMinimapPresenter.cpp" />
     <ClCompile Include="..\private\BattleOrchestraSystem.cpp" />
     <ClCompile Include="..\private\BattleSessionSystem.cpp" />
+    <ClCompile Include="..\private\BattleTacticSystem.cpp" />
+    <ClCompile Include="..\private\BattleTargetHUDPresenter.cpp" />
     <ClCompile Include="..\private\BattleTargetSystem.cpp" />
     <ClCompile Include="..\private\BattleTimelineSystem.cpp" />
     <ClCompile Include="..\private\BattleUIOrchestrator.cpp" />
@@ -396,10 +478,17 @@
     <ClCompile Include="..\private\Bone.cpp" />
     <ClCompile Include="..\private\CameraSystem.cpp" />
     <ClCompile Include="..\private\CamRegistry.cpp" />
+    <ClCompile Include="..\private\CamSerializer.cpp" />
     <ClCompile Include="..\private\CBuffer.cpp" />
+    <ClCompile Include="..\private\CBufferBank.cpp" />
     <ClCompile Include="..\private\CharacterDataSystem.cpp" />
     <ClCompile Include="..\private\CollisionSystem.cpp" />
+    <ClCompile Include="..\private\DebugUtility.cpp" />
     <ClCompile Include="..\private\Device.cpp" />
+    <ClCompile Include="..\private\DressingRoomPresenter.cpp" />
+    <ClCompile Include="..\private\EffectSerializer.cpp" />
+    <ClCompile Include="..\private\EffectSystem.cpp" />
+    <ClCompile Include="..\private\EffectUtility.cpp" />
     <ClCompile Include="..\private\EntityMgr.cpp" />
     <ClCompile Include="..\private\EntitySpawner.cpp" />
     <ClCompile Include="..\private\FaceSystem.cpp" />
@@ -407,15 +496,18 @@
     <ClCompile Include="..\private\FacingForceService.cpp" />
     <ClCompile Include="..\private\FacingSystem.cpp" />
     <ClCompile Include="..\private\FieldAnimSystem.cpp" />
+    <ClCompile Include="..\private\FieldMinimapPresenter.cpp" />
     <ClCompile Include="..\private\FieldOrchestraSystem.cpp" />
     <ClCompile Include="..\private\FieldUIOrchestrator.cpp" />
+    <ClCompile Include="..\private\FontLoader.cpp" />
+    <ClCompile Include="..\private\FontSystem.cpp" />
     <ClCompile Include="..\private\FpsPanel.cpp" />
     <ClCompile Include="..\private\FreeCamSystem.cpp" />
-    <ClCompile Include="..\private\GameInstance.cpp" />
     <ClCompile Include="..\private\Enginepch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\private\GameInstance.cpp" />
     <ClCompile Include="..\private\GameModeDirectorSystem.cpp" />
     <ClCompile Include="..\private\GpuUtil.cpp" />
     <ClCompile Include="..\private\GridSystem.cpp" />
@@ -424,49 +516,89 @@
     <ClCompile Include="..\private\GuiUtility.cpp" />
     <ClCompile Include="..\private\HierachyPanel.cpp" />
     <ClCompile Include="..\private\HighlightSystem.cpp" />
-    <ClCompile Include="..\private\ICamTrack.cpp" />
     <ClCompile Include="..\private\imgui.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\private\ImGuizmo.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\private\imgui_demo.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\private\imgui_draw.cpp">
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\private\imgui_impl_dx11.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\private\imgui_impl_win32.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\private\imgui_tables.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\private\imgui_widgets.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\private\InputLayoutBuilder.cpp" />
-    <ClCompile Include="..\private\InputMgr.cpp" />
     <ClCompile Include="..\private\InputGate.cpp" />
+    <ClCompile Include="..\private\InputMgr.cpp" />
     <ClCompile Include="..\private\InputService.cpp" />
     <ClCompile Include="..\private\InspectorPanel.cpp" />
     <ClCompile Include="..\private\IntentCollector.cpp" />
@@ -477,6 +609,10 @@
     <ClCompile Include="..\private\Level.cpp" />
     <ClCompile Include="..\private\LevelMgr.cpp" />
     <ClCompile Include="..\private\LightSystem.cpp" />
+    <ClCompile Include="..\private\LoadingPresenter.cpp" />
+    <ClCompile Include="..\private\LogoMenuPresenter.cpp" />
+    <ClCompile Include="..\private\LogoOrchestraSystem.cpp" />
+    <ClCompile Include="..\private\LogoUIOrchestrator.cpp" />
     <ClCompile Include="..\private\Material.cpp" />
     <ClCompile Include="..\private\Mesh.cpp" />
     <ClCompile Include="..\private\MeshColliderSystem.cpp" />
@@ -487,9 +623,17 @@
     <ClCompile Include="..\private\MoveStateSystem.cpp" />
     <ClCompile Include="..\private\NavMeshSystem.cpp" />
     <ClCompile Include="..\private\OrbitCamSystem.cpp" />
+    <ClCompile Include="..\private\ParticleMesh.cpp" />
+    <ClCompile Include="..\private\ParticleSystem.cpp" />
     <ClCompile Include="..\private\PickingSystem.cpp" />
     <ClCompile Include="..\private\FieldControllerSystem.cpp" />
+    <ClCompile Include="..\private\PlayerInputPresenter.cpp" />
     <ClCompile Include="..\private\RenderSystem.cpp" />
+    <ClCompile Include="..\private\RenderTargetMinimap.cpp" />
+    <ClCompile Include="..\private\RenderTargetSystem.cpp" />
+    <ClCompile Include="..\private\RingCBAllocator.cpp" />
+    <ClCompile Include="..\private\ScreenDistortionSystem.cpp" />
+    <ClCompile Include="..\private\ScreenFadeSystem.cpp" />
     <ClCompile Include="..\private\SelectionSystem.cpp" />
     <ClCompile Include="..\private\Skeleton.cpp" />
     <ClCompile Include="..\private\Model.cpp" />
@@ -499,23 +643,119 @@
     <ClCompile Include="..\private\SkyboxSystem.cpp" />
     <ClCompile Include="..\private\BattleTimelinePresenter.cpp" />
     <ClCompile Include="..\private\SocketSystem.cpp" />
+    <ClCompile Include="..\private\SoundRegistry.cpp" />
+    <ClCompile Include="..\private\SoundSystem.cpp" />
+    <ClCompile Include="..\private\StructuredBoneAllocator.cpp" />
     <ClCompile Include="..\private\SystemRegistry.cpp" />
     <ClCompile Include="..\private\TagSystem.cpp" />
+    <ClCompile Include="..\private\TextLayoutSystem.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />
     <ClCompile Include="..\private\TimeMgr.cpp" />
     <ClCompile Include="..\private\Timer.cpp" />
+    <ClCompile Include="..\private\TrailMesh.cpp" />
+    <ClCompile Include="..\private\TrailSystem.cpp" />
     <ClCompile Include="..\private\TransformSystem.cpp" />
     <ClCompile Include="..\private\UIAnimSystem.cpp" />
     <ClCompile Include="..\private\UIMesh.cpp" />
+    <ClCompile Include="..\private\UIMinimapSystem.cpp" />
     <ClCompile Include="..\private\UIRegistry.cpp" />
     <ClCompile Include="..\private\UISystem.cpp" />
     <ClCompile Include="..\private\Utility.cpp" />
+    <ClCompile Include="..\private\WorldMapPresenter.cpp" />
     <ClCompile Include="..\private\WorldSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\bin\ShaderFiles\Debug_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Debug_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Deferred_Composite_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Deferred_Composite_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Deferred_Directional_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Deferred_Directional_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Distortion_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Dressing_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Minimap_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Particle_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Particle_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+    </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PC_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -523,6 +763,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PC_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -531,6 +774,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_DS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
@@ -543,6 +789,10 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">DS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_HS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
@@ -555,6 +805,10 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">HS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">HS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_VS_TS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -563,6 +817,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTan_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -571,6 +829,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -579,6 +841,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -587,6 +855,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTan_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -595,6 +866,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNU_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -603,6 +877,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNU_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -611,6 +888,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUC_PS_UI.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -619,6 +899,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUC_VS_UI.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -627,6 +910,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUV_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -635,6 +921,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUV_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -643,6 +932,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\Skybox_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -651,8 +943,30 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\Skybox_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_MAIN</EntryPointName>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Trail_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_MAIN</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_MAIN</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Trail_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

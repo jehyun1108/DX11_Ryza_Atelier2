@@ -6,31 +6,41 @@ enum class UITextureSlot
 {
 	FatalDrive,
 	TimelineIcon,
+	BattleCharacterIcon,
 };
 
 struct CharacterUITextures
 {
 	unordered_map<UITextureSlot, wstring> slotToTexKey;
-	
-	void Set(UITextureSlot texSlot, const wstring& texKey)
-	{
-		slotToTexKey[texSlot] = texKey;
-	}
-
+	void Set(UITextureSlot texSlot, const wstring& texKey){ slotToTexKey[texSlot] = texKey; }
 	const wstring* TryGet(UITextureSlot texSlot) const
 	{
 		auto it = slotToTexKey.find(texSlot);
 		return (it == slotToTexKey.end()) ? nullptr : &it->second;
 	}
-
-	bool Empty() const { return slotToTexKey.empty(); }
 };
 
-struct CharacterParams
+struct PartySpec
 {
-	int     level = 1;
-	int     maxHp = 100;
-	int     curHp = 100;
+	int baseLevel  = 1;
+	int baseMaxHp  = 100;
+	int attackDmg  = 10;
+	int baseMaxExp = 100;
+};
+
+struct EnemySpec
+{
+	int baseMapHp = 60;
+	int attackDmg = 8;
+};
+
+struct CharacterSpec
+{
+	BattleTeam          team = BattleTeam::Ally;
+	CharacterUITextures ui;
+	PartySpec           party{};
+	EnemySpec           enemy{};
+	EntityID            camAnchorEntity{};
 };
 
 NS_END

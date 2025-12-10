@@ -6,29 +6,45 @@ static inline float HalfLifeAlpha(float hl, float dt)
     const float k = 0.69314718056f; // ln(2)
     return 1.f - expf(-k * dt / hl);
 }
-
 static inline float QuatAngleRad(_vec a, _vec b)
 {
     float dot = XMVectorGetX(XMVector4Dot(a, b));
     dot = clamp(dot, -1.f, 1.f);
     return 2.f * acosf(fabsf(dot));
 }
-// ===========================================================================================
-
 BattleCameraDirector::BattleCameraDirector(SystemRegistry& registry) : registry(registry)
 {
-    state.fixedLens   = Lens{};
-    state.output.lens = state.fixedLens;
-}
+    state.fixedLens.fovY   = 30.f;  
+    state.fixedLens.nearZ  = 0.1f;
+    state.fixedLens.farZ   = 5000.f;
 
+    state.output.lens      = state.fixedLens;
+
+    smooth.halfLifePosSec  = 0.15f; 
+    smooth.halfLifeRotSec  = 0.15f; 
+}
 void BattleCameraDirector::OnBoot()
 {
     timelineSys = &registry.Get<BattleTimelineSystem>();
     targetSys   = &registry.Get<BattleTargetSystem>();
     tfSys       = &registry.Get<TransformSystem>();
     camSys      = &registry.Get<CameraSystem>();
+}
 
-    assert(timelineSys && targetSys && tfSys && camSys);
+void BattleCameraDirector::BindCam(Handle camHandle)
+{
+    cam                   = camHandle;
+    auto* camData         = camSys->Get(cam);
+    auto* tf              = tfSys->Get(camData->transform);
+
+    state.output.pos      = tf->pos;
+    state.output.rot      = tf->rot;
+
+    state.fixedLens.nearZ = camData->nearZ;
+    state.fixedLens.farZ  = camData->farZ;
+    state.output.lens     = state.fixedLens;
+
+    camSys->SetPerspective(cam, state.fixedLens.fovY, camData->aspect, state.fixedLens.nearZ, state.fixedLens.farZ);
 }
 
 void BattleCameraDirector::SetFixedLens(const Lens& lens)
@@ -49,127 +65,173 @@ TrackID BattleCameraDirector::Spawn(const TrackSpawnRequest& req)
     track.seqRt.lockUntilEnd = req.seqDesc.lockUntilEnd;
     track.seqRt.loop         = req.seqDesc.loop;
     track.seqRt.timeScale    = req.seqDesc.timeScale;
-    track.phase              = TrackPhase::FadingIn;
-    track.activeW            = 0.f;
+
     track.valid              = true;
     track.id                 = AllocID();
-    track.cur                = state.output;
-    track.cur.lens           = state.fixedLens;
-    track.goal               = track.cur;
+    track.goal               = state.output;
+
     state.tracks.push_back(track);
     RebuildGroups();
     return track.id;
 }
 
-bool BattleCameraDirector::Kill(const TrackKillRequest& req)
+void BattleCameraDirector::Kill(const TrackKillRequest& req)
 {
-    TrackState* track = Find(req.id);
-    if (!track) return false;
-    if (req.immediate)
+    TrackState& track = RequireTrack(req.id);
+    if (req.immediate || req.fadeOutSec <= 0.f)
     {
-        track->phase   = TrackPhase::Inactive;
-        track->activeW = 0.f;
-        track->valid   = false;
+        track.valid = false;
+        RebuildGroups();
+        return;
     }
-    else
-        track->phase = TrackPhase::FadingOut;
+    track.dying = true;
+    track.fadeOutSec = req.fadeOutSec;
+    track.fadeOutRemain = req.fadeOutSec;
+}
 
+void BattleCameraDirector::SetAnchor(TrackID id, const AnchorBinding& anchor)
+{
+    TrackState& track = RequireTrack(id);
+    track.anchor = anchor;
+}
+
+void BattleCameraDirector::SetPriority(TrackID id, CamPriority priority)
+{
+    TrackState& track = RequireTrack(id);
+    track.priority = priority;
     RebuildGroups();
-    return true;
 }
 
-bool BattleCameraDirector::SetAnchor(TrackID id, const AnchorBinding& anchor)
+void BattleCameraDirector::SetLayer(TrackID id, CamLayer layer)
 {
-    if (auto track = Find(id))
-    {
-        track->anchor = anchor;
-        return true;
-    }
-    return false;
+    TrackState& track = RequireTrack(id);
+    track.layer = layer;
 }
 
-bool BattleCameraDirector::SetPriority(TrackID id, CamPriority priority)
+void BattleCameraDirector::SetGoal(TrackID id, const CamPose& goal)
 {
-    if (auto track = Find(id))
-    {
-        track->priority = priority;
-        return true;
-    }
-    return false;
+    TrackState& track = RequireTrack(id);
+    track.goal = goal;
 }
 
-bool BattleCameraDirector::SetLayer(TrackID id, CamLayer layer)
+void BattleCameraDirector::SetSeqClips(TrackID id, const vector<ShotClip>& clips)
 {
-    if (auto track = Find(id))
-    {
-        track->layer = layer;
-        return true;
-    }
-    return false;
+    TrackState& track = RequireTrack(id);
+    track.seqRt.clips = clips;
+    track.seqRt.curIdx = 0;
+    track.seqRt.localTime = 0.0;
 }
 
-bool BattleCameraDirector::SetGoal(TrackID id, const CamPose& goal)
+void BattleCameraDirector::SnapTrackToPose(TrackID id, const CamPose& pose)
 {
-    if (auto track = Find(id))
-    {
-        track->goal = goal;
-        return true;
-    }
-    return false;
+    TrackState& t = RequireTrack(id);
+    t.goal = pose;
 }
 
-bool BattleCameraDirector::SetSeqClips(TrackID id, const vector<ShotClip>& clips)
+void BattleCameraDirector::SetSeqDesc(TrackID id, const SequenceTrackDesc& desc)
 {
-    if (auto track = Find(id))
-    {
-        track->seqRt.clips     = clips;
-        track->seqRt.curIdx    = 0;
-        track->seqRt.localTime = 0.0;
-        return true;
-    }
-    return false;
+    TrackState& track = RequireTrack(id);
+    track.seqDesc = desc;
+    track.seqRt.lockUntilEnd = desc.lockUntilEnd;
+    track.seqRt.loop = desc.loop;
+    track.seqRt.timeScale = desc.timeScale;
+}
+
+void BattleCameraDirector::SetDebugCam(Handle tf)
+{
+    debugCamTf = tf;
+    debugCamActive = tf.IsValid();
+}
+
+void BattleCameraDirector::ClearDebugCam()
+{
+    debugCamActive = false;
 }
 
 void BattleCameraDirector::RebuildGroups()
 {
     state.groups.clear();
-    struct Temp { CamPriority priority; vector<_uint> idx; }; 
-    vector<Temp> temp;
-    
+
+    struct TempGroup
+    {
+        CamPriority  priority;
+        vector<_uint> indices;
+    };
+
+    vector<TempGroup> temp;
+
     for (_uint i = 0; i < (_uint)state.tracks.size(); ++i)
     {
         auto& track = state.tracks[i];
         if (!track.valid) continue;
+
         bool found = false;
-        for (auto& group : temp)
+        for (auto& g : temp)
         {
-            if (group.priority == track.priority)
+            if (g.priority == track.priority)
             {
-                group.idx.push_back(i);
+                g.indices.push_back(i);
                 found = true;
                 break;
             }
         }
         if (!found)
-            temp.push_back(Temp{ track.priority, { i } });
+        {
+            TempGroup g{};
+            g.priority = track.priority;
+            g.indices.push_back(i);
+            temp.push_back(g);
+        }
     }
 
-    for (auto& group : temp)
+    for (auto& g : temp)
     {
-        MixerGroup mGroup{};
-        mGroup.priority     = group.priority;
-        mGroup.trackIndices = group.idx;
-        state.groups.push_back(mGroup);
+        MixerGroup mg{};
+        mg.priority = g.priority;
+        mg.trackIndices = g.indices;
+        state.groups.push_back(mg);
     }
-    sort(state.groups.begin(), state.groups.end(), [](const MixerGroup& a, const MixerGroup& b) { return (int)a.priority > (int)b.priority; });
+
+    sort(state.groups.begin(), state.groups.end(), [](const MixerGroup& a, const MixerGroup& b) {  return (int)a.priority > (int)b.priority; });
 }
 
 void BattleCameraDirector::AdvanceTracks(float dt)
 {
-    state.elapsed += dt;
+    if (debugCamActive && debugCamTf.IsValid())
+    {
+        const _float4x4* w = tfSys->GetWorld(debugCamTf);
+        _mat m = XMLoadFloat4x4(w);
+
+        CamPose pose{};
+        pose.pos = _float3{ w->_41, w->_42, w->_43 };
+
+        _vec q = XMQuaternionRotationMatrix(m);
+        XMStoreFloat4(&pose.rot, q);
+
+        Lens lens{};
+        lens.fovY = XMConvertToRadians(60.f);
+        pose.lens = lens;
+
+        state.output = pose;
+        return;
+    }
+
     for (auto& track : state.tracks)
     {
-        if (!track.valid) continue;
+        if (!track.valid)
+            continue;
+
+        // ★ 여기 추가: 죽이는 타이머 처리
+        if (track.dying)
+        {
+            track.fadeOutRemain -= dt;
+            if (track.fadeOutRemain <= 0.f)
+            {
+                track.valid = false;
+                continue; // 이 트랙은 더 이상 업데이트 안 함
+            }
+        }
+
         switch (track.type)
         {
         case CamTrackType::Follow:
@@ -186,31 +248,15 @@ void BattleCameraDirector::AdvanceTracks(float dt)
         case CamTrackType::Shake:
             break;
         }
-
-        ApplyTrackSmoothing(track, dt);
-        SnapIfClose(track);
-        if (track.phase == TrackPhase::FadingIn)
-        {
-            track.activeW += HalfLifeAlpha(smooth.halfLifePosSec, dt);
-            if (track.activeW >= 1.f)
-            {
-                track.activeW = 1.f;
-                track.phase   = TrackPhase::Sustaining;
-            }
-        }
-        else if (track.phase == TrackPhase::FadingOut)
-        {
-            track.activeW -= HalfLifeAlpha(smooth.halfLifePosSec, dt);
-            if (track.activeW <= 0.f)
-            {
-                track.activeW = 0.f;
-                track.phase   = TrackPhase::Inactive;
-                track.valid   = false;
-            }
-        }
     }
 
-    state.tracks.erase(remove_if(state.tracks.begin(), state.tracks.end(), [](const TrackState& track) { return !track.valid; }), state.tracks.end());
+    state.tracks.erase(
+        remove_if(
+            state.tracks.begin(),
+            state.tracks.end(),
+            [](const TrackState& t) { return !t.valid; }),
+        state.tracks.end());
+
     RebuildGroups();
 }
 
@@ -233,20 +279,22 @@ void BattleCameraDirector::ApplyAnchors(TrackState& track, const CamPose* localO
             baseRot = XMQuaternionIdentity();
         }
     }
-    const _mat mOffset = (track.anchor.space == AnchorSpace::Target) ? XMMatrixRotationQuaternion(baseRot) : XMMatrixIdentity();
+
+    const _mat mOffset = (track.anchor.space == AnchorSpace::Target)? XMMatrixRotationQuaternion(baseRot) : XMMatrixIdentity();
 
     if (localOpt)
     {
         _vec localPos = XMLoadFloat3(&localOpt->pos);
         _vec localRot = XMLoadFloat4(&localOpt->rot);
         _vec worldPos = basePos + XMVector3TransformNormal(localPos, mOffset);
-        _vec worldRot = (track.anchor.space == AnchorSpace::Target) ? XMQuaternionNormalize(XMQuaternionMultiply(baseRot, localRot)) 
-                                                                    : XMQuaternionNormalize(localRot);
+        _vec worldRot = (track.anchor.space == AnchorSpace::Target) ? XMQuaternionNormalize(XMQuaternionMultiply(baseRot, localRot)):XMQuaternionNormalize(localRot);
+
         XMStoreFloat3(&track.goal.pos, worldPos);
         XMStoreFloat4(&track.goal.rot, worldRot);
         track.goal.lens = state.fixedLens;
         return;
     }
+
     _vec vOffset = XMLoadFloat3(&track.anchor.offset);
     _vec vWorldOffset = XMVector3TransformNormal(vOffset, mOffset);
     XMStoreFloat3(&track.goal.pos, basePos + vWorldOffset);
@@ -256,214 +304,225 @@ void BattleCameraDirector::ApplyAnchors(TrackState& track, const CamPose* localO
 
 void BattleCameraDirector::AdvanceFollow(TrackState& track, float dt)
 {
-    ApplyAnchors(track);
-    _vec vTargetPos = XMVectorZero();
-    bool hasTarget = ComputeFollowTarget(track, vTargetPos);
+    EntityID leader = timelineSys->GetLeader();
+    if (leader == 0u)
+        return;
 
-    _vec up = Utility::Up();
-    _float2 forwardXZ = { 0.f, 1.f };
+    EntityID target = targetSys->Get(leader);
+
+    Handle        leaderTf{};
+    TransformData* leaderData = tfSys->GetByOwner(leader, &leaderTf);
+    if (!leaderData)
+        return;
+
+    _float3 leaderPos = leaderData->pos;
+    _float3 targetPos = leaderPos;
+
+    if (target != 0u)
     {
-        EntityID entity = ResolveAnchorEntity(track.anchor);
-        Handle tfHandle{};
-        tfSys->GetByOwner(entity, &tfHandle);
-        if (tfHandle.IsValid())
-            forwardXZ = tfSys->GetForwardXZ(tfHandle);
-        if (fabs(forwardXZ.x) + fabs(forwardXZ.y) < 1e-6f)
-            forwardXZ = _float2(0.f, 1.f);
+        Handle        targetTf{};
+        TransformData* targetData = tfSys->GetByOwner(target, &targetTf);
+        if (targetData)
+            targetPos = targetData->pos;
     }
 
-    _vec vForward = XMVector3Normalize(XMVectorSet(forwardXZ.x, 0.f, forwardXZ.y, 0.f));
-    _vec vRight   = XMVector3Normalize(XMVector3Cross(up, vForward));
-    _vec vUp      = XMVector3Normalize(XMVector3Cross(vForward, vRight));
+    // 리더/타겟 중간점 (포커스)
+    const float alpha = 0.6f;
+    _float3 focus{};
+    focus.x = leaderPos.x + (targetPos.x - leaderPos.x) * alpha;
+    focus.y = leaderPos.y + (targetPos.y - leaderPos.y) * alpha;
+    focus.z = leaderPos.z + (targetPos.z - leaderPos.z) * alpha;
+
+    // 궤도 중심 (리더 위치 + 높이)
+    _float3 center{};
+    center.x = leaderPos.x;
+    center.y = leaderPos.y + track.followDesc.orbitHeight;
+    center.z = leaderPos.z;
+
+    // ----- 중심/포커스 보간 -----
+    // half-life 는 기존 카메라 스무딩과 비슷하게 사용 (원하면 따로 값 뺄 수 있음)
+    float centerAlpha = HalfLifeAlpha(smooth.halfLifePosSec, dt);
+
+    if (!track.hasFollowHistory)
+    {
+        track.followCenter = center;
+        track.followFocus = focus;
+        track.hasFollowHistory = true;
+    }
+    else
+    {
+        track.followCenter.x += (center.x - track.followCenter.x) * centerAlpha;
+        track.followCenter.y += (center.y - track.followCenter.y) * centerAlpha;
+        track.followCenter.z += (center.z - track.followCenter.z) * centerAlpha;
+
+        track.followFocus.x += (focus.x - track.followFocus.x) * centerAlpha;
+        track.followFocus.y += (focus.y - track.followFocus.y) * centerAlpha;
+        track.followFocus.z += (focus.z - track.followFocus.z) * centerAlpha;
+    }
+
+    // 여기부터는 "보간된" 중심/포커스를 기준으로 궤도/시선 계산
+    _vec up = Utility::Up();
+
+    float dx = track.followFocus.x - track.followCenter.x;
+    float dz = track.followFocus.z - track.followCenter.z;
+
+    _vec toTargetXZ = XMVectorSet(dx, 0.f, dz, 0.f);
+    float lenSq = XMVectorGetX(XMVector3LengthSq(toTargetXZ));
+    _vec f{};
+
+    if (lenSq < 1e-4f)
+    {
+        // 타겟과 너무 가까우면 리더의 Forward XZ 를 사용
+        _float2 forwardXZ = tfSys->GetForwardXZ(leaderTf);
+        f = XMVector3Normalize(XMVectorSet(forwardXZ.x, 0.f, forwardXZ.y, 0.f));
+    }
+    else
+        f = XMVector3Normalize(toTargetXZ);
+
+    _vec r = XMVector3Normalize(XMVector3Cross(up, f));
 
     const float radius = max(0.f, track.followDesc.orbitRadius);
-    const float height = track.followDesc.orbitHeight;
+    const float yawDeg = track.followDesc.yawOffsetDeg;
+    const float yawRad = XMConvertToRadians(yawDeg);
 
-    _vec tPos = XMVectorZero();
-    _vec tRot = XMQuaternionIdentity();
-    {
-        EntityID entity = ResolveAnchorEntity(track.anchor);
-        GetEntityWorldPos(entity, tPos, tRot);
-    }
-    _vec center = tPos + XMVectorScale(vUp, height);
+    _vec centerV = XMVectorSet(track.followCenter.x, track.followCenter.y, track.followCenter.z, 0.f);
 
-    float azDeg = track.followDesc.yawOffsetDeg;
-    float azRad = XMConvertToRadians(azDeg);
-    _vec  dir   = XMVector3Normalize(XMVectorScale(vForward, -cosf(azRad)) + XMVectorScale(vRight, sinf(azRad)));
-    _vec  pos   = center + XMVectorScale(dir, radius);
-    XMStoreFloat3(&track.goal.pos, pos);
+    _vec dir = XMVector3Normalize(
+        XMVectorScale(-f, cosf(yawRad)) +
+        XMVectorScale(r, sinf(yawRad)));
 
-    if (hasTarget)
-        vTargetPos = vTargetPos + XMVectorSet(0.f, track.followDesc.aimOffsetY, 0.f, 0.f);
-    _vec forward = hasTarget ? XMVector3Normalize(vTargetPos - pos) : XMVector3Normalize(center - pos);
-    _vec quat = Utility::BuildLookRot(forward, vUp);
+    _vec posV = centerV + XMVectorScale(dir, radius);
+    XMStoreFloat3(&track.goal.pos, posV);
+
+    _vec aimV = XMVectorSet(
+        track.followFocus.x,
+        track.followFocus.y + track.followDesc.aimOffsetY,
+        track.followFocus.z,
+        0.f);
+
+    _vec lookDir = XMVector3Normalize(aimV - posV);
+    _vec quat = Utility::BuildLookRot(lookDir, up);
     XMStoreFloat4(&track.goal.rot, XMQuaternionNormalize(quat));
+
     track.goal.lens = state.fixedLens;
 }
 
 void BattleCameraDirector::AdvanceSequence(TrackState& track, float dt)
 {
     track.seqRt.localTime += static_cast<double>(dt * track.seqRt.timeScale);
+
     if (track.seqRt.clips.empty())
-        ApplyAnchors(track);
-    else
     {
-        size_t n = track.seqRt.clips.size();
-        size_t i = track.seqRt.curIdx;
-        const ShotClip* clip = &track.seqRt.clips[i];
-        while (track.seqRt.localTime > clip->t1)
+        ApplyAnchors(track);
+
+        _vec camPos = XMLoadFloat3(&track.goal.pos);
+        _vec targetPos = XMVectorZero();
+
+        if (ComputeFollowTarget(track, targetPos))
         {
-            double over = track.seqRt.localTime - clip->t1;
-            if (i + 1 < n)
-            {
-                i++;
-                clip = &track.seqRt.clips[i];
-                track.seqRt.localTime = clip->t0 + over;
-            }
-            else if (track.seqRt.loop)
-            {
-                i = 0;
-                clip = &track.seqRt.clips[i];
-                track.seqRt.localTime = clip->t0 + fmod(over, max(1e-5, (clip->t1 - clip->t0)));
-            }
-            else
-            {
-                if (!track.seqRt.lockUntilEnd)
-                {
-                    track.phase = TrackPhase::FadingOut;
-                    break;
-                }
-            }
+            _vec forward = XMVector3Normalize(targetPos - camPos);
+            _vec up = Utility::Up();
+            _vec quat = Utility::BuildLookRot(forward, up);
+            XMStoreFloat4(&track.goal.rot, XMQuaternionNormalize(quat));
         }
-        track.seqRt.curIdx = i;
-        if (seqSampler)
+
+        track.goal.lens = state.fixedLens;
+        return;
+    }
+
+    size_t n = track.seqRt.clips.size();
+    size_t i = track.seqRt.curIdx;
+    auto* clip = &track.seqRt.clips[i];
+
+    while (track.seqRt.localTime > clip->t1)
+    {
+        double over = track.seqRt.localTime - clip->t1;
+
+        if (i + 1 < n)
         {
-            CamPose local{};
-            double trackClip = track.seqRt.localTime - clip->t0;
-            if (seqSampler(track.seqDesc.clipId, trackClip, track.seqDesc, local))
-                ApplyAnchors(track, &local);
-            else
-                ApplyAnchors(track);
+            ++i;
+            clip = &track.seqRt.clips[i];
+            track.seqRt.localTime = clip->t0 + over;
+        }
+        else if (track.seqRt.loop)
+        {
+            i = 0;
+            clip = &track.seqRt.clips[i];
+            double span = max(1e-5, (clip->t1 - clip->t0));
+            track.seqRt.localTime = clip->t0 + fmod(over, span);
         }
         else
-            ApplyAnchors(track);
+        {
+            track.seqRt.localTime = clip->t1;
+
+            if (!track.seqRt.lockUntilEnd)
+                track.valid = false;
+
+            break;
+        }
     }
 
-    _vec camPos = XMLoadFloat3(&track.goal.pos);
-    _vec targetPos = XMVectorZero();
-    bool hasTarget = ComputeFollowTarget(track, targetPos);
+    track.seqRt.curIdx = i;
 
-    if (hasTarget)
+    if (!track.valid)
+        return;
+
+    bool sampled = false;
+
+    if (seqSampler)
     {
-        _vec forward = XMVector3Normalize(targetPos - camPos);
-        _vec up = Utility::Up();
-        _vec quat = Utility::BuildLookRot(forward, up);
-        XMStoreFloat4(&track.goal.rot, XMQuaternionNormalize(quat));
+        CamPose sampledPose{};
+        double  seqTime = track.seqRt.localTime;
+
+        if (seqSampler(track.seqDesc.clipId, seqTime, track.seqDesc, sampledPose))
+        {
+            track.goal = sampledPose;
+            sampled = true;
+        }
     }
-    track.goal.lens = state.fixedLens;
-}
 
-void BattleCameraDirector::ApplyTrackSmoothing(TrackState& track, float dt)
-{
-    float ap = HalfLifeAlpha(smooth.halfLifePosSec, dt);
-    float ar = HalfLifeAlpha(smooth.halfLifeRotSec, dt);
-
-    _vec cp = XMLoadFloat3(&track.cur.pos);
-    _vec cg = XMLoadFloat3(&track.goal.pos);
-    _vec np = XMVectorLerp(cp, cg, ap);
-    XMStoreFloat3(&track.cur.pos, np);
-
-    _vec cq = XMLoadFloat4(&track.cur.rot), gq = XMLoadFloat4(&track.goal.rot);
-    _vec nq = XMQuaternionSlerp(cq, gq, ar);
-    XMStoreFloat4(&track.cur.rot, XMQuaternionNormalize(nq));
-
-    track.cur.lens = state.fixedLens;
-}
-
-void BattleCameraDirector::SnapIfClose(TrackState& track)
-{
-    _vec  curPos  = XMLoadFloat3(&track.cur.pos);
-    _vec  goalPos = XMLoadFloat3(&track.goal.pos);
-    float dist    = XMVectorGetX(XMVector3Length(goalPos - curPos));
-    _vec  curRot  = XMLoadFloat4(&track.cur.rot);
-    _vec  goalRot = XMLoadFloat4(&track.goal.rot);
-    float ang     = QuatAngleRad(curRot, goalRot);
-    if (dist < smooth.epsilonPos && XMConvertToDegrees(ang) < smooth.epsilonRotDeg)
-        track.cur = track.goal;
-}
-
-CamPose BattleCameraDirector::ClampStep(const CamPose& prev, const CamPose& next, float dt) const
-{
-    CamPose o = next;
-
-    _vec p0 = XMLoadFloat3(&prev.pos), p1 = XMLoadFloat3(&next.pos);
-    float dist = XMVectorGetX(XMVector3Length(p1 - p0));
-    float maxStepPos = smooth.maxPosMps * dt;
-    if (dist > maxStepPos && dist > 1e-6f)
+    if (!sampled)
     {
-        float t = maxStepPos / dist;
-        XMStoreFloat3(&o.pos, XMVectorLerp(p0, p1, t));
-    }
+        ApplyAnchors(track);
 
-    _vec q0 = XMLoadFloat4(&prev.rot), q1 = XMLoadFloat4(&next.rot);
-    float ang = QuatAngleRad(q0, q1);
-    float maxStepRot = XMConvertToRadians(smooth.maxRotDegPerSec) * dt;
-    if (ang > maxStepRot && ang > 1e-6f)
-    {
-        float t = maxStepRot / ang;
-        _vec q = XMQuaternionSlerp(q0, q1, t);
-        XMStoreFloat4(&o.rot, XMQuaternionNormalize(q));
-    }
+        _vec camPos = XMLoadFloat3(&track.goal.pos);
+        _vec targetPos = XMVectorZero();
 
-    o.lens = state.fixedLens;
-    return o;
+        if (ComputeFollowTarget(track, targetPos))
+        {
+            _vec forward = XMVector3Normalize(targetPos - camPos);
+            _vec up = Utility::Up();
+            _vec quat = Utility::BuildLookRot(forward, up);
+            XMStoreFloat4(&track.goal.rot, XMQuaternionNormalize(quat));
+        }
+        track.goal.lens = state.fixedLens;
+    }
 }
 
 CamPose BattleCameraDirector::MixLayered(const vector<const TrackState*>& base, const vector<const TrackState*>& action, const vector<const TrackState*>& overlay) const
 {
-    auto pick = [](const std::vector<const TrackState*>& v)->const TrackState*
-        {
-            const TrackState* best = nullptr; float w = -1.f;
-            for (auto* t : v) if (t && t->activeW > w) { w = t->activeW; best = t; }
-            return best;
-        };
-    const TrackState* tb = pick(base);
-    CamPose out = tb ? tb->cur : CamPose{};
+    const TrackState* chosen = nullptr;
 
-    auto mix1 = [&out](const TrackState* t)
-        {
-            if (!t) return;
-            float w = std::clamp(t->activeW, 0.f, 1.f);
-            _vec p0 = XMLoadFloat3(&out.pos), q0 = XMLoadFloat4(&out.rot);
-            _vec p1 = XMLoadFloat3(&t->cur.pos), q1 = XMLoadFloat4(&t->cur.rot);
-            XMStoreFloat3(&out.pos, XMVectorLerp(p0, p1, w));
-            XMStoreFloat4(&out.rot, XMQuaternionSlerp(q0, q1, w));
-            out.lens = out.lens; // fixed
-        };
+    if (!overlay.empty())
+        chosen = overlay.back();   
+    else if (!action.empty())
+        chosen = action.back();   
+    else if (!base.empty())
+        chosen = base.back();      
 
-    mix1(pick(action));
-    mix1(pick(overlay));
+    if (!chosen)
+        return state.output;       
+    CamPose out = chosen->goal;
     out.lens = state.fixedLens;
     return out;
 }
 
 CamPose BattleCameraDirector::MixByGroups(const CamPose& prev) const
 {
-    if (state.groups.empty()) return prev;
-    CamPose out = prev;
-    for (int gi = (int)state.groups.size() - 1; gi >= 0; --gi)
-    {
-        const MixerGroup& g = state.groups[gi];
-        CamPose gp = MixGroup(g);
-        float w = 0.f;
-        for (auto idx : g.trackIndices) { const TrackState& t = state.tracks[idx]; if (t.valid) w = max(w, clamp(t.activeW, 0.f, 1.f)); }
-        _vec p0 = XMLoadFloat3(&out.pos), q0 = XMLoadFloat4(&out.rot);
-        _vec p1 = XMLoadFloat3(&gp.pos), q1 = XMLoadFloat4(&gp.rot);
-        XMStoreFloat3(&out.pos, XMVectorLerp(p0, p1, w));
-        XMStoreFloat4(&out.rot, XMQuaternionSlerp(q0, q1, w));
-        out.lens = state.fixedLens;
-    }
-    return out;
+    if (state.groups.empty())
+        return state.output;
+    const MixerGroup& g = state.groups.front();
+    return MixGroup(g);
 }
 
 CamPose BattleCameraDirector::MixGroup(const MixerGroup& group) const
@@ -472,13 +531,17 @@ CamPose BattleCameraDirector::MixGroup(const MixerGroup& group) const
     base.reserve(group.trackIndices.size());
     action.reserve(group.trackIndices.size());
     overlay.reserve(group.trackIndices.size());
+
     for (auto idx : group.trackIndices)
     {
-        const TrackState& t = state.tracks[idx]; if (!t.valid) continue;
-        if (t.layer == CamLayer::Base)   base.push_back(&t);
+        const TrackState& t = state.tracks[idx];
+        if (!t.valid) continue;
+
+        if (t.layer == CamLayer::Base)        base.push_back(&t);
         else if (t.layer == CamLayer::Action) action.push_back(&t);
         else                                  overlay.push_back(&t);
     }
+
     return MixLayered(base, action, overlay);
 }
 
@@ -510,16 +573,24 @@ EntityID BattleCameraDirector::ResolveAnchorEntity(const AnchorBinding& anchor) 
     case TargetBinding::None:      
         break;
 
-    case TargetBinding::Leader:    
+    case TargetBinding::Leader:
+    {
+        if (anchor.entity != 0u)
+            return anchor.entity;
         return timelineSys->GetLeader();
+    }
 
     case TargetBinding::CurTarget: 
     { 
-        EntityID leader = timelineSys->GetLeader(); 
-        return (leader != invalidEntity) ? targetSys->Get(leader) : 0; 
+        EntityID owner = anchor.entity;
+        if (owner == 0u)
+            owner = timelineSys->GetLeader();
+
+        if (owner == 0u)
+            return 0u;
+
+        return targetSys->Get(owner);
     }
-    case TargetBinding::Attacker:
-    case TargetBinding::Victim:
     case TargetBinding::CustomEntity: 
         return anchor.entity;
     }
@@ -528,32 +599,98 @@ EntityID BattleCameraDirector::ResolveAnchorEntity(const AnchorBinding& anchor) 
 
 bool BattleCameraDirector::GetEntityWorldPos(EntityID entity, _vec& outPos, _vec& outRot) const
 {
-    Handle handle{}; 
-    tfSys->GetByOwner(entity, &handle);
-    const TransformData* data = tfSys->Get(handle);
-    if (!data) return false;
-    outPos = XMLoadFloat3(&data->pos);
-    outRot = XMQuaternionNormalize(XMLoadFloat4(&data->rot));
+    if (entity == 0u)
+        return false;
+
+    Handle tfHandle{};
+    TransformData* tf = tfSys->GetByOwner(entity, &tfHandle);
+    if (!tf)
+        return false;
+
+    outPos = XMLoadFloat3(&tf->pos);
+    outRot = XMQuaternionNormalize(XMLoadFloat4(&tf->rot));
     return true;
 }
 
 bool BattleCameraDirector::ComputeFollowTarget(const TrackState& track, _vec& outTargetPos) const
 {
-    if (track.anchor.binding == TargetBinding::None) return false;
-    _vec pos  = XMVectorZero();
-    _vec quat = XMQuaternionIdentity();
+    if (track.anchor.binding == TargetBinding::None)
+        return false;
+
     EntityID entity = ResolveAnchorEntity(track.anchor);
-    if (!GetEntityWorldPos(entity, pos, quat)) return false;
+    if (entity == 0u)
+        return false;
+
+    _vec pos = XMVectorZero();
+    _vec quat = XMQuaternionIdentity();
+    if (!GetEntityWorldPos(entity, pos, quat))
+        return false;
+
     outTargetPos = pos + XMVectorSet(0.f, 1.6f, 0.f, 0.f);
     return true;
 }
 
+TrackState& BattleCameraDirector::RequireTrack(TrackID id)
+{
+    assert(id.IsValid());
+    for (auto& track : state.tracks)
+    {
+        if (track.id.idx == id.idx && track.id.gen == id.gen)
+            return track;
+    }
+    assert(false);
+    return state.tracks[0];
+}
+
+void BattleCameraDirector::SnapTrackToOutput(TrackID id)
+{
+    TrackState& t = RequireTrack(id);
+    t.goal = state.output;
+}
+
 void BattleCameraDirector::Tick(float dt)
 {
-    CamPose prev = state.output;
     AdvanceTracks(dt);
-    CamPose raw = MixByGroups(prev);
-    state.output = ClampStep(prev, raw, dt);
+
+    CamPose target = MixByGroups(state.output);
+
+    Lens desiredLens = state.fixedLens;
+    if (HasActiveSequenceTrack())
+    {
+        Lens seqLens{};
+        if (GetTopSequenceLens(seqLens))
+            desiredLens = seqLens;
+    }
+
+    auto halfLife = [](float hl, float dt)
+        {
+            if (hl <= 0.f) return 1.f;
+            const float k = 0.69314718056f; 
+            return 1.f - expf(-k * dt / hl);
+        };
+
+    float ap = halfLife(smooth.halfLifePosSec, dt);
+    float ar = halfLife(smooth.halfLifeRotSec, dt);
+
+    _vec p0 = XMLoadFloat3(&state.output.pos);
+    _vec p1 = XMLoadFloat3(&target.pos);
+    _vec np = XMVectorLerp(p0, p1, ap);
+    XMStoreFloat3(&state.output.pos, np);
+
+    _vec q0 = XMLoadFloat4(&state.output.rot);
+    _vec q1 = XMLoadFloat4(&target.rot);
+    _vec nq = XMQuaternionSlerp(q0, q1, ar);
+    XMStoreFloat4(&state.output.rot, XMQuaternionNormalize(nq));
+
+    float af = ar; 
+
+    if (state.output.lens.fovY <= 0.f)
+        state.output.lens.fovY = desiredLens.fovY;
+    else
+        state.output.lens.fovY = state.output.lens.fovY + (desiredLens.fovY - state.output.lens.fovY) * af;
+
+    state.output.lens.nearZ = desiredLens.nearZ;
+    state.output.lens.farZ = desiredLens.farZ;
 
     if (auto* c = camSys->Get(cam))
     {
@@ -563,6 +700,43 @@ void BattleCameraDirector::Tick(float dt)
             XMStoreFloat4(&td->rot, XMQuaternionNormalize(XMLoadFloat4(&state.output.rot)));
             td->dirty = true;
         }
-        camSys->SetPerspective(cam, state.fixedLens.fovY, c->aspect, state.fixedLens.nearZ, state.fixedLens.farZ);
+        camSys->SetPerspective(  cam, state.output.lens.fovY,  c->aspect,   state.output.lens.nearZ,  state.output.lens.farZ  );
     }
+}
+
+FollowTrackDesc& BattleCameraDirector::GetFollowDesc(TrackID id)
+{
+    TrackState& track = RequireTrack(id);
+    assert(track.type == CamTrackType::Follow);
+    return track.followDesc;
+}
+
+bool BattleCameraDirector::HasActiveSequenceTrack() const
+{
+    for (const auto& t : state.tracks)
+    {
+        if (!t.valid) continue;
+        if (t.type != CamTrackType::Sequence) continue;
+        return true;
+    }
+    return false;
+}
+
+bool BattleCameraDirector::GetTopSequenceLens(Lens& outLens) const
+{
+    const TrackState* best = {};
+
+    for (const auto& t : state.tracks)
+    {
+        if (!t.valid) continue;
+        if (t.type != CamTrackType::Sequence) continue;
+
+        if (!best || (int)t.priority > (int)best->priority)
+            best = &t;
+    }
+
+    if (!best) return false;
+
+    outLens = best->goal.lens;
+    return true;
 }

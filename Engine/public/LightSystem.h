@@ -8,8 +8,8 @@ class ENGINE_DLL LightSystem : public EntitySystem<LightData>, public IGuiRender
 {
 public:
 	explicit LightSystem(SystemRegistry& registry) : EntitySystem(registry) {}
-
-	Handle Create(EntityID owner, Handle transform, const LightProxy& proxy = {});
+	void     OnBoot() override;
+	Handle   Create(EntityID owner, Handle transform, const LightProxy& proxy = {});
 
 	void Update(float dt);
 	void ExtractLightProxies(vector<LightProxy>& out) const;
@@ -25,6 +25,9 @@ public:
 
 	const LightProxy* GetProxy(Handle handle) const;
 	void RenderGui(EntityID id) override;
+
+private:
+	TransformSystem* tfSys{};
 };
 
 NS_END

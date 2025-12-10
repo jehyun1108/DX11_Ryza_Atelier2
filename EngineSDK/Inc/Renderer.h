@@ -1,83 +1,95 @@
 #pragma once
 
+#include "RingCBAllocator.h"
+#include "StructuredBoneAllocator.h"
+#include "RendererData.h"
+
 NS_BEGIN(Engine)
 
 class ENGINE_DLL Renderer : public ISystem
 {
 public:
-	explicit Renderer(SystemRegistry& registry) : registry(registry) {}
+	explicit Renderer(SystemRegistry& registry) : registry(registry), game(GAME) {}
 	void     OnBoot() override;
-
-	HRESULT Init();
-	void Draw(const RenderScene& scene);
-
+	HRESULT  Init();
+	void     Draw(const RenderScene& scene);
 	// State
 	void BindSamplers(SHADER stage, TEXSLOT slot, SAMPLER type = SAMPLER::LINEAR);
-	void SetRasterizerState(RASTERIZER type);
-	void SetDepthState(DEPTHSTATE type, _uint stencilRef = 0);
-	void SetBlendState(BLENDSTATE type);
+	void SetRasterizerState(RASTERIZER type)                  { context->RSSetState(rasterizerStates[ENUM(type)].Get());                           }
+	void SetDepthState(DEPTHSTATE type, _uint stencilRef = 0) { context->OMSetDepthStencilState(depthStencilStates[ENUM(type)].Get(), stencilRef); }
+	void SetBlendState(BLENDSTATE type)                       { context->OMSetBlendState(blendStates[ENUM(type)].Get(), nullptr, 0xffffffff);      }
+
+	shared_ptr<Shader>              GetRendererShader(RendererShader id)  { return shaders[(size_t)id]; }
+	ComPtr<ID3D11DepthStencilState> GetDepthState(DEPTHSTATE state) const { return depthStencilStates[ENUM(state)]; }
 
 private:
-	void DrawOpaque(const vector<DrawItem>& items);
+	// Deferred Pipeline
+	void DrawOpaque_GBuffer(vector<DrawItem>& items);
+	void DrawLighting_FullScreenDirectional(const RenderScene& scene);
+	void DrawLighting_Volumes(const RenderScene& scene) {}
+	void DrawComposite_ToneMap();
+	void DrawMinimapScene(const RenderScene& scene);
+	void DrawParticles(const ParticleSnapshot& snapshot);
+	void DrawTrails(const RenderScene& scene);
+	void DrawDressingCharacter();
+
+	// Forward after Composite
 	void DrawTransparent(const vector<DrawItem>& items);
 	void DrawSkyBox(const RenderScene& scene);
-
-	void UpdateCBuffers(const RenderScene& scene);
-	void UpdateBoneCB(const _float4x4* sourceMatrices, _uint sourceCount);
-
-	// debug / grid
-	void DrawAABBLines(const BoundingBox& worldAABB, const _float4& color);
+	void DrawUI(const vector<UIDrawItem>& items);
 	void DrawGrid();
-	void BindGridState();
+	void DrawDebugGBuffers();
+	void DrawColliders(const RenderScene& scene);
+	// Helper
+	void         PrepareObjCBs(vector<DrawItem>& items);
+	void         PrepareSkinnedBones(vector<DrawItem>& items);
+	void         UpdateCBuffers(const RenderScene& scene);
 
-	HRESULT DrawLineList(const vector<VertexColor>& vertexColor);
-	void    DrawOBBLines(const BoundingOrientedBox& worldOBB, const _float4& color);
-	void    DrawSphere(const _float3& center, float radius, const _float4& color, int segments = 48);
-	void    DrawColliders(const vector<ColliderProxy>& list);
-	void    DrawUI(const vector<UIDrawItem>& items);
-
-	// Skybox
+	void         BindGridState();
 	void         ApplySkyCull(SkyCull cullMode);
 	void         ApplySkyBlend(bool transparent, bool premultiplied);
 	SkyDrawLists BuildSkyDrawLists(const vector<SkySubmesh>& submeshes);
 
+	HRESULT      DrawLineList(const vector<VertexColor>& vertexColor);
+	HRESULT      DrawTriList(const vector<VertexColor>& vertexColor);
+	void         DrawAABBLines(const BoundingBox& worldAABB, const _float4& color);
+	void         DrawFullscreenTriangle();
+	void         DrawNavMesh();
+
 private:
-	GameInstance&    game = GameInstance::GetInstance();
-	SystemRegistry&  registry;
-	AssetSystem*     assets{};
-	GridSystem*      gridSys{};
-	SelectionSystem* selectSys{};
-	
 	ID3D11Device*        device{};
 	ID3D11DeviceContext* context{};
-
 	// States
 	ComPtr<ID3D11RasterizerState>   rasterizerStates[ENUM(RASTERIZER::END)];
 	ComPtr<ID3D11DepthStencilState> depthStencilStates[ENUM(DEPTHSTATE::END)];
 	ComPtr<ID3D11BlendState>        blendStates[ENUM(BLENDSTATE::END)];
 	ComPtr<ID3D11SamplerState>      samplerStates[ENUM(SAMPLER::END)];
+	// CBuffer			        
+	CBufferBank                 cb;
+	RingCBAllocator             cbRing;
+	StructuredBoneAllocator     boneSB;
 
-	// CBuffer
-	shared_ptr<CBuffer> cameraCBuffer{};
-	shared_ptr<CBuffer> lightCBuffer{};
-	shared_ptr<CBuffer> objCBuffer{};
-	shared_ptr<CBuffer> boneCBuffer{};
-	shared_ptr<CBuffer> skyCBuffer{};
-	shared_ptr<CBuffer> tsCBuffer{};
-	shared_ptr<CBuffer> uiCBuffer{};
-
-	vector<_float4x4>   identityBones;
-
-	// VertexColor
-	shared_ptr<Shader>   gridShader;
-	shared_ptr<Shader>   skyShader;
-	shared_ptr<Shader>   uiShader;
-
-	unique_ptr<UIMesh> uiMesh;
-
+	array<shared_ptr<Shader>, rsCount> shaders;
+	RenderTargetMinimap*      minimap{};
+	unique_ptr<UIMesh>        uiMesh;
+	unique_ptr<ParticleMesh>  particleMesh;
+	unique_ptr<TrailMesh>     trailMesh;
 	// Debug
-	ComPtr<ID3D11Buffer> aabbVB{};
-	_uint                aabbCapBytes = 0;
+	ComPtr<ID3D11Buffer>      aabbVB{};
+	_uint                     aabbCapBytes = 0;
+
+private:
+	GameInstance&           game;
+	SystemRegistry&         registry;
+	AssetSystem*            assets{};
+	GridSystem*             gridSys{};
+	SelectionSystem*        selectSys{};
+	RenderTargetSystem*     rtSys{};
+	NavMeshSystem*          nav{};
+	UIRegistry*             uiRegistry{};
+	FieldMinimapPresenter*  fieldMini{};
+	ScreenDistortionSystem* distortSys{};
+	DressingRoomPresenter*  dressing{};
 };
 
 NS_END

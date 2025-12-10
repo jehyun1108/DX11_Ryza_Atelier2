@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CBufferTypes.h"
-
 NS_BEGIN(Engine)
 
 class ENGINE_DLL CBuffer 

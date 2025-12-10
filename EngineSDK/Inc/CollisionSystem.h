@@ -8,33 +8,38 @@ class ENGINE_DLL CollisionSystem : public EntitySystem<CollisionData>, public IG
 {
 public:
 	explicit CollisionSystem(SystemRegistry& registry) : EntitySystem(registry) {}
+	void     OnBoot() override;
 
 	// Create
-	Handle CreateAABB(EntityID owner, Handle tfHandle, const BoundingBox& localBox, _uint layer = ~0u);
-	Handle CreateSphere(EntityID owner, Handle tfHandle, const _float3& centerLocal, float radiusLocal, _uint layer = ~0u);
-	Handle CreateOBB(EntityID owner, Handle tfHandle, const BoundingOrientedBox& localOBB, _uint layer = ~0u);
+	Handle CreateAABB(EntityID owner, Handle tfHandle, const BoundingBox& localBox);
+	Handle CreateSphere(EntityID owner, Handle tfHandle, const _float3& centerLocal, float radiusLocal);
+	Handle CreateOBB(EntityID owner, Handle tfHandle, const BoundingOrientedBox& localOBB);
+	Handle CreateMeshRay(EntityID owner, Handle tfHandle, const Mesh* mesh, Mask belongs = Bit(CollisionLayer::Ground), Mask collides = kNone);
 
 	// Runtime Switching
 	void SetAABB(Handle handle, const BoundingBox& localBox);
 	void SetSphere(Handle handle, const _float3& centerLocal, float radiusLocal);
 	void SetOBB(Handle handle, const BoundingOrientedBox& localOBB);
 
-	// Debug ¿ë
-	void SetDebugEnabled(bool on) { debugEnabled = on; }
-	bool IsDebugEnabled()   const { return debugEnabled; }
-
 	// Util
 	void SetEnabled(Handle handle, bool enable);
-	void SetLayer(Handle handle, _uint mask);
 	void SetTransform(Handle handle, Handle tfHandle);
+	void SetBelongsTo(Handle handle, _uint layer);
+	void SetCollidesWith(Handle handle, _uint mask);
 
 	// Tick
-	void Update(float dt);
-	void RenderGui(EntityID id) override;
-	void ExtractColliderProxies(vector<ColliderProxy>& out) const;
+	void   Tick(float dt);
+	void   RenderGui(EntityID id) override;
+	void   ExtractColliderProxies(vector<ColliderProxy>& out) const;
+	RayHit RayCast(const RayDesc& ray) const;
+
+	bool   GetObbTipPoint(EntityID owner, _float3& outTip) const;
+
+	bool   FindWeaponHit(EntityID attacker, BattleHitInfo& outHit) const;
 
 private:
-	bool debugEnabled = true;
+	TransformSystem* tfSys{};
+	ModelSystem*     modelSys{};
 };
 
 NS_END

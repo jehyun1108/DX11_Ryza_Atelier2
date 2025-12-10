@@ -11,7 +11,17 @@ enum class AnimKey
 	WalkStart, WalkLoop, WalkEnd,
 	RunStart,  RunLoop,  RunEnd,
 	JumpStart, JumpLoop, JumpEnd,
-	FieldSwing,
+	FieldSwing, 
+	
+	WakeUp_A, WakeUp_B, WakeUp_C, WakeUp_D, WakeUp_E,
+	WakeUp_F, WakeUp_G, WakeUp_H, WakeUp_I,
+
+	Dressing_Change,
+	Dressing_Idle, 
+
+	//Dressing_NotSatisfied,
+	//Dressing_Embarrassed_Start, Dressing_Embarrasseding, Dressing_Embarrassed_End,
+	//Dressing_Satisfied,
 
 	// Battle
 	Battle_Idle,
@@ -23,8 +33,8 @@ enum class AnimKey
 
 	Battle_Defend_Ready,     Battle_Defending,        Battle_Defend_Finished,
 
-	Battle_Celemony_1A,      Battle_Celemony_1B,
-	Battle_Celemony_2A,      Battle_Celemony_2B,
+	Battle_Ceremony_1A,      Battle_Ceremony_1B,
+	Battle_Ceremony_2A,      Battle_Ceremony_2B,
 
 	Battle_Attack_FinishedA, Battle_Attack_FinishedB, Battle_Attack_FinishedC,
 
@@ -34,7 +44,7 @@ enum class AnimKey
 	Battle_Skill_D1, Battle_Skill_D2, Battle_Skill_D3,
 
 	Battle_Hit,
-	Battle_Down,
+	Battle_Down, Battle_Stunned, Battle_Stun_End, Battle_Defend_Success,
 
 	Battle_Ultimate_Ryza1, Battle_Ultimate_Ryza2, Battle_Ultimate_Ryza3, Battle_Ultimate_Ryza4, Battle_Ultimate_Ryza5,
 
@@ -44,7 +54,6 @@ enum class AnimKey
 	Battle_Ultimate_Patricia1, Battle_Ultimate_Patricia2, Battle_Ultimate_Patricia3, Battle_Ultimate_Patricia4, Battle_Ultimate_Patricia5,
 	Battle_Ultimate_Patricia6, Battle_Ultimate_Patricia7
 };
-
 struct ClipTuning
 {
 	float startNormalized = 0.f;
@@ -52,7 +61,6 @@ struct ClipTuning
 	float playbackSpeed   = 1.f;
 	bool  useRootMotion   = false;
 };
-
 struct ClipSet
 {
 	unordered_map<AnimKey, wstring>    nameByKey;
@@ -72,7 +80,6 @@ struct ClipSet
 		return ClipTuning{};
 	}
 };
-
 struct AnimProfile
 {
 	CharacterID character = CharacterID::Unknown;

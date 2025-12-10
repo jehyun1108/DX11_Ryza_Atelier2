@@ -27,6 +27,8 @@ struct BattleIntroState
 
 	bool     reached   = false;
 	bool     readyIdle = false;
+
+	bool     engagedToBattle = false;
 };
 
 NS_END

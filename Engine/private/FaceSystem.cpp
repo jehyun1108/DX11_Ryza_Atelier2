@@ -1,5 +1,10 @@
 #include "Enginepch.h"
 
+void FaceSystem::OnBoot()
+{
+    animator = &registry.Get<AnimatorSystem>();
+}
+
 Handle FaceSystem::Create(EntityID owner, Handle anim, wstring openClip, wstring closeClip, float openDur, float openJitter, float holdClose, float fadeClose, float fadeOpen)
 {
     Handle handle   = CreateComp(owner);
@@ -15,13 +20,12 @@ Handle FaceSystem::Create(EntityID owner, Handle anim, wstring openClip, wstring
     face.fadeClose  = fadeClose;
     face.fadeOpen   = fadeOpen;
 
-    auto& animSys = registry.Get<AnimatorSystem>();
-    while(face.layer >= animSys.GetLayerCount(anim))
-        animSys.AddLayer(anim, {});
-    animSys.SetLayerEnabled(anim, face.layer, true);
+    while(face.layer >= animator->GetLayerCount(anim))
+        animator->AddLayer(anim, {});
+    animator->SetLayerEnabled(anim, face.layer, true);
 
-    auto a = animSys.BuildMaskFromClip(anim, face.clipOpen, true);
-    auto b = animSys.BuildMaskFromClip(anim, face.clipClose, true);
+    auto a = animator->BuildMaskFromClip(anim, face.clipOpen, true);
+    auto b = animator->BuildMaskFromClip(anim, face.clipClose, true);
     vector<uint8_t> mask(max(a.size(), b.size()), 0);
     for (size_t i = 0; i < mask.size(); ++i)
     {
@@ -29,14 +33,14 @@ Handle FaceSystem::Create(EntityID owner, Handle anim, wstring openClip, wstring
         uint8_t maskB = (i < b.size()) ? b[i] : 0;
         mask[i] = uint8_t(maskA | maskB);
     }
-    animSys.SetLayerMask(anim, face.layer, mask);
+    animator->SetLayerMask(anim, face.layer, mask);
 
-    animSys.Play(anim, face.layer, face.clipClose, ANIMTYPE::LOOP);
-    float closePoseTime = animSys.GetClipDuration(anim, face.clipClose);
-    animSys.SetLayerTime(anim, face.layer, closePoseTime);
-    animSys.SetPlaybackSpeed(anim, face.layer, 0.f);
-    animSys.SetLayerBlendType(anim, face.layer, ANIMBLEND::OVERRIDE);
-    animSys.SetLayerBlendWeight(anim, face.layer, 0.f);
+    animator->Play(anim, face.layer, face.clipClose, ANIMTYPE::LOOP);
+    float closePoseTime = animator->GetClipDuration(anim, face.clipClose);
+    animator->SetLayerTime(anim, face.layer, closePoseTime);
+    animator->SetPlaybackSpeed(anim, face.layer, 0.f);
+    animator->SetLayerBlendType(anim, face.layer, ANIMBLEND::OVERRIDE);
+    animator->SetLayerBlendWeight(anim, face.layer, 0.f);
 
     face.curOpenHold  = nextOpenHold(face);
     face.curFadeClose = Utility::Jitter(face.fadeClose);
@@ -48,13 +52,12 @@ Handle FaceSystem::Create(EntityID owner, Handle anim, wstring openClip, wstring
 
 void FaceSystem::SetSpeed(Handle handle, float speed)
 {
-    if (auto face = Get(handle))
-        face->speedScale = max(0.1f, speed);
+    auto face = Get(handle);
+    face->speedScale = max(0.1f, speed);
 }
 
 void FaceSystem::Update(float dt)
 {
-    auto& animSys = registry.Get<AnimatorSystem>();
     ForEachAliveEx([&](Handle handle, EntityID owner, FaceData& face)
         {
             const float step = dt * face.speedScale;
@@ -76,13 +79,12 @@ void FaceSystem::Update(float dt)
             {
                 face.timer = max(0.f, face.timer - step);
                 const float t = 1.f - Utility::Saturate(face.timer / max(1e-5f, face.fadeClose));
-                const float weight = Utility::Saturate(Utility
-                    ::EaseCosine(t));
-                animSys.SetLayerBlendWeight(face.animator, face.layer, weight);
+                const float weight = Utility::Saturate(Utility ::EaseCosine(t));
+                animator->SetLayerBlendWeight(face.animator, face.layer, weight);
 
                 if (face.timer <= 0.f)
                 {
-                    animSys.SetLayerBlendWeight(face.animator, face.layer, 1.f);
+                    animator->SetLayerBlendWeight(face.animator, face.layer, 1.f);
                     if (face.holdClose <= 0.f)
                     {
                         face.state = FaceState::Opening;
@@ -99,7 +101,7 @@ void FaceSystem::Update(float dt)
 
             case FaceState::CloseHold:
                 face.timer -= step;
-                animSys.SetLayerBlendWeight(face.animator, face.layer, 1.f);
+                animator->SetLayerBlendWeight(face.animator, face.layer, 1.f);
                 if (face.timer <= 0.f)
                 {
                     face.state = FaceState::Opening;
@@ -112,11 +114,11 @@ void FaceSystem::Update(float dt)
                 face.timer = max(0.f, face.timer - step);
                 const float t = 1.f - Utility::Saturate(face.timer / max(1e-5f, face.fadeOpen));
                 const float weight = Utility::Saturate(1.f - Utility::EaseCosine(t));
-                animSys.SetLayerBlendWeight(face.animator, face.layer, weight);
+                animator->SetLayerBlendWeight(face.animator, face.layer, weight);
 
                 if (face.timer <= 0.f)
                 {
-                    animSys.SetLayerBlendWeight(face.animator, face.layer, 0.f);
+                    animator->SetLayerBlendWeight(face.animator, face.layer, 0.f);
                     face.curOpenHold = nextOpenHold(face);
                     face.state = FaceState::OpenHold;
                     face.timer = face.curOpenHold;

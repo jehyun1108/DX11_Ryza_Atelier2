@@ -96,7 +96,55 @@ InputLayoutBuilder InputLayoutBuilder::MakePU()
 InputLayoutBuilder InputLayoutBuilder::MakeUI()
 {
 	InputLayoutBuilder builder;
-	builder.Add(VtxAttribute::PosUI)
+	builder.Add(VtxAttribute::PosUI)                // POSITION  (posX,posY)
+		.Add(VtxAttribute::TexCoord, 0)         // TEXCOORD0 (uv)
+		.Add(VtxAttribute::TexCoord, 1)         // TEXCOORD1 (fill)
+		.Add(VtxAttribute::TexCoord1, 2)         // TEXCOORD2 (mode)
+		.Add(VtxAttribute::TexCoord1, 3)         // TEXCOORD3 (alpha)
+		.Add(VtxAttribute::TexCoord1, 4)         // TEXCOORD4 (maskType)
+		.Add(VtxAttribute::Color);
+	return builder;
+}
+
+InputLayoutBuilder InputLayoutBuilder::MakePSkin()
+{
+	InputLayoutBuilder builder;
+	builder.Add(VtxAttribute::Pos)
+		   .Add(VtxAttribute::BlendIndices)
+		   .Add(VtxAttribute::BlendWeights);
+	return builder;
+}
+
+InputLayoutBuilder InputLayoutBuilder::MakeP()
+{
+	InputLayoutBuilder builder;
+	builder.Add(VtxAttribute::Pos);
+	return builder;
+}
+
+InputLayoutBuilder InputLayoutBuilder::MakeParticle()
+{
+	InputLayoutBuilder builder;
+
+	// slot 0 : 쿼드 버텍스 (per-vertex)
+	builder.Add(VtxAttribute::Pos, 0, 0, 0);       // POSITION0 (float3)
+	builder.Add(VtxAttribute::TexCoord, 0, 0, 0);  // TEXCOORD0 (float2, uv)
+	// slot 1 : 인스턴스 데이터 (per-instance, stepRate=1)
+	builder.Add(VtxAttribute::Pos, 1, 1, 1);       // POSITION1 (float3, center)
+	builder.Add(VtxAttribute::TexCoord1, 1, 1, 1); // TEXCOORD1 (float,  size)
+	builder.Add(VtxAttribute::Color, 0, 1, 1);     // COLOR0    (float4, color)
+	builder.Add(VtxAttribute::TexCoord1, 2, 1, 1); // TEXCOORD2 (float,  rotRad)
+
+	builder.Add(VtxAttribute::TexCoord, 3, 1, 1); // TEXCOORD3 (float2, uvMin)
+	builder.Add(VtxAttribute::TexCoord, 4, 1, 1); // TEXCOORD4 (float2, uvMax)
+	return builder;
+}
+
+InputLayoutBuilder InputLayoutBuilder::MakeTrail()
+{
+	InputLayoutBuilder builder;
+	builder.Add(VtxAttribute::Pos)
+		   .Add(VtxAttribute::Color)
 		   .Add(VtxAttribute::TexCoord);
 	return builder;
 }
@@ -142,6 +190,10 @@ void InputLayoutBuilder::FillElement(VtxAttribute attr, _uint semanticIdx, _uint
 		out.SemanticName = "BLENDWEIGHT";
 		out.Format  = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		break;
+	case VtxAttribute::TexCoord1:              
+		out.SemanticName = "TEXCOORD";
+		out.Format = DXGI_FORMAT_R32_FLOAT;
+		break;
 	default:
 		break;
 	}
@@ -155,6 +207,7 @@ _uint InputLayoutBuilder::SizeOf(VtxAttribute attr)
 	case VtxAttribute::PosUI:        return 8;
 	case VtxAttribute::Color:        return 16;
 	case VtxAttribute::TexCoord:     return 8; 
+	case VtxAttribute::TexCoord1:    return 4;
 	case VtxAttribute::Normal:       return 12; 
 	case VtxAttribute::Tangent:      return 16; 
 	case VtxAttribute::BlendIndices: return 16;  

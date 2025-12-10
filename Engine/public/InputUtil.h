@@ -10,10 +10,13 @@ enum class KEY
 	NUM0, NUM1, NUM2, NUM3, NUM4, NUM5, NUM6, NUM7, NUM8, NUM9,
 	LSHIFT, RSHIFT, LCTRL, RCTRL,
 	TAB, ESC, LBUTTON, RBUTTON,
-	ENTER,
+	ENTER, BACKSPACE,
+
+	WHEEL_UP,
+	WHEEL_DOWN,
+
 	END
 };
-
 enum class KEY_STATE 
 { 
 	NONE, 
@@ -21,11 +24,8 @@ enum class KEY_STATE
 	PRESSING,
 	RELEASE 
 };
-
 constexpr size_t KEY_COUNT = static_cast<size_t>(KEY::END);
-
 struct KeyInfo { KEY_STATE state = KEY_STATE::NONE; };
-
 namespace Win32
 {
 	// lParam의 30번째 비트가 1인지 0인지 확인하기 위한 값.
@@ -71,6 +71,7 @@ namespace Win32
 		map[VK_RCONTROL]  = KEY::RCTRL;
 		map[VK_RETURN]    = KEY::ENTER;
 		map[VK_SEPARATOR] = KEY::ENTER;
+		map[VK_BACK]      = KEY::BACKSPACE;
 
 		return map;
 	}

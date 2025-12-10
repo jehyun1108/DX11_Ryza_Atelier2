@@ -10,12 +10,12 @@ namespace Client
 	static constexpr int DefaultX = 1920;
 	static constexpr int DefaultY = 0;
 
-	//static constexpr int WinX = 1920;
-	//static constexpr int WinY = 1080;
-	//static constexpr int DefaultX = 2220;
-	//static constexpr int DefaultY = 200;
+	//static constexpr int WinX     = 1920;
+	//static constexpr int WinY     = 1080;
+	//static constexpr int DefaultX = 0;
+	//static constexpr int DefaultY = 0;
 
-	enum class LEVEL {STATIC, LOADING, LOGO, CENTRAL, END};
+	enum class LEVEL { STATIC, LOADING, LOGO, CENTRAL, END};
 }
 
 extern HINSTANCE g_hInst;

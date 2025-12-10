@@ -3,25 +3,23 @@
 NS_BEGIN(Engine)
 
 using ClipTable = unordered_map<wstring, const AnimClip*>;
-
 struct ENGINE_DLL AnimLayerData
 {
-	const AnimClip* clip    = nullptr;
-	float     curTime{};                  
+	const AnimClip* clip = nullptr;
+	float     curTime{};
 	float     playbackSpeed = 1.0f;
-	ANIMTYPE  playType      = ANIMTYPE::LOOP;
-	ANIMBLEND blendType     = ANIMBLEND::OVERRIDE;
-	float     blendWeight   = 0.f;        
-	bool      isPaused      = false;
-	bool      isEnabled     = true;
+	ANIMTYPE  playType = ANIMTYPE::LOOP;
+	ANIMBLEND blendType = ANIMBLEND::OVERRIDE;
+	float     blendWeight = 0.f;
+	bool      isPaused = false;
+	bool      isEnabled = true;
 
 	float sectionStartTicks = 0.f; // 0 이면 클립시작
-	float sectionEndTicks   = -1.f;
+	float sectionEndTicks = -1.f;
 
 	vector<uint16_t> lastPos, lastRot, lastScale;
 	vector<uint8_t>  mask;
 };
-
 struct CrossFadeState
 {
 	bool   isActive = false;
@@ -38,7 +36,6 @@ struct CrossFadeState
 	wstring   toClipName{};
 	ANIMTYPE  toAnimType = ANIMTYPE::ONCE;
 };
-
 struct ENGINE_DLL AnimData
 {
 	Skeleton* skeleton{};
@@ -54,7 +51,6 @@ struct ENGINE_DLL AnimData
 
 	CrossFadeState cross{};
 };
-
 struct SectionInfo
 {
 	float startTicks = 0.f;

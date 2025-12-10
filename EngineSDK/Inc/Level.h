@@ -17,31 +17,44 @@ public:
 
 protected:
 	GameInstance& game = GameInstance::GetInstance();
-	ID3D11Device*          device{};
-	ID3D11DeviceContext*   context{};
-	SystemRegistry&        registry;
+	ID3D11Device*           device{};
+	ID3D11DeviceContext*    context{};
+	SystemRegistry&         registry;
+						    
+	EntityMgr*              entityMgr{};
+	EntitySpawner*          spawner{};
+	AssetSystem*            assets{};
+	GridSystem*             gridSys{};
+	CameraSystem*           camSys{};
+	TagSystem*              tagSys{};
+	LayerSystem*            layerSys{};
+	TransformSystem*        tfSys{};
+	ModelSystem*            modelSys{};
+	PickingSystem*          pickSys{};
+	SelectionSystem*        selectSys{};
+	CollisionSystem*        collisionSys{};
+	InputService*           input{};
+	FieldAnimSystem*        fieldAnimSys{};
+	FacingSystem*           faceSys{};
+	FieldControllerSystem*  fieldCtrlSys{};
+	CharacterDataSystem*    dataSys{};
+	UIRegistry*             uiRegistry{};
+	NavMeshSystem*          navSys{};
+	WorldSerializer*        worldSys{};
+	GameModeDirectorSystem* director{};
+	SoundSystem*            soundSys{};
+	SoundRegistry*          soundRegistry{};
+	UISystem*               uiSys{};
+	LoadingPresenter*       loadPresenter{};
+	ScreenFadeSystem*       fadeSys{};
+	LoadingPresenter*       loadingPresenter{};
+	LogoMenuPresenter*      logoMenuPresenter{};
+	ParticleSystem*         particleSys{};
+	EffectSystem*           effectSys{};
+	ActionFxRegistry*       actionFxReg{};
 
-	EntityMgr*             entityMgr{};
-	EntitySpawner*         spawner{};
-	AssetSystem*           assets{};
-	GridSystem*            gridSys{};
-	CameraSystem*          camSys{};
-	TagSystem*             tagSys{};
-	LayerSystem*           layerSys{};
-	TransformSystem*       tfSys{};
-	ModelSystem*           modelSys{};
-	PickingSystem*         pickSys{};
-	SelectionSystem*       selectSys{};
-	CollisionSystem*       collisionSys{};
-	InputService*          input{};
-	FieldAnimSystem*       fieldAnimSys{};
-	FacingSystem*          faceSys{};
-	FieldControllerSystem* fieldCtrlSys{};
-	CharacterDataSystem*   dataSys{};
-	UIRegistry*            uiRegistry{};
-
-	EntityID               playerID{};
-	EntityHandles          playerHandle{};
+	EntityID                playerID{};
+	EntityHandles           playerHandle{};
 };
 
 NS_END

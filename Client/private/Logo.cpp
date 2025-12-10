@@ -16,8 +16,6 @@ HRESULT Logo::Init()
 	return S_OK;
 }
 
-
-
 void Logo::Update(float dt)
 {			
 }

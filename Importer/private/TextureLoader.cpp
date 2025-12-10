@@ -34,25 +34,25 @@ unique_ptr<MaterialData> TextureLoader::LoadMaterial(const aiMaterial* pMaterial
         { aiTextureType_NORMALS, aiTextureType_NORMAL_CAMERA, aiTextureType_HEIGHT },
         TEXSLOT::NORMAL, *material, fbxPath, "Normal");
 
-    // Metallic
-    ProcessTextureType(pMaterial, pScene,
-        { aiTextureType_METALNESS, aiTextureType_NONE },
-        TEXSLOT::METALIC, *material, fbxPath, "Metallic");
+    //// Metallic
+    //ProcessTextureType(pMaterial, pScene,
+    //    { aiTextureType_METALNESS, aiTextureType_NONE },
+    //    TEXSLOT::METALIC, *material, fbxPath, "Metallic");
 
-    // Roughness
-    ProcessTextureType(pMaterial, pScene,
-        { aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SPECULAR },
-        TEXSLOT::ROUGHNESS, *material, fbxPath, "Roughness");
+    //// Roughness
+    //ProcessTextureType(pMaterial, pScene,
+    //    { aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_SPECULAR },
+    //    TEXSLOT::ROUGHNESS, *material, fbxPath, "Roughness");
 
-    // Emissive
-    ProcessTextureType(pMaterial, pScene,
-        { aiTextureType_EMISSIVE, aiTextureType_NONE },
-        TEXSLOT::EMISSIVE, *material, fbxPath, "Emissive");
+    //// Emissive
+    //ProcessTextureType(pMaterial, pScene,
+    //    { aiTextureType_EMISSIVE, aiTextureType_NONE },
+    //    TEXSLOT::EMISSIVE, *material, fbxPath, "Emissive");
 
-    // AO
-    ProcessTextureType(pMaterial, pScene,
-        { aiTextureType_AMBIENT_OCCLUSION, aiTextureType_NONE },
-        TEXSLOT::AO, *material, fbxPath, "AO");
+    //// AO
+    //ProcessTextureType(pMaterial, pScene,
+    //    { aiTextureType_AMBIENT_OCCLUSION, aiTextureType_NONE },
+    //    TEXSLOT::AO, *material, fbxPath, "AO");
 
     return material;
 }

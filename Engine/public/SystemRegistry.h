@@ -10,6 +10,8 @@ NS_BEGIN(Engine)
 class SystemRegistry
 {
 public:
+	SystemRegistry();
+
 	template<typename T, typename...Args>
 	T& Emplace(Args&&...args);
 	template<typename T>
@@ -17,8 +19,6 @@ public:
 
 	template<typename T>
 	T& Get() const;
-	template<typename T>
-	T* TryGet() const;
 
 	template<typename TypeList>
 	void EmplaceAll();
@@ -37,7 +37,7 @@ private:
 	void RegisterCommon(T& system);
 
 private:
-	unordered_map<type_index, void*> table;
+	vector<void*> table;
 
 	vector<IOwnsEntities*>      owningSystems;
 	vector<IGuiRenderable*>     guiSystems;
@@ -73,16 +73,11 @@ void SystemRegistry::RegisterRef(T& system)
 template<typename T>
 T& SystemRegistry::Get() const
 {
-	auto it = table.find(type_index(typeid(T)));
-	if (it == table.end()) throw runtime_error("System not registered");
-	return *static_cast<T*>(it->second);
-}
-
-template<typename T>
-T* SystemRegistry::TryGet() const
-{
-	auto it = table.find(type_index(typeid(T)));
-	return (it == table.end()) ? nullptr : static_cast<T*>(it->second);
+	static_assert(Contains<T, AllSystems>::value);
+	constexpr size_t id = IndexOf<T, AllSystems>::value;
+	void* ptr = (id < table.size()) ? table[id] : nullptr;
+	if (!ptr) throw runtime_error("System not registered");
+	return *static_cast<T*>(ptr);
 }
 
 template<typename TypeList>
@@ -102,10 +97,10 @@ void SystemRegistry::BootAllTyped()
 template<typename T>
 void SystemRegistry::RegisterCommon(T& system)
 {
-	auto tid = type_index(typeid(T));
-	auto ok = table.emplace(tid, &system).second;
-	if (!ok) 
-		throw runtime_error("System already registered");
+	static_assert(Contains<T, AllSystems>::value);
+	constexpr size_t id = IndexOf<T, AllSystems>::value;
+	if (table[id]) throw runtime_error("System already registered");
+	table[id] = &system;
 
 	if constexpr (is_base_of_v<IOwnsEntities, T>)
 		owningSystems.push_back(static_cast<IOwnsEntities*>(&system));

@@ -8,6 +8,7 @@ class ENGINE_DLL SocketSystem : public EntitySystem<SocketData>, public IGuiRend
 {
 public:
 	explicit SocketSystem(SystemRegistry& registry) : EntitySystem(registry) {}
+	void     OnBoot() override;
 
 	Handle Create(EntityID owner, Handle childTf, Handle parentAnim, Handle parentTf, const string& boneName,
 		const _float3& offsetPos = {}, const _float3& offsetRot = {});
@@ -18,12 +19,17 @@ public:
 	void SetOffsetMat(Handle handle, const _float4x4& mat);
 	void SetOffsetPos(Handle handle, _float3 pos);
 	void SetOffsetRot(Handle handle, _float3 euler);
+	void SetPosOnly(Handle handle, bool posOnly);
 
 	void Update(float dt);
 	void RenderGui(EntityID id) override;
 
 private:
 	void RebuildOffset(SocketData& socket) const;
+
+private:
+	AnimatorSystem*  animator{};
+	TransformSystem* tfSys{};
 };
 
 NS_END

@@ -1,52 +1,54 @@
 #pragma once
 
-#include "BattleControllerData.h"
-
 NS_BEGIN(Engine)
 
-class ENGINE_DLL BattleControllerSystem : public ISystem
+class ENGINE_DLL BattleControllerSystem : public ISystem, public IGuiRenderable
 {
 public:
 	explicit BattleControllerSystem(SystemRegistry& registry) : registry(registry) {}
     void     OnBoot() override;
+	void     Update(float dt); 
 
-	void  Update(EntityID leaderEntity, float dt); 
 	void  SetConfig(const ControllerConfig& newConfig) { config = newConfig; }
-	const ControllerConfig&  GetConfig()     const     { return config; }
-	const ControllerRuntime* TryGetRuntime() const     { return &runtime; }
+	const ControllerConfig&  GetConfig()  const        { return config; }
+	const ControllerRuntime& GetRuntime() const        { return runtime; }
 	
 	void OnGaugeBecameFull();
-	void OnActionExecutionStarted(const TimelineActionIntent& startIntent) { runtime.isExecuting = true; }
-	void OnActionExecutionFinished(const TimelineActionIntent& finishIntent);
-    void SubmitIntent(const TimelineActionIntent& intent)                  { (void)SubmitAccordingToPolicy(intent); }
+    void OnActionExecutionStarted(EntityID entity, const TimelineActionIntent& startIntent);
+	void OnActionExecutionFinished(EntityID entity, const TimelineActionIntent& finishIntent);
+    void RenderGui(EntityID id) override;
+
+    void OnComboStepStarted(EntityID entity, SkillSlotTag slot, int stepIdx);
 
 private:
     bool IsGaugeFull(EntityID entity)      const { return timelineSys->IsGaugeFull(entity); }
     bool IsUnitReadyToAct(EntityID entity) const { return timelineSys->IsUnitReadyToAct(entity); }
 
-    bool BuildIntent_Basic(EntityID leaderEntity, TimelineActionIntent& outIntent);
-    bool BuildIntent_Skill(EntityID leaderEntity, SpecialAnimTag tag, TimelineActionIntent& outIntent);
-    bool BuildIntent_Defend(EntityID leaderEntity, TimelineActionIntent& outIntent);
-    bool BuildIntent_Escape(EntityID leaderEntity, TimelineActionIntent& outIntent);
-    bool ResolveSingleTarget(EntityID leaderEntity, EntityID& outTarget) const;
+    TimelineActionIntent BuildIntent_Basic(EntityID leaderEntity);
+    TimelineActionIntent BuildIntent_Skill(EntityID leaderEntity, SkillSlotTag slot);
+    TimelineActionIntent BuildIntent_Defend(EntityID leaderEntity);
+    TimelineActionIntent BuildIntent_Escape(EntityID leaderEntity);
+    TimelineActionIntent BuildIntent_ItemRush(EntityID leaderEntity);
+    EntityID             ResolveSingleTarget(EntityID leaderEntity) const;
 
-    bool SubmitAccordingToPolicy(const TimelineActionIntent& intent) { return timelineSys->TryCommitIntent(runtime.leaderEntity, intent); }
-    void PushToBuffer(const TimelineActionIntent& intent);
-    bool HasBuffered()                                const { return runtime.buffered.hasValue; }
-    void ClearBuffer()                                      { runtime.buffered = {}; }
-    bool IsSkillAvailableThisTurn(SpecialAnimTag tag) const { return (runtime.turn.usedTagsThisTurn.find(tag) == runtime.turn.usedTagsThisTurn.end()); }
-    void MarkSkillUsedThisTurn(SpecialAnimTag tag)          { runtime.turn.usedTagsThisTurn.insert(tag); }
-    void ResetTurnVisuals()                                 { runtime.queuedSkillSlotFlags = { false, false, false, false }; }
-    // ----------------------------------------------------------------------------------------------------------------
+    bool PushToBuffer(const TimelineActionIntent& intent);
+    bool HasBuffered() const { return runtime.buffered.hasValue; }
+    void ClearBuffer()       { runtime.buffered = {}; }
+    void ResetTurnVisuals()  { runtime.queuedSkillSlotFlags = { false, false, false, false }; }
+
     void HandleLeaderSwitching();
-    void HandleDefendHold(float t);
+    void HandleDefendHold();
     void HandleEscapeHold(float t);
-    void HandleActionMenusAndCommit(bool isReady);
-    void HandleSkillPage(bool isReady);
+    void HandleActionMenusAndCommit(bool isReady, bool isComboWindow);
+    void HandleSkillPage(bool isReady, bool isComboWindow);
     void HandlePrimaryPage(bool isReady);
     // -----
     void     CleanupPrevLeaderIfDefending(EntityID prevLeader);
     EntityID PickAllyByIdx(int idx) const;
+
+private:
+    ControllerConfig      config;
+    ControllerRuntime     runtime;
 
 private:
 	SystemRegistry&        registry;
@@ -54,9 +56,9 @@ private:
     BattleSessionSystem*   sessionSys{};
     InputService*          input{};
     BattleExecutionSystem* execSys{};
-
-	ControllerConfig      config;
-	ControllerRuntime     runtime;
+    ActionAnimRegistry*    animReg{};
+    CharacterDataSystem*   dataSys{};
+    SoundSystem*           soundSys{};
 };
 
 NS_END

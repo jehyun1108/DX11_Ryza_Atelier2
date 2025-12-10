@@ -1,5 +1,10 @@
 #include "Enginepch.h"
 
+void CameraSystem::OnBoot()
+{
+    tfSys = &registry.Get<TransformSystem>();
+}
+
 Handle CameraSystem::Create(EntityID owner, Handle transform, float fovY, float aspect, float nearZ, float farZ)
 {
     Handle handle = CreateComp(owner);
@@ -11,12 +16,12 @@ Handle CameraSystem::Create(EntityID owner, Handle transform, float fovY, float 
     cam.aspect    = aspect;
     cam.nearZ     = nearZ; 
     cam.farZ      = farZ;
-    XMStoreFloat4x4(&cam.view, XMMatrixIdentity());
-    XMStoreFloat4x4(&cam.proj, XMMatrixIdentity());
-    XMStoreFloat4x4(&cam.viewProj, XMMatrixIdentity());
-    XMStoreFloat4x4(&cam.invView, XMMatrixIdentity());
+    XMStoreFloat4x4(&cam.view,        XMMatrixIdentity());
+    XMStoreFloat4x4(&cam.proj,        XMMatrixIdentity());
+    XMStoreFloat4x4(&cam.viewProj,    XMMatrixIdentity());
+    XMStoreFloat4x4(&cam.invView,     XMMatrixIdentity());
     XMStoreFloat4x4(&cam.invViewProj, XMMatrixIdentity());
-    XMStoreFloat4(&cam.camPos, XMVectorZero());
+    XMStoreFloat4(&cam.camPos,        XMVectorZero());
 
     if (!Validate(mainCam))
     {
@@ -28,7 +33,6 @@ Handle CameraSystem::Create(EntityID owner, Handle transform, float fovY, float 
 
 void CameraSystem::Update(float dt)
 {
-    auto& tfSys = registry.Get<TransformSystem>();
     ForEachAliveEx([&](Handle handle, EntityID owner, CameraData& cam)
         {
             UpdateFollowing(cam, dt);
@@ -38,28 +42,35 @@ void CameraSystem::Update(float dt)
 
 void CameraSystem::SetPerspective(Handle handle, float fovY, float aspect, float nearZ, float farZ)
 {
-    if (auto cam = Get(handle)) 
-    {
-        cam->fovY   = fovY; 
-        cam->aspect = aspect; 
-        cam->nearZ  = nearZ;
-        cam->farZ   = farZ; 
-    }
+    auto cam = Get(handle);
+    cam->projType = ProjectionType::Perspective;
+    cam->fovY     = fovY; 
+    cam->aspect   = aspect; 
+    cam->nearZ    = nearZ;
+    cam->farZ     = farZ; 
+}
+
+void CameraSystem::SetOrtho(Handle handle, float width, float height, float nearZ, float farZ)
+{
+    auto cam = Get(handle);
+    cam->projType    = ProjectionType::Orthographic;
+    cam->orthoWidth  = width;
+    cam->orthoHeight = height;
+    cam->nearZ       = nearZ;
+    cam->farZ        = farZ;
 }
 
 void CameraSystem::SetTarget(Handle handle, Handle targetTf, _fvec offset)
 {
-    if (auto cam = Get(handle))
-    {
-        cam->targetTf = targetTf;
-        XMStoreFloat3(&cam->followOffset, offset);
-    }
+    auto cam = Get(handle);
+    cam->targetTf = targetTf;
+    XMStoreFloat3(&cam->followOffset, offset);
 }
 
 void CameraSystem::ClearTarget(Handle handle)
 {
-    if (auto cam = Get(handle))
-        cam->targetTf = {};
+    auto cam = Get(handle);
+    cam->targetTf = {};
 }
 
 void CameraSystem::SetMainCam(Handle handle, bool isMainCam)
@@ -91,96 +102,86 @@ void CameraSystem::SetMainCam(Handle handle, bool isMainCam)
 
 void CameraSystem::SetRayPolicy(Handle handle, RAYORIGIN policy)
 {
-    if (auto cam = Get(handle))
-        cam->rayPolicy = policy;
+    auto cam = Get(handle);
+    cam->rayPolicy = policy;
 }
 
 void CameraSystem::SetFollowOffsetSpace(Handle handle, OffsetSpace space)
 {
-    if (auto cam = Get(handle))
-        cam->offsetSpace = space;
+    auto cam = Get(handle);
+    cam->offsetSpace = space;
 }
 
 void CameraSystem::SetFollowPolicy(Handle handle, FollowPolicy policy, float softDamping)
 {
-    if (auto cam = Get(handle))
-    {
-        cam->followPolicy = policy;
-        cam->softDamping  = softDamping;
-        cam->desiredInit  = false;
-    }
+    auto cam = Get(handle);
+    cam->followPolicy = policy;
+    cam->softDamping  = softDamping;
+    cam->desiredInit  = false;
 }
 
-void CameraSystem::CreateRayFromScreen(Handle handle, const _float2& screenPos, const D3D11_VIEWPORT& vp, _vec& outRayOrigin, _vec& outRayDir) const
+void CameraSystem::SetLookAtOffset(Handle handle, _fvec offset)
 {
-    if (!Validate(handle))
-    {
-        outRayOrigin = XMVectorZero(); 
-        outRayDir = XMVectorSet(0, 0, 1, 0);
-        return; 
-    }
-    const CameraData& cam = RequiredCam(this, handle, "CreateRayFromScreen: invalid camera");
+    auto cam = Get(handle);
+    XMStoreFloat3(&cam->lookAtOffset, offset);
+}
 
-    float ndcX, ndcY;
-    ScreenToNdc(screenPos, vp, ndcX, ndcY);
+void CameraSystem::CreateRayFromScreen(Handle h, const _float2& sp, const D3D11_VIEWPORT& vp, _vec& outOri, _vec& outDir) const
+{
+    const CameraData& cam = RequiredCam(this, h, "CreateRayFromScreen");
 
-    const _mat invVP = XMLoadFloat4x4(&cam.invViewProj);
+    float sx   = (sp.x - vp.TopLeftX) / vp.Width;
+    float sy   = (sp.y - vp.TopLeftY) / vp.Height;
+    float ndcX = sx * 2.f - 1.f;
+    float ndcY = 1.f - sy * 2.f;
 
-    const _vec nearNdc = XMVectorSet(ndcX, ndcY, 0.f, 1.f);
-    const _vec farNdc  = XMVectorSet(ndcX, ndcY, 1.f, 1.f);
+    _vec pNearNdc = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
+    _vec pFarNdc  = XMVectorSet(ndcX, ndcY, 1.0f, 1.0f);
 
-    const _vec nearWorld = XMVector3TransformCoord(nearNdc, invVP);
-    const _vec farWorld  = XMVector3TransformCoord(farNdc, invVP);
+    _mat invVP   = XMLoadFloat4x4(&cam.invViewProj);
+    _mat invView = XMLoadFloat4x4(&cam.invView);
 
-    const _vec dir = XMVector3Normalize(farWorld - nearWorld);
+    _vec pNearWorld = XMVector3TransformCoord(pNearNdc, invVP);
+    _vec pFarWorld  = XMVector3TransformCoord(pFarNdc, invVP);
 
-    if (cam.rayPolicy == RAYORIGIN::CameraPos)
-    {
-        outRayOrigin = XMLoadFloat4(&cam.camPos);
-        outRayDir = dir;
-    }
-    else
-    {
-        outRayOrigin = nearWorld;
-        outRayDir = dir;
-    }
+    _vec dir = XMVector3Normalize(pFarWorld - pNearWorld);
+
+    if (cam.rayPolicy == RAYORIGIN::NearPlane)
+        outOri = pNearWorld;
+    else 
+        outOri = XMLoadFloat4(&cam.camPos);
+
+    outDir = dir;
+
+    _vec fwdWorld = XMVector3Normalize(XMVector3TransformNormal(XMVectorSet(0, 0, 1, 0), invView));
+    float cosF = XMVectorGetX(XMVector3Dot(fwdWorld, dir));
 }
 
 const CameraData& CameraSystem::RequiredCam(const CameraSystem* self, Handle handle, const char* what)
 {
-    assert(self && "CameraSystem is null");
-    assert(self->Validate(handle) && what);
     const CameraData* cam = self->Get(handle);
-    assert(cam && what);
     return *cam;
 }
 
 void CameraSystem::UpdateFollowing(CameraData& cam, float dt) const
 {
     if (!cam.targetTf.IsValid()) return;
-    auto& tfSys        = registry.Get<TransformSystem>();
-
-    const TransformData* targetTf = tfSys.Get(cam.targetTf);
-    TransformData* selfTf         = tfSys.Get(cam.transform);
-    if (!targetTf || !selfTf) return;
+    const TransformData* targetTf = tfSys->Get(cam.targetTf);
+    TransformData* selfTf         = tfSys->Get(cam.transform);
 
     const _vec targetPos = XMLoadFloat3(&targetTf->pos);
-
-    // 1. Offset 좌표계 선택
     _vec bestPos{};
     if (cam.offsetSpace == OffsetSpace::TargetSpace)
     {
-        const _vec right = tfSys.GetRight(cam.targetTf);
-        const _vec up    = tfSys.GetUp(cam.targetTf);
-        const _vec look  = tfSys.GetLook(cam.targetTf);
+        const _vec right = tfSys->GetRight(cam.targetTf);
+        const _vec up    = tfSys->GetUp(cam.targetTf);
+        const _vec look  = tfSys->GetLook(cam.targetTf);
         bestPos = targetPos + right * cam.followOffset.x + up * cam.followOffset.y + look * cam.followOffset.z;
     }
     else
         bestPos = targetPos + XMLoadFloat3(&cam.followOffset);
 
     XMStoreFloat3(&selfTf->pos, bestPos);
-
-    // 2. 회전 Policy
     const _vec worldUp = Utility::Up();
     if (cam.followPolicy == FollowPolicy::PosOnly)
     {
@@ -188,8 +189,7 @@ void CameraSystem::UpdateFollowing(CameraData& cam, float dt) const
         return;
     }
 
-    // Hard/Soft LookAt 의 목표 회전 (타깃의 약간위)
-    const _vec lookAt = targetPos + XMVectorSet(0.f, 2.f, 0.f, 0.f);
+    const _vec lookAt = targetPos + XMLoadFloat3(&cam.lookAtOffset);
     const _vec forward = XMVector3Normalize(lookAt - bestPos);
     const _vec desiredQ = Utility::BuildLookRot(forward, worldUp);
 
@@ -199,8 +199,6 @@ void CameraSystem::UpdateFollowing(CameraData& cam, float dt) const
         selfTf->dirty = true;
         return;
     }
-
-    // SoftLookAt
     _vec curQ = XMLoadFloat4(&selfTf->rot);
     curQ = XMQuaternionNormalize(curQ);
 
@@ -221,56 +219,59 @@ void CameraSystem::UpdateFollowing(CameraData& cam, float dt) const
 
 void CameraSystem::RebuildMatrices(CameraData& cam) const
 {
-    auto& tfSys = registry.Get<TransformSystem>();
-    const TransformData* tf = tfSys.Get(cam.transform);
-    if (!tf) return;
-
-    // 1. pos/rot 만 사용 (scale 무시)
-    _vec quat = XMLoadFloat4(&tf->rot);
-    quat = XMQuaternionNormalize(quat);
-
-    _mat rotMat = XMMatrixRotationQuaternion(quat);
-    _mat transMat = XMMatrixTranslation(tf->pos.x, tf->pos.y, tf->pos.z);
-
-    _mat worldCam = rotMat * transMat;
+    const TransformData* tf = tfSys->Get(cam.transform);
+    _mat worldCam = XMLoadFloat4x4(&tf->world);
 
     // 2. view / invView
     _mat view = XMMatrixInverse(nullptr, worldCam);
     XMStoreFloat4x4(&cam.view, view);
     XMStoreFloat4x4(&cam.invView, worldCam);
 
-    // 3. Proj
-    const _mat proj = XMMatrixPerspectiveFovLH(cam.fovY, cam.aspect, cam.nearZ, cam.farZ);
+    // 3. Proj / invProj
+    _mat proj{};
+    if (cam.projType == ProjectionType::Perspective)
+        proj = XMMatrixPerspectiveFovLH(cam.fovY, cam.aspect, cam.nearZ, cam.farZ);
+    else
+        proj = XMMatrixOrthographicLH(cam.orthoWidth, cam.orthoHeight, cam.nearZ, cam.farZ);
+
     XMStoreFloat4x4(&cam.proj, proj);
+    const _mat invProj = XMMatrixInverse(nullptr, proj);
+    XMStoreFloat4x4(&cam.invProj, invProj);
 
-    // 4. viewProj / invViewProj
+    // 4. viewProj, invViewProj
     const _mat viewProj = view * proj;
-    XMStoreFloat4x4(&cam.viewProj, viewProj);
-
     const _mat invViewProj = XMMatrixInverse(nullptr, viewProj);
+    XMStoreFloat4x4(&cam.viewProj, viewProj);
     XMStoreFloat4x4(&cam.invViewProj, invViewProj);
-
-    XMStoreFloat4(&cam.camPos, _vec{ tf->pos.x, tf->pos.y, tf->pos.z, 1.f });
+    XMStoreFloat4(&cam.camPos, { tf->world._41, tf->world._42, tf->world._43, 1.0f });
+    _vec forward = XMVector3Normalize( XMVector3TransformNormal(XMVectorSet(0.f, 0.f, 1.f, 0.f), worldCam));
+    XMStoreFloat4(&cam.forward, forward);
 }
 
 void CameraSystem::ScreenToNdc(const _float2& screenPos, const D3D11_VIEWPORT& vp, float& ndcX, float& ndcY)
 {
-    if (vp.Width <= 0.f || vp.Height <= 0.f) 
-    {
-        ndcX = 0.f;
-        ndcY = 0.f;
-        return;
-    }
-    ndcX = ((screenPos.x - vp.TopLeftX) / vp.Width) * 2.f - 1.f;
-    ndcY = 1.f - ((screenPos.y - vp.TopLeftY) / vp.Height) * 2.f;
+    const float sx = (screenPos.x - vp.TopLeftX) / vp.Width;
+    const float sy = (screenPos.y - vp.TopLeftY) / vp.Height;
+    ndcX = sx * 2.f - 1.f;
+    ndcY = 1.f - sy * 2.f;
 }
 
 void CameraSystem::ExtractCameraProxy(Handle cam, CameraProxy& out) const
 {
-    out.view    = GetView(cam);
-    out.proj    = GetProj(cam);
-    out.invView = GetInvView(cam);
+    out.view        = GetView(cam);
+    out.proj        = GetProj(cam);
+    out.viewProj    = GetViewProj(cam);
+    out.invView     = GetInvView(cam);
+    out.invProj     = GetInvProj(cam);
+    out.invViewProj = GetInvViewProj(cam);
+    out.zNear       = GetNearZ(cam);
+    out.zFar        = GetFarZ(cam);
+    out.fovY        = GetFovY(cam);
+    out.aspect      = GetAspect(cam);
+    
     XMStoreFloat4(&out.camPos, GetPos(cam));
+    const CameraData* src = Get(cam);
+    out.camForward = src->forward;
 }
 
 void CameraSystem::RenderGui(EntityID id)
@@ -280,20 +281,17 @@ void CameraSystem::RenderGui(EntityID id)
         {
             ImGui::PushID((int)handle.idx);
 
-            // 여러 카메라를 가질수 있으니
             if (ImGui::CollapsingHeader("Camera"))
             {
                 bool isMainCam = (Validate(mainCam) && mainCam == handle);
                 if (ImGui::Checkbox("MainCam", &isMainCam))
                     SetMainCam(handle, isMainCam);
 
-                // RayPolicy
                 static const char* rayPolicyTypes[] = { "CameraPos", "NearPlane" };
                 int rayIdx = (cam.rayPolicy == RAYORIGIN::CameraPos) ? 0 : 1;
                 if (ImGui::Combo("Ray Origin", &rayIdx, rayPolicyTypes, IM_ARRAYSIZE(rayPolicyTypes)))
                     SetRayPolicy(handle, rayIdx == 0 ? RAYORIGIN::CameraPos : RAYORIGIN::NearPlane);
 
-                // Proj
                 float fovDeg = XMConvertToDegrees(cam.fovY);
                 float aspect = cam.aspect;
                 float nearZ = cam.nearZ;

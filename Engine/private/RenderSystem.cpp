@@ -1,4 +1,5 @@
 #include "Enginepch.h"
+#include "UIMinimapSystem.h"
 
 static inline BoundingBox TransformAABB(const BoundingBox& local, const _float4x4& world)
 {
@@ -6,7 +7,6 @@ static inline BoundingBox TransformAABB(const BoundingBox& local, const _float4x
 	local.Transform(worldBox, XMLoadFloat4x4(&world));
 	return worldBox;
 }
-
 template<typename T>
 static inline _uint GetStableId(const T* ptr, unordered_map<const T*, _uint>& map, _uint& nextId)
 {
@@ -21,10 +21,8 @@ bool RenderSystem::FrustumCulling(const BoundingBox& worldAABB, const CameraProx
 {
 	BoundingFrustum frustumViewSpace;
 	BoundingFrustum::CreateFromMatrix(frustumViewSpace, XMLoadFloat4x4(&cam.proj));
-
 	BoundingFrustum frustumWorldSpace;
 	frustumViewSpace.Transform(frustumWorldSpace, XMLoadFloat4x4(&cam.invView));
-
 	return frustumWorldSpace.Contains(worldAABB) != ContainmentType::DISJOINT;
 }
 
@@ -33,60 +31,61 @@ float RenderSystem::CalcCamDist(const _float4x4& world, const CameraProxy& cam) 
 	const _mat worldMat = XMLoadFloat4x4(&world);
 	const _mat viewMat = XMLoadFloat4x4(&cam.view);
 	const _mat worldView = XMMatrixMultiply(worldMat, viewMat);
-
 	const _vec pWorld = XMVectorSet(0, 0, 0, 1);
 	const _vec pView = XMVector3TransformCoord(pWorld, worldView);
 	return fabsf(XMVectorGetZ(pView));
 }
 
+float RenderSystem::CalcCamDist(const _float3& pos, const CameraProxy& cam) const
+{
+	const _mat viewMat = XMLoadFloat4x4(&cam.view);
+	const _vec pWorld  = XMLoadFloat3(&pos);
+	const _vec pView   = XMVector3TransformCoord(pWorld, viewMat);
+	return fabsf(XMVectorGetZ(pView));
+}
+
+void RenderSystem::OnBoot()
+{
+	camSys       = &registry.Get<CameraSystem>();
+	lightSys     = &registry.Get<LightSystem>();
+	skySys       = &registry.Get<SkyboxSystem>();
+	uiSys        = &registry.Get<UISystem>();
+	modelSys     = &registry.Get<ModelSystem>();
+	tfSys        = &registry.Get<TransformSystem>();
+	layerSys     = &registry.Get<LayerSystem>();
+	animator     = &registry.Get<AnimatorSystem>();
+	collisionSys = &registry.Get<CollisionSystem>();
+	miniSys      = &registry.Get<UIMinimapSystem>();
+	particleSys  = &registry.Get<ParticleSystem>();
+	trailSys     = &registry.Get<TrailSystem>();
+	effectSys    = &registry.Get<EffectSystem>();
+}
+
 void RenderSystem::BuildScene(RenderScene& out)
 {
 	out.Clear();
-	// 0. Camera SnapShot
-	{
-		auto& camSys = registry.Get<CameraSystem>();
-		Handle mainCam = camSys.GetMainCamHandle();
-		CameraProxy cam{};
-		camSys.ExtractCameraProxy(mainCam, cam);
-		out.cam = cam;
-	}
-	// 1. Light SnapShot
-	{
-		auto& lightSys = registry.Get<LightSystem>();
-		vector<LightProxy> lights;
-		lightSys.ExtractLightProxies(lights);
-		out.lights = move(lights);
-	}
-	// 1.5 Skybox
-	{
-		auto& skySys = registry.Get<SkyboxSystem>();
-		skySys.ExtractSkyboxProxies(out.skybox);
-	}
-	// 2. UI
-	{
-		auto& uiSys = registry.Get<UISystem>();
-		uiSys.ExtractUIProxies(out.ui);
-	}
+
+	camSys->ExtractCameraProxy(camSys->GetMainCamHandle(), out.cam);
+	lightSys->ExtractLightProxies(out.lights);
+	skySys->ExtractSkyboxProxies(out.skybox);
+	uiSys->ExtractUIProxies(out.ui);
+	particleSys->ExtractParticleSnapshot(out.particles, out.cam);
+	trailSys->ExtractTrailSnapshot(out.trails, out.cam);
+	
+	out.minimapEnabled = (miniSys->GetMode() != MinimapMode::None);
+	if (out.minimapEnabled)
+		out.minimapCam = miniSys->GetCamera();
 
 	// 3. ModelParts
 	vector<RenderProxy> proxies;
 	proxies.reserve(1024);
-
-	auto& modelSys = registry.Get<ModelSystem>();
-	auto& tfSys    = registry.Get<TransformSystem>();
-	auto& layerSys = registry.Get<LayerSystem>();
-	auto& animSys  = registry.Get<AnimatorSystem>();
-
-	modelSys.ForEachAliveEx([&](Handle handle, EntityID owner, const ModelData& model)
+	modelSys->ForEachAliveEx([&](Handle handle, EntityID owner, const ModelData& model)
 		{
 			if (!model.enabled || !model.model) return;
 
-			const _float4x4* pWorld = tfSys.GetWorld(model.transform);
-			if (!pWorld) return;
-
-			if (auto layer = layerSys.GetByOwner(owner))
-				if ((layer->layerMask & 0xFFFFFFFFu) == 0) return;
-
+			const _float4x4* pWorld = tfSys->GetWorld(model.transform);
+			_uint layerMask = layerSys->GetByOwner(owner)->layerMask;
+			if (layerMask == 0) return;
 			// 각 파트 -> RenderProxy
 			for (const auto& part : model.model->GetParts())
 			{
@@ -98,22 +97,22 @@ void RenderSystem::BuildScene(RenderScene& out)
 				proxy.material  = part.material;
 				proxy.world     = *pWorld;
 				proxy.isSkinned = (part.mesh->GetLayoutID() == VertexLayoutID::PNUTanSkin);
+				proxy.layerMask = layerMask;
 
 				if (proxy.isSkinned)
 				{
 					const vector<_float4x4>* finalMatrices{};
 					if (model.animator.IsValid())
-						finalMatrices = animSys.GetFinalMatrices(model.animator);
+						finalMatrices = animator->GetFinalMatrices(model.animator);
 
 					if (!finalMatrices || finalMatrices->empty())
 						finalMatrices = &model.model->GetBindPoseMatrices();
 
-					if (finalMatrices || !finalMatrices->empty())
+					if (finalMatrices && !finalMatrices->empty())
 						proxy.boneMatrices = BoneMatrices{ finalMatrices->data(), static_cast<_uint>(finalMatrices->size()) };
 
 					proxy.skeleton = model.model->GetSkeleton();
 				}
-				// BoundingBox
 				BoundingBox worldAABB;
 				if (part.mesh->HasLocalBounds())
 					worldAABB = TransformAABB(part.mesh->GetLocalAABB(), proxy.world);
@@ -122,19 +121,20 @@ void RenderSystem::BuildScene(RenderScene& out)
 
 				if (!FrustumCulling(worldAABB, out.cam)) continue;
 
-				proxy.materialId = GetStableId(proxy.material.get(), materialIdMap, materialId);
-				proxy.meshId     = GetStableId(proxy.mesh.get(), meshIdMap, meshId);
-
+				proxy.materialId  = GetStableId(proxy.material.get(), materialIdMap, materialId);
+				proxy.meshId      = GetStableId(proxy.mesh.get(), meshIdMap, meshId);
 				proxy.camDistance = CalcCamDist(proxy.world, out.cam);
 				proxies.emplace_back(move(proxy));
 			}
 		});
-	// 4. Select / Highlight
-	{
-		auto& collisionSys = registry.Get<CollisionSystem>();
-		out.drawColliders = collisionSys.IsDebugEnabled();
+
+	{	 //4. Select / Highlight
+		out.drawColliders = false;
+#ifdef USE_IMGUI
+		out.drawColliders = true;
+#endif
 		if (out.drawColliders)
-			collisionSys.ExtractColliderProxies(out.colliders);
+			collisionSys->ExtractColliderProxies(out.colliders);
 	}
 	// 5. Queue 분배 + 정렬
 	auto& opaqueQueue = out.queues.opaque;
@@ -151,7 +151,8 @@ void RenderSystem::BuildScene(RenderScene& out)
 		const bool isTransparent = (proxy.material && proxy.material->IsTransparent());
 
 		DrawItem item{};
-		item.proxy = move(proxy);
+		item.layerMask = proxy.layerMask;
+		item.proxy     = move(proxy);
 
 		if (isTransparent)
 		{
@@ -164,8 +165,7 @@ void RenderSystem::BuildScene(RenderScene& out)
 			opaqueQueue.emplace_back(move(item));
 		}
 	}
-
-	auto byKey = [](const DrawItem& a, const DrawItem& b) {return a.key.value < b.key.value; };
+	auto byKey = [](const DrawItem& a, const DrawItem& b) { return a.key.value < b.key.value; };
 
 	sort(opaqueQueue.begin(), opaqueQueue.end(), byKey);
 	sort(transQueue.begin(),  transQueue.end(),  byKey);

@@ -13,14 +13,14 @@ Handle LayerSystem::Create(EntityID owner, Handle transform, _uint mask)
 
 void LayerSystem::SetMask(Handle handle, _uint mask)
 {
-	if (auto layer = pool.Get(handle))
-		layer->layerMask = mask;
+    auto layer = Get(handle);
+	layer->layerMask = mask;
 }
 
 void LayerSystem::Enable(Handle handle, bool on)
 {
-	if (auto layer = pool.Get(handle))
-		layer->enabled = on;
+    auto layer = Get(handle);
+	layer->enabled = on;
 }
 
 _uint LayerSystem::GetMask(Handle handle) const

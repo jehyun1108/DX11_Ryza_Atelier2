@@ -20,7 +20,6 @@ public:
 
 	void Resolve(ShaderCache& shaderCache, TextureCache& texCache);
 	void Bind(ID3D11DeviceContext* context);
-	void UnBind(ID3D11DeviceContext* context);
 
 	MaterialBlend GetBlend() const     { return meta.blend; }
 	void SetBlend(MaterialBlend blend) { meta.blend = blend; }
@@ -33,7 +32,7 @@ private:
 	void ForEachRange(_uint mask, const function<void(_uint begin, _uint end)>& func);
 
 private:
-	SystemRegistry& registry = GameInstance::GetInstance().GetRegistry();
+	SystemRegistry& registry = GAME.GetRegistry();
 	MaterialMeta meta{};
 	
 	shared_ptr<Shader> shader;

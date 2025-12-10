@@ -4,6 +4,39 @@
 #include "ModelImporter.h"
 #include "ModelExporter.h"
 #include "WorldSerializer.h"
+#include "NavMeshSystem.h"
+#include "PickingSystem.h"
+#include "TransformSystem.h"
+#include "InputService.h"
+#include "FontImporter.h"
+
+//#include "stb_image_write.h"
+//#include "stb_rect_pack.h"
+#include "stb_truetype.h"
+
+
+namespace
+{
+	bool LoadFileBinary(const filesystem::path& path, vector<unsigned char>& out)
+	{
+		ifstream ifs(path, ios::binary);
+		if (!ifs)
+			return false;
+
+		ifs.seekg(0,ios::end);
+		streamsize size = ifs.tellg();
+		ifs.seekg(0, ios::beg);
+
+		if (size <= 0)
+			return false;
+
+		out.resize(static_cast<size_t>(size));
+		if (!ifs.read(reinterpret_cast<char*>(out.data()), size))
+			return false;
+
+		return true;
+	}
+}
 
 constexpr wchar_t worldFilter[] = L"World Files (*.dat)\0*.dat\0All Files (*.*)\0*.*\0";
 
@@ -13,16 +46,19 @@ ImportPanel::ImportPanel(string title, SystemRegistry& registry, EntityID* selec
 	entities   = &registry.Get<EntityMgr>();
 	spawner    = &registry.Get<EntitySpawner>();
 	serializer = &registry.Get<WorldSerializer>();
+	nav        = &registry.Get<NavMeshSystem>();
+	pickSys    = &registry.Get<PickingSystem>();
+	tfSys      = &registry.Get<TransformSystem>();
+	camSys     = &registry.Get<CameraSystem>();
+	input      = &registry.Get<InputService>();
+	assets     = &registry.Get<AssetSystem>();
 
-	previewEntities.reserve(256);
+	previewEntities.reserve(512);
 }
 
 // -fbxmultitake -fbxascii -notex
 void ImportPanel::Draw()
 {
-	auto& pickingSys = registry.Get<PickingSystem>();
-	auto& tfSys      = registry.Get<TransformSystem>();
-
 #ifdef USE_IMGUI
 	if (ImGui::Button("Import Model", ImVec2(-1, 0)))
 	{
@@ -51,8 +87,7 @@ void ImportPanel::Draw()
 	static bool useRecursive = true;
 	ImGui::Checkbox("Recursive", &useRecursive);
 
-	filesystem::path batchRootFolder = filesystem::absolute(
-		filesystem::path("..\\bin\\Resources\\Models\\Central\\"));
+	filesystem::path batchRootFolder = filesystem::absolute( filesystem::path("..\\bin\\Resources\\Models\\Central\\"));
 
 	if (ImGui::Button("Import New Only (Skip Existing)", ImVec2(-1, 0)))
 		ImportAll(batchRootFolder, OverWritePolicy::SkipExisting, useRecursive);
@@ -75,8 +110,52 @@ void ImportPanel::Draw()
 			ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
 	}
+	// ======================================================================================
+	ImGui::Separator();
+	ImGui::TextUnformatted("Font Import (TTF -> Atlas)");
+
+	constexpr wchar_t fontFilter[] =
+		L"Font files (*.ttf;*.otf)\0*.ttf;*.otf\0All Files (*.*)\0*.*\0";
+
+	if (ImGui::Button("Import Font (TTF -> Atlas)", ImVec2(-1, 0)))
+	{
+		auto maybeFont = Utility::OpenFileDialog(fontFilter, L"ttf;otf");
+		if (!maybeFont)
+			statusMsg = "Font import canceled";
+		else
+			ImportFontFromTTF(*maybeFont);
+	}
 	// ------------------- NavMesh -------------------------------------------------------
-	
+	constexpr wchar_t navFilter[] = L"NavMesh (*.nav;*.bin)\0*.nav;*.bin\0All Files (*.*)\0*.*\0";
+	ImGui::Separator();
+	ImGui::TextUnformatted("NavMesh I/O");
+
+	if (ImGui::Button("Save NavMesh", ImVec2(-1, 0)))
+	{
+		auto out = Utility::SaveFileDialog(navFilter, L"navmesh.nav", L"nav");
+		if (!out) statusMsg = "Nav save canceled";
+		else      statusMsg = nav->Save(*out) ? ("Nav saved: " + out->string())
+			: "Nav save failed";
+	}
+
+	if (ImGui::Button("Load NavMesh", ImVec2(-1, 0)))
+	{
+		auto in = Utility::OpenFileDialog(navFilter, L"nav;bin");
+		if (!in) statusMsg = "Nav load canceled";
+		else
+		{
+			statusMsg = nav->Load(*in) ? ("Nav loaded: " + in->string()) : "Nav load failed";
+		}
+	}
+	if (ImGui::Button("Undo Triangle"))
+		nav->DeleteLastTriangle();
+
+	if (registry.Get<InputMgr>().KeyDown(KEY::NUM1))
+		nav->DeleteLastTriangle();
+
+	ImGui::SameLine();
+	if (ImGui::Button("Undo Point"))
+		nav->UndoLastPoint();
 	// ----------------------------------------------------------------------------------
 	ImGui::Separator();
 	ImGui::TextUnformatted("World I/O");
@@ -109,16 +188,27 @@ void ImportPanel::Draw()
 	}
 
 	// -----------------------------------
-	ImGuiIO& io = ImGui::GetIO();
-	const bool wantUI = io.WantCaptureMouse;
-	
-	if (!wantUI && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		D3D11_VIEWPORT vp = game.GetViewport();
-		const _float2 screenPos = { io.MousePos.x, io.MousePos.y };
 
-		auto& camSys = registry.Get<CameraSystem>();
-		Handle cam = camSys.GetMainCamHandle();
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		if (io.WantCaptureMouse)
+			return;
+
+		D3D11_VIEWPORT vp = game.GetViewport();
+		ImGuiViewport* mainVp = ImGui::GetMainViewport();
+
+		float localX = io.MousePos.x - mainVp->Pos.x;
+		float localY = io.MousePos.y - mainVp->Pos.y;
+
+		_float2 screenPos = 
+		{
+			localX * io.DisplayFramebufferScale.x,
+			localY * io.DisplayFramebufferScale.y
+		};
+
+		Handle cam = camSys->GetMainCamHandle();
 		if (cam.IsValid())
 		{
 			PickingRequest request{};
@@ -129,11 +219,8 @@ void ImportPanel::Draw()
 			request.layerMask = LayerUtil::LayerBit(LAYER::TERRAIN);
 
 			PickingHit hit{};
-			if (pickingSys.Pick(request, hit) && hit.hit)
-			{
-				if (selected)
-					*selected = hit.entity;
-			}
+			if (pickSys->Pick(request, hit) && hit.hit)
+				nav->PushPointFromPick(hit.point, hit.normal);
 		}
 	}
 #endif
@@ -171,7 +258,6 @@ void ImportPanel::SpawnEntity(const filesystem::path& modelPath)
 		.WithTf(TransformDesc{ .pos = spawnPos })
 		.WithLayer(LayerUtil::LayerBit(LAYER::MAPOBJ))
 		.WithModel(logicalKey)
-		.WithColliderFromModel(ColliderType::AABB)
 		.WithMeshCollider()
 		.WithPickable()
 		.WithSelectable()
@@ -331,4 +417,62 @@ void ImportPanel::ImportAll(const filesystem::path& rootFolder, OverWritePolicy 
 		+ ", Converted: " + to_string(convertedCount)
 		+ ", Skipped: " + to_string(skippedCount)
 		+ ", Failed: " + to_string(failedCount);
+}
+
+void ImportPanel::ImportFontFromTTF(const filesystem::path& fontPath)
+{
+	FontBuildConfig cfg{};
+	cfg.ttfPath        = fontPath;
+	cfg.pixelHeight    = 48.f;
+	cfg.firstCodepoint = 0x0020;
+	cfg.lastCodepoint  = 0xD7A3;
+	cfg.atlasWidth     = 8192;
+	cfg.atlasHeight    = 8192;
+
+	FontAtlasResult result{};
+	std::string error;
+
+	if (!BuildFontAtlasFromTTF(cfg, result, error))
+	{
+		statusMsg = error;
+		return;
+	}
+
+	// PNG 경로
+	filesystem::path baseName = fontPath.stem();        // 예: "consola"
+	std::wstring sizeTag = L"_48";                      // pixelHeight 기준으로 나중에 바꿔도 됨
+
+	filesystem::path pngPath = fontPath.parent_path() /
+		(baseName.wstring() + sizeTag + L".png");
+	filesystem::path fontPathBin = fontPath.parent_path() /
+		(baseName.wstring() + sizeTag + L".font");
+
+	if (!SaveFontAtlasPNG(pngPath, result, error))
+	{
+		statusMsg = error;
+		return;
+	}
+
+	if (!SaveFontMetaBinary(fontPathBin, result, error))
+	{
+		statusMsg = error;
+		return;
+	}
+
+	// 디버그 로그용으로 A 글자 한 번 찍기
+	auto itA = result.font.glyphs.find('A');
+	if (itA != result.font.glyphs.end())
+	{
+		const Glyph& g = itA->second;
+		statusMsg = "Atlas + font saved. glyph 'A': adv=" +
+			std::to_string(g.metrics.advance) +
+			" w=" + std::to_string(g.metrics.width) +
+			" h=" + std::to_string(g.metrics.height) +
+			" -> " + pngPath.string() +
+			" / " + fontPathBin.string();
+	}
+	else
+	{
+		statusMsg = "Atlas + font saved (but 'A' not in range?)";
+	}
 }

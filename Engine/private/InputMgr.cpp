@@ -31,6 +31,10 @@ void InputMgr::EndFrame()
 		else if (key.state == KEY_STATE::RELEASE)
 			key.state = KEY_STATE::NONE;
 	}
+
+	//keyStates[(size_t)KEY::WHEEL_UP].state   = KEY_STATE::NONE;
+	//keyStates[(size_t)KEY::WHEEL_DOWN].state = KEY_STATE::NONE;
+
 	mouseDelta = {};
 }
 
@@ -65,6 +69,16 @@ void InputMgr::ProcessWinMsg(UINT msg, WPARAM wParam, LPARAM lParam)
 					keyStates[(size_t)KEY::RBUTTON].state = KEY_STATE::DOWN;
 				if (buttonFlags & RI_MOUSE_RIGHT_BUTTON_UP)
 					keyStates[(size_t)KEY::RBUTTON].state = KEY_STATE::RELEASE;
+
+				if (buttonFlags & RI_MOUSE_WHEEL)
+				{
+					short z = (short)raw->data.mouse.usButtonData;
+
+					if (z > 0)
+						keyStates[(size_t)KEY::WHEEL_UP].state = KEY_STATE::DOWN;
+					else if (z < 0)
+						keyStates[(size_t)KEY::WHEEL_DOWN].state = KEY_STATE::DOWN;
+				}
 			}
 		}
 	}break;

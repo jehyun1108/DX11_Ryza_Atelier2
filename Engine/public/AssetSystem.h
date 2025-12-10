@@ -55,6 +55,8 @@ public:
 	void ClearCaches();
 	void ClearRegistries();
 
+	void EnsureEffectTextures(const EffectArchetype& effect);
+
 	MaterialCache& GetMaterialCache() { return materialCache; }
 	TextureCache&  GetTextureCache()  { return textureCache; }
 	ShaderCache&   GetShaderCache()   { return shaderCache; }
@@ -73,6 +75,8 @@ private:
 	ModelCache       modelCache;
 	MeshCache        meshCache;
 	MaterialCache    materialCache;
+
+	mutable recursive_mutex mtx;
 };
 
 NS_END

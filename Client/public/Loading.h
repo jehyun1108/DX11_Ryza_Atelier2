@@ -15,10 +15,10 @@ public:
 
 private:
 	void LoadResources();
+	void SpawnEntities();
 
 private:
 	Loader loader;
-	LEVEL  nextLevel = LEVEL::CENTRAL;
 };
 
 NS_END

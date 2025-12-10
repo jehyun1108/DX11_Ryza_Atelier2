@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CharaAnimData.h"
-
 NS_BEGIN(Engine)
 
 class ENGINE_DLL AnimDataSystem : public ISystem
@@ -21,17 +19,6 @@ public:
 	ClipTuning GetClipTuning(CharacterID character, AnimContext context, AnimKey key)  const;
 
 private:
-	static ClipTuning NormalizedTuning(ClipTuning tuning)
-	{
-		tuning.startNormalized = Utility::Saturate(tuning.startNormalized);
-		tuning.endNormalized = Utility::Saturate(tuning.endNormalized);
-		if (tuning.endNormalized < tuning.startNormalized)
-			swap(tuning.endNormalized, tuning.startNormalized);
-		if (fabsf(tuning.endNormalized - tuning.startNormalized) < 1e-5f)
-			tuning.endNormalized = min(1.f, tuning.startNormalized + 1e-4f);
-		return tuning;
-	}
-
 	struct Key
 	{
 		CharacterID character;

@@ -2,7 +2,7 @@
 
 NS_BEGIN(Engine)
 
-enum class GameMode { Field, Battle, Menu };
+enum class GameMode { None, Field, Battle, Menu };
 
 struct ENGINE_DLL IModeOrchestrator
 {

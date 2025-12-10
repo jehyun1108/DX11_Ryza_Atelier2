@@ -19,9 +19,6 @@
     <Filter Include="02. Resources">
       <UniqueIdentifier>{1f095fe2-6c5d-4e7f-b47f-aeff8a885634}</UniqueIdentifier>
     </Filter>
-    <Filter Include="00. Engine">
-      <UniqueIdentifier>{a9b24c0d-4604-435d-a801-4c82cec4d142}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02. Resources\01. Material">
       <UniqueIdentifier>{820ceff3-8e7f-467b-a6de-5e77fb06de3e}</UniqueIdentifier>
     </Filter>
@@ -33,42 +30,6 @@
     </Filter>
     <Filter Include="02. Resources\04. CBuffer">
       <UniqueIdentifier>{111a4953-0ed2-43fc-a20b-02b943713707}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\00. GameInstance">
-      <UniqueIdentifier>{81cc572b-b554-4cbb-9da4-45fb35138936}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\02. Timers">
-      <UniqueIdentifier>{9352e726-b54b-43a7-b9de-5ee4d4ff5ef3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\02. Timers\Timer">
-      <UniqueIdentifier>{48c3790d-cf1f-4abf-9bab-a0cfef91beb8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\02. Timers\TimeMgr">
-      <UniqueIdentifier>{ae149125-e543-448d-98b3-594c67fbb1e3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\03. InputMgr">
-      <UniqueIdentifier>{1792b6ba-03af-4b08-b301-f8a36635b8ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\04. ImGui">
-      <UniqueIdentifier>{64a14456-749c-4007-b6f9-ab4833f7caa5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\04. ImGui\Imgui">
-      <UniqueIdentifier>{4f5a86d6-9b23-476a-b748-235257c54199}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\04. ImGui\GuiPanel">
-      <UniqueIdentifier>{a4bf45ad-7863-403b-9494-d1d95728ea91}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\04. ImGui\HierachyPanel">
-      <UniqueIdentifier>{c94495e6-0e88-41d8-a79d-7fbe2b551470}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\04. ImGui\InspectorPanel">
-      <UniqueIdentifier>{2ef50122-5bb5-4681-a3da-49a86bffcce1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\04. ImGui\FpsPanel">
-      <UniqueIdentifier>{838b0fc4-12c2-4c5a-aefd-c722ef51d2be}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="00. Engine\04. ImGui\GuiMgr">
-      <UniqueIdentifier>{4388f84d-e79c-4304-819f-3b0608024644}</UniqueIdentifier>
     </Filter>
     <Filter Include="02. Resources\05. Model">
       <UniqueIdentifier>{9e99a55b-d785-48e6-986b-dbdb3d39116e}</UniqueIdentifier>
@@ -151,9 +112,6 @@
     <Filter Include="03. EntitySystem\99. RenderSystem">
       <UniqueIdentifier>{80187c98-783d-4ae8-bc03-dd68d2950d64}</UniqueIdentifier>
     </Filter>
-    <Filter Include="03. EntitySystem\99. RenderSystem\01. RenderSystem">
-      <UniqueIdentifier>{8d43fe15-cdf1-4e77-a294-0ea1007ee2bb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="03. EntitySystem\99. RenderSystem\00. RenderData">
       <UniqueIdentifier>{ac9afec6-6609-4de1-8294-aaf9b5f57a04}</UniqueIdentifier>
     </Filter>
@@ -196,53 +154,11 @@
     <Filter Include="03. EntitySystem\14. SkyboxSystem">
       <UniqueIdentifier>{6b9e2a75-fe76-4a0e-87cf-e41a95da9f02}</UniqueIdentifier>
     </Filter>
-    <Filter Include="100.. ShaderFiles">
-      <UniqueIdentifier>{2e7b3315-952b-410f-890b-1cb62b68a5eb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="03. EntitySystem\15. NavMeshSystem">
       <UniqueIdentifier>{1b92d09a-7a82-423b-a24f-da6881ffd754}</UniqueIdentifier>
     </Filter>
-    <Filter Include="01. Utility">
-      <UniqueIdentifier>{496ca546-8bb0-4eda-844d-6edfa38c590b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\00. Levels">
-      <UniqueIdentifier>{6ba4401d-4246-4c9f-88e0-bcba5704ad49}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\00. Levels\Level">
-      <UniqueIdentifier>{614a454a-1a5d-43e3-8047-d8535f3344da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\01. EntityMgr">
-      <UniqueIdentifier>{0934c0ab-fab4-4865-bbda-7c2b08f5a109}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\02. EntitySpawner">
-      <UniqueIdentifier>{ee0a9533-c49b-498b-ab59-fc1ce41dd7e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\03. TagSystem">
-      <UniqueIdentifier>{0a356cce-6692-4400-81b2-077ae4f1ac07}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\99. Interface">
-      <UniqueIdentifier>{4bb76d0d-40b8-4e0f-9f99-5bd4798c822a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\98. InputLayout">
-      <UniqueIdentifier>{5e05cf96-c0ce-4e1e-b2f3-c544acaadb95}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01. Utility\04. WorldSerializer">
-      <UniqueIdentifier>{c0b8825c-642e-4bf7-8132-4a3bfc309755}</UniqueIdentifier>
-    </Filter>
     <Filter Include="03. EntitySystem\03. Camera\02. OribitCamSystem">
       <UniqueIdentifier>{de359756-9ed2-4b31-a843-5458e3e54cfc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="100.. ShaderFiles\01. HS">
-      <UniqueIdentifier>{d077f3f8-bc8f-4d0a-838b-453675f80368}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="100.. ShaderFiles\02. DS">
-      <UniqueIdentifier>{7b449bcc-8967-43e1-9505-2717bd7162be}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="100.. ShaderFiles\03. PS">
-      <UniqueIdentifier>{0b543659-d9c2-483e-8921-c84aeff4b6b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="100.. ShaderFiles\00. VS">
-      <UniqueIdentifier>{7235c739-6d96-4b23-98c8-7b3767fa7237}</UniqueIdentifier>
     </Filter>
     <Filter Include="05. Battle">
       <UniqueIdentifier>{94fab636-3625-475f-aae3-a9ed57ceba27}</UniqueIdentifier>
@@ -340,17 +256,8 @@
     <Filter Include="08. UI\02. UIRegistry">
       <UniqueIdentifier>{c7ace1e7-8d59-48e2-a8cf-aaa9084ed0da}</UniqueIdentifier>
     </Filter>
-    <Filter Include="06. GameMode\03. FieldUIOrchestrator">
-      <UniqueIdentifier>{0c26a679-bde7-43cf-851b-797984e1c8fc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06. GameMode\04. BattleUIOrchestrator">
-      <UniqueIdentifier>{f265d902-b04b-47ef-ae6f-f23b2651414f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="08. UI\03. UIAnimSystem">
       <UniqueIdentifier>{a8f1f88e-75aa-4b10-ba19-8435e91e90bf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="08. UI\04. SlotUIPresenter">
-      <UniqueIdentifier>{baa10096-736b-4249-be69-00a23f5a8f90}</UniqueIdentifier>
     </Filter>
     <Filter Include="05. Battle\07. BattleTargetSystem">
       <UniqueIdentifier>{6e6b2ea6-a9fd-4dc5-a7d5-b63997462627}</UniqueIdentifier>
@@ -361,20 +268,248 @@
     <Filter Include="05. Battle\09. BattleCameraDirector">
       <UniqueIdentifier>{b0653eeb-d871-4f2c-b4b5-02f9a9665f87}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05. Battle\10. CamRegistry">
+    <Filter Include="03. EntitySystem\99. RenderSystem\01. RenderSystem">
+      <UniqueIdentifier>{8d43fe15-cdf1-4e77-a294-0ea1007ee2bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\99. CamRegistry">
       <UniqueIdentifier>{49bc75fd-403e-4758-954b-1c78ed2fe741}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05. Battle\11. ICamTrack">
-      <UniqueIdentifier>{259f0368-ba23-49d7-ba63-17748e865a8b}</UniqueIdentifier>
+    <Filter Include="05. Battle\10. BattleTacticSystem">
+      <UniqueIdentifier>{9d0fc172-af92-4932-b252-4d40b7cc7bbf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="00. Engine\01. Device">
-      <UniqueIdentifier>{6570d520-af07-4dde-b272-a8d637f85028}</UniqueIdentifier>
+    <Filter Include="07. DataSystem\04. BattleAttributeSystem">
+      <UniqueIdentifier>{ec53f5cf-a354-4659-903e-7a40e63420aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem\05. SoundSystem">
+      <UniqueIdentifier>{5cd4be12-4ee6-4a4c-a039-0e9a869c06af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem\06. SoundRegistry">
+      <UniqueIdentifier>{cd37da12-2531-4bc2-9671-fc61850b4b77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Utility\06. DebugUtility">
+      <UniqueIdentifier>{b9ab068a-165a-4725-8cc9-bc05a81cc02f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Resources\04. CBuffer\00. CBufferBank">
+      <UniqueIdentifier>{7385b94e-3dfe-46af-94af-9f6b550ee43e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Resources\04. CBuffer\01. RingCBAllocator">
+      <UniqueIdentifier>{cb581ca1-4687-455d-8cc4-d806c87ef133}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. Resources\08. StructuredBuffer">
+      <UniqueIdentifier>{1a9097bf-b63e-44b7-a460-c51d3dc17e26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\04. FieldUIOrchestrator">
+      <UniqueIdentifier>{0c26a679-bde7-43cf-851b-797984e1c8fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\05. BattleUIOrchestrator">
+      <UniqueIdentifier>{f265d902-b04b-47ef-ae6f-f23b2651414f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\06. LogoUIOrchestrator">
+      <UniqueIdentifier>{f8890ad2-9d13-4238-94d7-0dc5c873c2c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. GameMode\03. LogoOrchestraSystem">
+      <UniqueIdentifier>{5e3c583d-fdeb-4afc-9b4e-943f3174337f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09. Effect">
+      <UniqueIdentifier>{3cd04d25-3185-4e00-b19e-69d7155352ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\14. BattleTimelinePresenter">
+      <UniqueIdentifier>{baa10096-736b-4249-be69-00a23f5a8f90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\15. PlayerInputPresenter">
+      <UniqueIdentifier>{7af60662-afc0-46e2-b228-aac80fd8bf04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\16. BattleHUDPresenter">
+      <UniqueIdentifier>{d309d407-d59a-4f66-9e02-073ed45348da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\17. BattleFataiDrivePresenter">
+      <UniqueIdentifier>{11e82f07-7400-4004-8cc4-3b9bbf50b18f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\18. BattleDamagePresenter">
+      <UniqueIdentifier>{1ad8e18e-bb46-4d22-be72-413c192f23b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\19. LogoMenuPresenter">
+      <UniqueIdentifier>{0782c69b-14fc-4342-8648-f78edb7f6ffc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\20. FieldMinimapPresenter">
+      <UniqueIdentifier>{6d204554-eb27-48a5-a22b-3e6123a75980}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\21. BattleMinimapPresenter">
+      <UniqueIdentifier>{f7b651ab-3111-4021-9882-7fbaa1e05ac8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\04. UIMinimapSystem">
+      <UniqueIdentifier>{4839560e-8397-4a86-bfc4-d0320825e79a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility">
+      <UniqueIdentifier>{496ca546-8bb0-4eda-844d-6edfa38c590b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\00. Levels">
+      <UniqueIdentifier>{6ba4401d-4246-4c9f-88e0-bcba5704ad49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\00. Levels\Level">
+      <UniqueIdentifier>{614a454a-1a5d-43e3-8047-d8535f3344da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\00. Levels\LevelMgr">
+      <UniqueIdentifier>{a498c635-b36b-4fac-ae7a-016f53ca0522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\01. EntityMgr">
+      <UniqueIdentifier>{0934c0ab-fab4-4865-bbda-7c2b08f5a109}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\02. EntitySpawner">
+      <UniqueIdentifier>{ee0a9533-c49b-498b-ab59-fc1ce41dd7e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\03. TagSystem">
+      <UniqueIdentifier>{0a356cce-6692-4400-81b2-077ae4f1ac07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\99. Interface">
+      <UniqueIdentifier>{4bb76d0d-40b8-4e0f-9f99-5bd4798c822a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\98. InputLayout">
+      <UniqueIdentifier>{5e05cf96-c0ce-4e1e-b2f3-c544acaadb95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\04. WorldSerializer">
+      <UniqueIdentifier>{c0b8825c-642e-4bf7-8132-4a3bfc309755}</UniqueIdentifier>
     </Filter>
     <Filter Include="01. Utility\00. SystemRegistrty">
       <UniqueIdentifier>{cc33cfe7-86dc-4c21-bf93-a8ffdc7d7f2c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="01. Utility\00. Levels\LevelMgr">
-      <UniqueIdentifier>{a498c635-b36b-4fac-ae7a-016f53ca0522}</UniqueIdentifier>
+    <Filter Include="07. DataSystem\07. FontSystem">
+      <UniqueIdentifier>{b411a5ce-a3fc-4fc3-81bc-e380d3cd093c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem\08. TextLayoutSystem">
+      <UniqueIdentifier>{de01bafc-e966-424b-8164-f84f509be923}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07. DataSystem\09. FontLoader">
+      <UniqueIdentifier>{3b467b0a-b67a-4e57-af72-4b1c83d64ccf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\22. WorldMapPresenter">
+      <UniqueIdentifier>{66b43cef-a67a-43fc-b299-4a6b194979ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\23. ScreenFadeSystem">
+      <UniqueIdentifier>{38c2fb87-871e-461a-8d7c-e550fce36515}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles">
+      <UniqueIdentifier>{2e7b3315-952b-410f-890b-1cb62b68a5eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles\01. HS">
+      <UniqueIdentifier>{d077f3f8-bc8f-4d0a-838b-453675f80368}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles\02. DS">
+      <UniqueIdentifier>{7b449bcc-8967-43e1-9505-2717bd7162be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles\00. VS">
+      <UniqueIdentifier>{7235c739-6d96-4b23-98c8-7b3767fa7237}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles\99. GBuffer">
+      <UniqueIdentifier>{14995770-9e71-450d-9be6-a7e09f6b56a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles\99. GBuffer\00. Deferred_Directional">
+      <UniqueIdentifier>{7031ff7f-4ec9-4f0d-aabc-198c9df62d7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles\99. GBuffer\01. Deferred_Composite">
+      <UniqueIdentifier>{b676b626-d0e2-4228-82f1-a3511803bef4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles\03. PS">
+      <UniqueIdentifier>{0b543659-d9c2-483e-8921-c84aeff4b6b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\24. LoadingPresenter">
+      <UniqueIdentifier>{3c734840-6ea8-4179-9d6e-8ac54c8aae73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="100.ShaderFiles\99. GBuffer\02. Distortion">
+      <UniqueIdentifier>{89fd1bea-c69e-4e05-80a5-2726afcece2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\25. ScreenDistortionSystem">
+      <UniqueIdentifier>{78dce711-073e-4090-a51a-227aee13edd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09. Effect\98. EffectSystem">
+      <UniqueIdentifier>{63e2bc8c-5673-40aa-820a-43a270daa169}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09. Effect\00. ParticleSystem">
+      <UniqueIdentifier>{7484eb5f-cac3-4645-b33d-6da4e43c98dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09. Effect\01. ParticleMesh">
+      <UniqueIdentifier>{d4fe5632-a4e0-409e-b69c-e5a54c64e7b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\05. EffectSerializer">
+      <UniqueIdentifier>{96aece8f-755d-4673-8ff7-bb86fea52e28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98. Utility\07. EffectUtility">
+      <UniqueIdentifier>{f421e6e3-fbd4-4173-8997-2bfd19b92f0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09. Effect\02. TrailSystem">
+      <UniqueIdentifier>{b5403a68-8c79-4c6a-bdbc-edf7a62919a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09. Effect\03. TrailMesh">
+      <UniqueIdentifier>{485eab1b-491d-4a34-b28a-d559ff24766b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\11. ActionCamRegistry">
+      <UniqueIdentifier>{ee50f141-f568-49ce-8cbe-35f5fb7a7793}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\26. BattleTargetHUDPresenter">
+      <UniqueIdentifier>{ed20fbdf-8ebb-4719-870a-37b4655ad04a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\27. BattleBoardPresenter">
+      <UniqueIdentifier>{eb5e1403-fa9c-43ea-9bed-44e4a739fe28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08. UI\28. DressingRoomPresenter">
+      <UniqueIdentifier>{50179c5c-811c-4b9f-8135-dc11196c7881}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Utility\06. CamSerializer">
+      <UniqueIdentifier>{9b78def5-ffab-4fb5-8c5d-e8feb4cd0d8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09. Effect\04. ActionFxRegistry">
+      <UniqueIdentifier>{2a4fff63-e7c2-4592-8b84-13c10b00ac8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. Battle\12. BattleRewardSystem">
+      <UniqueIdentifier>{eaf2e378-e876-44a5-9df5-4428e343ebc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine">
+      <UniqueIdentifier>{c369a9e6-e8eb-48b5-99c6-edffc84649d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\00. GameInstance">
+      <UniqueIdentifier>{2b596afd-3d9b-48b1-b20a-5dfd3f62d2b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\02. Timers">
+      <UniqueIdentifier>{c97f1f5c-8ba0-4891-b59c-41c4710a0382}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\02. Timers\Timer">
+      <UniqueIdentifier>{bd06b575-34b6-467d-8c76-bc1c6b0923d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\02. Timers\TimeMgr">
+      <UniqueIdentifier>{b1affd2e-adbb-4706-8f83-1c161dc05b18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\03. InputMgr">
+      <UniqueIdentifier>{f77382b3-5ad2-4f6c-8a38-0c105aa45a33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\04. ImGui">
+      <UniqueIdentifier>{66f353c6-8a29-4b02-a9bf-26abcff5863d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\04. ImGui\Imgui">
+      <UniqueIdentifier>{43874fb7-84f3-4f82-8f2a-7b3db4d8d745}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\04. ImGui\GuiPanel">
+      <UniqueIdentifier>{fc9f63f3-1966-408c-9ec1-f625b7c0944d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\04. ImGui\HierachyPanel">
+      <UniqueIdentifier>{8f397f6e-4005-4204-a321-0ced3d27cf73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\04. ImGui\InspectorPanel">
+      <UniqueIdentifier>{ec65ef70-af1a-4e97-851d-92c5cf970737}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\04. ImGui\FpsPanel">
+      <UniqueIdentifier>{37b77e7a-1e25-4f4e-8b6a-bb79d7701066}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\04. ImGui\GuiMgr">
+      <UniqueIdentifier>{01632c57-36c4-49f1-8a9a-ce867f743be6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\01. Device">
+      <UniqueIdentifier>{da1a1fc0-9f0c-4c27-8d51-435f805ec8f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\05. RenderTargetSystem">
+      <UniqueIdentifier>{bbfec900-ac89-49bf-a869-a3ef6de4f9e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Engine\05. RenderTargetSystem\01, RenderTargetMinimap">
+      <UniqueIdentifier>{a53f7e8e-ad1e-4f43-92b5-69161373e294}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -383,12 +518,6 @@
     </ClInclude>
     <ClInclude Include="..\public\Enginepch.h">
       <Filter>99. Etc\pch</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\Timer.h">
-      <Filter>00. Engine\02. Timers\Timer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\Device.h">
-      <Filter>00. Engine\01. Device</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Engine_Enum.h">
       <Filter>99. Etc\Etc</Filter>
@@ -401,9 +530,6 @@
     </ClInclude>
     <ClInclude Include="..\public\Level.h">
       <Filter>01. Utility\00. Levels\Level</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\InputMgr.h">
-      <Filter>00. Engine\03. InputMgr</Filter>
     </ClInclude>
     <ClInclude Include="..\public\TransformData.h">
       <Filter>03. EntitySystem\00. Transform</Filter>
@@ -429,29 +555,11 @@
     <ClInclude Include="..\public\Engine_Typedef.h">
       <Filter>99. Etc\Etc</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\GuiPanel.h">
-      <Filter>00. Engine\04. ImGui\GuiPanel</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\HierachyPanel.h">
-      <Filter>00. Engine\04. ImGui\HierachyPanel</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\InspectorPanel.h">
-      <Filter>00. Engine\04. ImGui\InspectorPanel</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\FpsPanel.h">
-      <Filter>00. Engine\04. ImGui\FpsPanel</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\Engine_Colors.h">
       <Filter>99. Etc\Etc</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\GuiMgr.h">
-      <Filter>00. Engine\04. ImGui\GuiMgr</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\LevelMgr.h">
       <Filter>01. Utility\00. Levels\LevelMgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\TimeMgr.h">
-      <Filter>00. Engine\02. Timers\TimeMgr</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Mesh.h">
       <Filter>02. Resources\01. Mesh</Filter>
@@ -468,39 +576,6 @@
     </ClInclude>
     <ClInclude Include="..\public\Bone.h">
       <Filter>02. Resources\06. Bone</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\imgui.h">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\imconfig.h">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\imgui_impl_win32.h">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\imgui_impl_dx11.h">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\imgui_internal.h">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\imstb_rectpack.h">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\imstb_textedit.h">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\imstb_truetype.h">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\ImGuiPrettyTheme.h">
-      <Filter>00. Engine\04. ImGui\GuiMgr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\DeviceOptions.h">
-      <Filter>00. Engine\01. Device</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\InputUtil.h">
-      <Filter>00. Engine\03. InputMgr</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Entity.h">
       <Filter>01. Utility</Filter>
@@ -659,9 +734,6 @@
       <Filter>03. EntitySystem\99. RenderSystem\01. RenderSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\RenderProxies.h">
-      <Filter>03. EntitySystem\99. RenderSystem\00. RenderData</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\RenderScene.h">
       <Filter>03. EntitySystem\99. RenderSystem\00. RenderData</Filter>
     </ClInclude>
     <ClInclude Include="..\public\HighlightData.h">
@@ -823,9 +895,6 @@
     <ClInclude Include="..\public\ActionAnimData.h">
       <Filter>07. DataSystem\03. ActionAnimRegistry</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\BattleExecutionSystem.h">
-      <Filter>05. Battle\05. BattleExecutionSystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\BattleExecutionData.h">
       <Filter>05. Battle\05. BattleExecutionSystem</Filter>
     </ClInclude>
@@ -834,9 +903,6 @@
     </ClInclude>
     <ClInclude Include="..\public\FieldOrchestraSystem.h">
       <Filter>06. GameMode\01. FieldOrchestraSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\IModeOrchestra.h">
-      <Filter>06. GameMode</Filter>
     </ClInclude>
     <ClInclude Include="..\public\GameModeDirectorSystem.h">
       <Filter>06. GameMode\00. GameModeDirectorSystem</Filter>
@@ -878,19 +944,19 @@
       <Filter>08. UI\02. UIRegistry</Filter>
     </ClInclude>
     <ClInclude Include="..\public\BattleUIOrchestrator.h">
-      <Filter>06. GameMode\04. BattleUIOrchestrator</Filter>
+      <Filter>06. GameMode\05. BattleUIOrchestrator</Filter>
     </ClInclude>
     <ClInclude Include="..\public\FieldUIOrchestrator.h">
-      <Filter>06. GameMode\03. FieldUIOrchestrator</Filter>
+      <Filter>06. GameMode\04. FieldUIOrchestrator</Filter>
     </ClInclude>
     <ClInclude Include="..\public\UIAnimSystem.h">
       <Filter>08. UI\03. UIAnimSystem</Filter>
     </ClInclude>
     <ClInclude Include="..\public\BattleTimelinePresenter.h">
-      <Filter>08. UI\04. SlotUIPresenter</Filter>
+      <Filter>08. UI\14. BattleTimelinePresenter</Filter>
     </ClInclude>
     <ClInclude Include="..\public\TimelinePresenterData.h">
-      <Filter>08. UI\04. SlotUIPresenter</Filter>
+      <Filter>08. UI\14. BattleTimelinePresenter</Filter>
     </ClInclude>
     <ClInclude Include="..\public\BattleAIControllerSystem.h">
       <Filter>05. Battle\06. BattleAIController</Filter>
@@ -920,19 +986,13 @@
       <Filter>05. Battle\09. BattleCameraDirector</Filter>
     </ClInclude>
     <ClInclude Include="..\public\CamRegistry.h">
-      <Filter>05. Battle\10. CamRegistry</Filter>
+      <Filter>05. Battle\99. CamRegistry</Filter>
     </ClInclude>
     <ClInclude Include="..\public\CamRegistryData.h">
-      <Filter>05. Battle\10. CamRegistry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\ICamTrack.h">
-      <Filter>05. Battle\11. ICamTrack</Filter>
+      <Filter>05. Battle\99. CamRegistry</Filter>
     </ClInclude>
     <ClInclude Include="..\public\UIAnimData.h">
       <Filter>08. UI\03. UIAnimSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\GameInstance.h">
-      <Filter>00. Engine\00. GameInstance</Filter>
     </ClInclude>
     <ClInclude Include="..\public\SystemRegistry.h">
       <Filter>01. Utility\00. SystemRegistrty</Filter>
@@ -943,22 +1003,295 @@
     <ClInclude Include="..\public\EngineSystems.h">
       <Filter>01. Utility\00. SystemRegistrty</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\PlayerInputPresenter.h">
+      <Filter>08. UI\15. PlayerInputPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\InputPresenterData.h">
+      <Filter>08. UI\15. PlayerInputPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleHUDPresenter.h">
+      <Filter>08. UI\16. BattleHUDPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleHUDPresenterData.h">
+      <Filter>08. UI\16. BattleHUDPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleTacticSystem.h">
+      <Filter>05. Battle\10. BattleTacticSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleTacticData.h">
+      <Filter>05. Battle\10. BattleTacticSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleFatalDrivePresenter.h">
+      <Filter>08. UI\17. BattleFataiDrivePresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleFatalDriveData.h">
+      <Filter>08. UI\17. BattleFataiDrivePresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleDamagePresenter.h">
+      <Filter>08. UI\18. BattleDamagePresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleDamageData.h">
+      <Filter>08. UI\18. BattleDamagePresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleAttributeSystem.h">
+      <Filter>07. DataSystem\04. BattleAttributeSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleAttributeData.h">
+      <Filter>07. DataSystem\04. BattleAttributeSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SoundSystem.h">
+      <Filter>07. DataSystem\05. SoundSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SoundData.h">
+      <Filter>07. DataSystem\05. SoundSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SoundRegistry.h">
+      <Filter>07. DataSystem\06. SoundRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CBufferBank.h">
+      <Filter>02. Resources\04. CBuffer\00. CBufferBank</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\RendererData.h">
+      <Filter>03. EntitySystem\99. RenderSystem\02. Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\DebugUtility.h">
+      <Filter>98. Utility\06. DebugUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\RingCBAllocator.h">
+      <Filter>02. Resources\04. CBuffer\01. RingCBAllocator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\StructuredBoneAllocator.h">
+      <Filter>02. Resources\08. StructuredBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LogoUIOrchestrator.h">
+      <Filter>06. GameMode\06. LogoUIOrchestrator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\IModeOrchestra.h">
+      <Filter>06. GameMode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LogoOrchestraSystem.h">
+      <Filter>06. GameMode\03. LogoOrchestraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LogoMenuPresenter.h">
+      <Filter>08. UI\19. LogoMenuPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LogoMenuData.h">
+      <Filter>08. UI\19. LogoMenuPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EffectSystem.h">
+      <Filter>09. Effect\98. EffectSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIMinimapSystem.h">
+      <Filter>08. UI\04. UIMinimapSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIMinimapDatah.h">
+      <Filter>08. UI\04. UIMinimapSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleMinimapPresenter.h">
+      <Filter>08. UI\21. BattleMinimapPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldMinimapPresenter.h">
+      <Filter>08. UI\20. FieldMinimapPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CorePch.h">
+      <Filter>99. Etc\pch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldMinimapData.h">
+      <Filter>08. UI\20. FieldMinimapPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FontData.h">
+      <Filter>07. DataSystem\07. FontSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FontSystem.h">
+      <Filter>07. DataSystem\07. FontSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TextLayoutSystem.h">
+      <Filter>07. DataSystem\08. TextLayoutSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TextLayoutData.h">
+      <Filter>07. DataSystem\08. TextLayoutSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FontLoader.h">
+      <Filter>07. DataSystem\09. FontLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\WorldMapPresenter.h">
+      <Filter>08. UI\22. WorldMapPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ScreenFadeSystem.h">
+      <Filter>08. UI\23. ScreenFadeSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\WorldMapData.h">
+      <Filter>08. UI\22. WorldMapPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LoadingPresenter.h">
+      <Filter>08. UI\24. LoadingPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ScreenDistortionSystem.h">
+      <Filter>08. UI\25. ScreenDistortionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ScreenDistortionData.h">
+      <Filter>08. UI\25. ScreenDistortionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ParticleSystem.h">
+      <Filter>09. Effect\00. ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ParticleData.h">
+      <Filter>09. Effect\00. ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ParticleMesh.h">
+      <Filter>09. Effect\01. ParticleMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ParticleMeshData.h">
+      <Filter>09. Effect\01. ParticleMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EffectData.h">
+      <Filter>09. Effect\98. EffectSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EffectSerializer.h">
+      <Filter>01. Utility\05. EffectSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EffectUtility.h">
+      <Filter>98. Utility\07. EffectUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TrailSystem.h">
+      <Filter>09. Effect\02. TrailSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TrailData.h">
+      <Filter>09. Effect\02. TrailSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TrailMesh.h">
+      <Filter>09. Effect\03. TrailMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\RenderScene.h">
+      <Filter>03. EntitySystem\99. RenderSystem\00. RenderData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TrailMeshData.h">
+      <Filter>09. Effect\03. TrailMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ActionCamRegistry.h">
+      <Filter>05. Battle\11. ActionCamRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ActionCamData.h">
+      <Filter>05. Battle\11. ActionCamRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleTargetHUDPresenter.h">
+      <Filter>08. UI\26. BattleTargetHUDPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleTargetHUDData.h">
+      <Filter>08. UI\26. BattleTargetHUDPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleBoardPresenter.h">
+      <Filter>08. UI\27. BattleBoardPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleBoardData.h">
+      <Filter>08. UI\27. BattleBoardPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleExecutionSystem.h">
+      <Filter>05. Battle\05. BattleExecutionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\DressingRoomPresenter.h">
+      <Filter>08. UI\28. DressingRoomPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\DressingRoomData.h">
+      <Filter>08. UI\28. DressingRoomPresenter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CamSerializer.h">
+      <Filter>01. Utility\06. CamSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CamBinaryData.h">
+      <Filter>01. Utility\06. CamSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ActionFxRegistry.h">
+      <Filter>09. Effect\04. ActionFxRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ActionFxData.h">
+      <Filter>09. Effect\04. ActionFxRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BattleRewardPresenter.h">
+      <Filter>05. Battle\12. BattleRewardSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\GameInstance.h">
+      <Filter>00. Engine\00. GameInstance</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Timer.h">
+      <Filter>00. Engine\02. Timers\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TimeMgr.h">
+      <Filter>00. Engine\02. Timers\TimeMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\InputMgr.h">
+      <Filter>00. Engine\03. InputMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\InputUtil.h">
+      <Filter>00. Engine\03. InputMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\imconfig.h">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\imgui.h">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\imgui_impl_dx11.h">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\imgui_impl_win32.h">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\imgui_internal.h">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\imstb_rectpack.h">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\imstb_textedit.h">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\imstb_truetype.h">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\GuiPanel.h">
+      <Filter>00. Engine\04. ImGui\GuiPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\HierachyPanel.h">
+      <Filter>00. Engine\04. ImGui\HierachyPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\InspectorPanel.h">
+      <Filter>00. Engine\04. ImGui\InspectorPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FpsPanel.h">
+      <Filter>00. Engine\04. ImGui\FpsPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\GuiMgr.h">
+      <Filter>00. Engine\04. ImGui\GuiMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ImGuiPrettyTheme.h">
+      <Filter>00. Engine\04. ImGui\GuiMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Device.h">
+      <Filter>00. Engine\01. Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\DeviceOptions.h">
+      <Filter>00. Engine\01. Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\GBufferData.h">
+      <Filter>00. Engine\05. RenderTargetSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\RenderTargetSystem.h">
+      <Filter>00. Engine\05. RenderTargetSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\RenderTargetMinimap.h">
+      <Filter>00. Engine\05. RenderTargetSystem\01, RenderTargetMinimap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\RenderTargetMinimapData.h">
+      <Filter>00. Engine\05. RenderTargetSystem\01, RenderTargetMinimap</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\Enginepch.cpp">
       <Filter>99. Etc\pch</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\Timer.cpp">
-      <Filter>00. Engine\02. Timers\Timer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\Device.cpp">
-      <Filter>00. Engine\01. Device</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\Level.cpp">
       <Filter>01. Utility\00. Levels\Level</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\InputMgr.cpp">
-      <Filter>00. Engine\03. InputMgr</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Renderer.cpp">
       <Filter>03. EntitySystem\99. RenderSystem\02. Renderer</Filter>
@@ -975,26 +1308,8 @@
     <ClCompile Include="..\private\CBuffer.cpp">
       <Filter>02. Resources\04. CBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\GuiPanel.cpp">
-      <Filter>00. Engine\04. ImGui\GuiPanel</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\HierachyPanel.cpp">
-      <Filter>00. Engine\04. ImGui\HierachyPanel</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\InspectorPanel.cpp">
-      <Filter>00. Engine\04. ImGui\InspectorPanel</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\FpsPanel.cpp">
-      <Filter>00. Engine\04. ImGui\FpsPanel</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\GuiMgr.cpp">
-      <Filter>00. Engine\04. ImGui\GuiMgr</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\LevelMgr.cpp">
       <Filter>01. Utility\00. Levels\LevelMgr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\TimeMgr.cpp">
-      <Filter>00. Engine\02. Timers\TimeMgr</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Mesh.cpp">
       <Filter>02. Resources\01. Mesh</Filter>
@@ -1010,30 +1325,6 @@
     </ClCompile>
     <ClCompile Include="..\private\Bone.cpp">
       <Filter>02. Resources\06. Bone</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\imgui.cpp">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\imgui_demo.cpp">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\imgui_draw.cpp">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\imgui_impl_dx11.cpp">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\imgui_impl_win32.cpp">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\imgui_tables.cpp">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\imgui_widgets.cpp">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\ImGuizmo.cpp">
-      <Filter>00. Engine\04. ImGui\Imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\private\TransformSystem.cpp">
       <Filter>03. EntitySystem\00. Transform\TransformSystem</Filter>
@@ -1185,9 +1476,6 @@
     <ClCompile Include="..\private\ActionAnimRegistry.cpp">
       <Filter>07. DataSystem\03. ActionAnimRegistry</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\BattleExecutionSystem.cpp">
-      <Filter>05. Battle\05. BattleExecutionSystem</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\BattleOrchestraSystem.cpp">
       <Filter>06. GameMode\02. BattleOrchestraSystem</Filter>
     </ClCompile>
@@ -1213,16 +1501,16 @@
       <Filter>08. UI\02. UIRegistry</Filter>
     </ClCompile>
     <ClCompile Include="..\private\BattleUIOrchestrator.cpp">
-      <Filter>06. GameMode\04. BattleUIOrchestrator</Filter>
+      <Filter>06. GameMode\05. BattleUIOrchestrator</Filter>
     </ClCompile>
     <ClCompile Include="..\private\FieldUIOrchestrator.cpp">
-      <Filter>06. GameMode\03. FieldUIOrchestrator</Filter>
+      <Filter>06. GameMode\04. FieldUIOrchestrator</Filter>
     </ClCompile>
     <ClCompile Include="..\private\UIAnimSystem.cpp">
       <Filter>08. UI\03. UIAnimSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\private\BattleTimelinePresenter.cpp">
-      <Filter>08. UI\04. SlotUIPresenter</Filter>
+      <Filter>08. UI\14. BattleTimelinePresenter</Filter>
     </ClCompile>
     <ClCompile Include="..\private\BattleAIControllerSystem.cpp">
       <Filter>05. Battle\06. BattleAIController</Filter>
@@ -1237,16 +1525,190 @@
       <Filter>05. Battle\09. BattleCameraDirector</Filter>
     </ClCompile>
     <ClCompile Include="..\private\CamRegistry.cpp">
-      <Filter>05. Battle\10. CamRegistry</Filter>
+      <Filter>05. Battle\99. CamRegistry</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\ICamTrack.cpp">
-      <Filter>05. Battle\11. ICamTrack</Filter>
+    <ClCompile Include="..\private\SystemRegistry.cpp">
+      <Filter>01. Utility\00. SystemRegistrty</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\PlayerInputPresenter.cpp">
+      <Filter>08. UI\15. PlayerInputPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleHUDPresenter.cpp">
+      <Filter>08. UI\16. BattleHUDPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleTacticSystem.cpp">
+      <Filter>05. Battle\10. BattleTacticSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleFatalDrivePresenter.cpp">
+      <Filter>08. UI\17. BattleFataiDrivePresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleDamagePresenter.cpp">
+      <Filter>08. UI\18. BattleDamagePresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleAttributeSystem.cpp">
+      <Filter>07. DataSystem\04. BattleAttributeSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\SoundSystem.cpp">
+      <Filter>07. DataSystem\05. SoundSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\SoundRegistry.cpp">
+      <Filter>07. DataSystem\06. SoundRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CBufferBank.cpp">
+      <Filter>02. Resources\04. CBuffer\00. CBufferBank</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\DebugUtility.cpp">
+      <Filter>98. Utility\06. DebugUtility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\RingCBAllocator.cpp">
+      <Filter>02. Resources\04. CBuffer\01. RingCBAllocator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\StructuredBoneAllocator.cpp">
+      <Filter>02. Resources\08. StructuredBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\LogoUIOrchestrator.cpp">
+      <Filter>06. GameMode\06. LogoUIOrchestrator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\LogoOrchestraSystem.cpp">
+      <Filter>06. GameMode\03. LogoOrchestraSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\LogoMenuPresenter.cpp">
+      <Filter>08. UI\19. LogoMenuPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\EffectSystem.cpp">
+      <Filter>09. Effect\98. EffectSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIMinimapSystem.cpp">
+      <Filter>08. UI\04. UIMinimapSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleMinimapPresenter.cpp">
+      <Filter>08. UI\21. BattleMinimapPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FieldMinimapPresenter.cpp">
+      <Filter>08. UI\20. FieldMinimapPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FontSystem.cpp">
+      <Filter>07. DataSystem\07. FontSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TextLayoutSystem.cpp">
+      <Filter>07. DataSystem\08. TextLayoutSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FontLoader.cpp">
+      <Filter>07. DataSystem\09. FontLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\WorldMapPresenter.cpp">
+      <Filter>08. UI\22. WorldMapPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ScreenFadeSystem.cpp">
+      <Filter>08. UI\23. ScreenFadeSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\LoadingPresenter.cpp">
+      <Filter>08. UI\24. LoadingPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ScreenDistortionSystem.cpp">
+      <Filter>08. UI\25. ScreenDistortionSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ParticleSystem.cpp">
+      <Filter>09. Effect\00. ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ParticleMesh.cpp">
+      <Filter>09. Effect\01. ParticleMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\EffectSerializer.cpp">
+      <Filter>01. Utility\05. EffectSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\EffectUtility.cpp">
+      <Filter>98. Utility\07. EffectUtility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TrailSystem.cpp">
+      <Filter>09. Effect\02. TrailSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TrailMesh.cpp">
+      <Filter>09. Effect\03. TrailMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ActionCamRegistry.cpp">
+      <Filter>05. Battle\11. ActionCamRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleTargetHUDPresenter.cpp">
+      <Filter>08. UI\26. BattleTargetHUDPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleBoardPresenter.cpp">
+      <Filter>08. UI\27. BattleBoardPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\DressingRoomPresenter.cpp">
+      <Filter>08. UI\28. DressingRoomPresenter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleExecutionSystem.cpp">
+      <Filter>05. Battle\05. BattleExecutionSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CamSerializer.cpp">
+      <Filter>01. Utility\06. CamSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ActionFxRegistry.cpp">
+      <Filter>09. Effect\04. ActionFxRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BattleRewardPresenter.cpp">
+      <Filter>05. Battle\12. BattleRewardSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\private\GameInstance.cpp">
       <Filter>00. Engine\00. GameInstance</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\SystemRegistry.cpp">
-      <Filter>01. Utility\00. SystemRegistrty</Filter>
+    <ClCompile Include="..\private\Timer.cpp">
+      <Filter>00. Engine\02. Timers\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TimeMgr.cpp">
+      <Filter>00. Engine\02. Timers\TimeMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\InputMgr.cpp">
+      <Filter>00. Engine\03. InputMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui.cpp">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ImGuizmo.cpp">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_demo.cpp">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_draw.cpp">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_impl_dx11.cpp">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_impl_win32.cpp">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_tables.cpp">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\imgui_widgets.cpp">
+      <Filter>00. Engine\04. ImGui\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\GuiPanel.cpp">
+      <Filter>00. Engine\04. ImGui\GuiPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\HierachyPanel.cpp">
+      <Filter>00. Engine\04. ImGui\HierachyPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\InspectorPanel.cpp">
+      <Filter>00. Engine\04. ImGui\InspectorPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FpsPanel.cpp">
+      <Filter>00. Engine\04. ImGui\FpsPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\GuiMgr.cpp">
+      <Filter>00. Engine\04. ImGui\GuiMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Device.cpp">
+      <Filter>00. Engine\01. Device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\RenderTargetSystem.cpp">
+      <Filter>00. Engine\05. RenderTargetSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\RenderTargetMinimap.cpp">
+      <Filter>00. Engine\05. RenderTargetSystem\01, RenderTargetMinimap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1254,60 +1716,99 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\bin\ShaderFiles\PNUTan_VS.hlsl">
-      <Filter>100.. ShaderFiles\00. VS</Filter>
+      <Filter>100.ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_VS.hlsl">
-      <Filter>100.. ShaderFiles\00. VS</Filter>
+      <Filter>100.ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PC_VS.hlsl">
-      <Filter>100.. ShaderFiles\00. VS</Filter>
+      <Filter>100.ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUV_VS.hlsl">
-      <Filter>100.. ShaderFiles\00. VS</Filter>
+      <Filter>100.ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNU_VS.hlsl">
-      <Filter>100.. ShaderFiles\00. VS</Filter>
+      <Filter>100.ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PC_PS.hlsl">
-      <Filter>100.. ShaderFiles\03. PS</Filter>
+      <Filter>100.ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNU_PS.hlsl">
-      <Filter>100.. ShaderFiles\03. PS</Filter>
+      <Filter>100.ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTan_PS.hlsl">
-      <Filter>100.. ShaderFiles\03. PS</Filter>
+      <Filter>100.ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_PS.hlsl">
-      <Filter>100.. ShaderFiles\03. PS</Filter>
+      <Filter>100.ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUV_PS.hlsl">
-      <Filter>100.. ShaderFiles\03. PS</Filter>
+      <Filter>100.ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\Skybox_VS.hlsl">
-      <Filter>100.. ShaderFiles\00. VS</Filter>
+      <Filter>100.ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\Skybox_PS.hlsl">
-      <Filter>100.. ShaderFiles\03. PS</Filter>
+      <Filter>100.ShaderFiles\03. PS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_VS_TS.hlsl">
-      <Filter>100.. ShaderFiles\00. VS</Filter>
+      <Filter>100.ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_HS.hlsl">
-      <Filter>100.. ShaderFiles\01. HS</Filter>
+      <Filter>100.ShaderFiles\01. HS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PNUTanSkin_DS.hlsl">
-      <Filter>100.. ShaderFiles\02. DS</Filter>
+      <Filter>100.ShaderFiles\02. DS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUC_VS_UI.hlsl">
-      <Filter>100.. ShaderFiles\00. VS</Filter>
+      <Filter>100.ShaderFiles\00. VS</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\ShaderFiles\PUC_PS_UI.hlsl">
-      <Filter>100.. ShaderFiles\03. PS</Filter>
+      <Filter>100.ShaderFiles\03. PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Deferred_Directional_VS.hlsl">
+      <Filter>100.ShaderFiles\99. GBuffer\00. Deferred_Directional</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Deferred_Directional_PS.hlsl">
+      <Filter>100.ShaderFiles\99. GBuffer\00. Deferred_Directional</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Deferred_Composite_PS.hlsl">
+      <Filter>100.ShaderFiles\99. GBuffer\01. Deferred_Composite</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Deferred_Composite_VS.hlsl">
+      <Filter>100.ShaderFiles\99. GBuffer\01. Deferred_Composite</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Debug_VS.hlsl">
+      <Filter>100.ShaderFiles\00. VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Debug_PS.hlsl">
+      <Filter>100.ShaderFiles\03. PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Minimap_PS.hlsl">
+      <Filter>100.ShaderFiles\03. PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Distortion_PS.hlsl">
+      <Filter>100.ShaderFiles\99. GBuffer\02. Distortion</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Particle_VS.hlsl">
+      <Filter>100.ShaderFiles\00. VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Particle_PS.hlsl">
+      <Filter>100.ShaderFiles\03. PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Trail_VS.hlsl">
+      <Filter>100.ShaderFiles\00. VS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Trail_PS.hlsl">
+      <Filter>100.ShaderFiles\03. PS</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\ShaderFiles\Dressing_PS.hlsl">
+      <Filter>100.ShaderFiles\03. PS</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\bin\ShaderFiles\Common.hlsli">
-      <Filter>100.. ShaderFiles</Filter>
+      <Filter>100.ShaderFiles</Filter>
     </Text>
   </ItemGroup>
 </Project>

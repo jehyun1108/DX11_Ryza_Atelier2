@@ -53,7 +53,7 @@ void Mesh::Bind(ID3D11DeviceContext* context) const
 	_uint stride = vtxStride;
 	context->IASetVertexBuffers(0, 1, vb.GetAddressOf(), &stride, &offset);
 	context->IASetIndexBuffer(ib.Get(), idxFmt, 0);
-	//context->IASetPrimitiveTopology(topology);
+	context->IASetPrimitiveTopology(topology);
 }
 
 void Mesh::Draw(ID3D11DeviceContext* context) const

@@ -1,7 +1,41 @@
 #include "Enginepch.h"
 #include "TimeMgr.h"
+#include "JumpSystem.h"
+#include "BattleTimelinePresenter.h"
+#include "PlayerInputPresenter.h"
+#include "BattleUIOrchestrator.h"
+#include "BattleEventBus.h"
+#include "BattleSessionSystem.h"
+#include "BattleHUDPresenter.h"
+#include "BattleTacticSystem.h"
+#include "BattleFatalDrivePresenter.h"
+#include "BattleDamagePresenter.h"
+#include "BattleAttributeSystem.h"
+#include "WorldSerializer.h"
+#include "NavMeshSystem.h"
+#include "LogoOrchestraSystem.h"
+#include "LogoUIOrchestrator.h"
+#include "LogoMenuPresenter.h"
+#include "RenderTargetMinimap.h"
+#include "FieldMinimapPresenter.h"
+#include "BattleMinimapPresenter.h"
+#include "UIMinimapSystem.h"
+#include "WorldMapPresenter.h"
+#include "ScreenFadeSystem.h"
+#include "LoadingPresenter.h"
+#include "ScreenDistortionSystem.h"
+#include "EffectSerializer.h"
+#include "BattleTargetHUDPresenter.h"
+#include "BattleBoardPresenter.h"
+#include "DressingRoomPresenter.h"
+#include "CamSerializer.h"
+#include "ActionFxRegistry.h"
+#include "BattleRewardPresenter.h"
+#include "SoundSystem.h"
+#include "SoundRegistry.h"
 
 bool GameInstance::inited = false;
+
 HWND g_hWnd;
 
 GameInstance::GameInstance(PassKey) {}
@@ -9,10 +43,10 @@ GameInstance::~GameInstance() = default;
 HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
 {
 	DeviceOptions opts;
-	g_hWnd      = _engineDesc.hWnd;
-	device      = Device::Create(_engineDesc.winMode, opts);
-	timeMgr     = TimeMgr::Create();
-	levelMgr    = LevelMgr::Create();
+	g_hWnd   = _engineDesc.hWnd;
+	device   = Device::Create(_engineDesc.winMode, opts);
+	timeMgr  = TimeMgr::Create();
+	levelMgr = LevelMgr::Create();
 
 	registry.EmplaceAll<Data>();
 	registry.EmplaceAll<Core>();
@@ -21,65 +55,63 @@ HRESULT GameInstance::InitEngine(const EngineDesc& _engineDesc)
 	registry.EmplaceAll<Battle>();
 	registry.EmplaceAll<Field>();
 	registry.BootAll();
+	registry.Reserve(512);
 
-	registry.Reserve(1024);
+	BootingSystems();
+// =====================================================================================
+	soundSys->Init();
+
+	device->onResized = [&](_uint width, _uint height) { rtSys->Resize(width, height); };
+
+	const auto& vp = GetViewport();
+	GBufferSpec spec;
+	rtSys->Init((_uint)vp.Width, (_uint)vp.Height, spec);
 // ---------------------------
 	inited = true;
 	return S_OK;
 }
-// Update 순서흐름
-// 1. System
-// 2. RenderScene (ExtractProxies)
-// 3. Draw
-// 4. Deferred Destory
-// Channel -> Buffer -> SnapShot -> Merge -> 한번만 적용
+
 void GameInstance::UpdateEngine(float dt)
 {
-	// 0. Level 전용 
 	levelMgr->Update(dt);
-	// 1. Input Frame 시작 (쿨다운 등 시간 경과)
-	registry.Get<InputService>().BeginFrame(dt);
-	registry.Get<GameModeDirectorSystem>().Update(dt);
-	// 3. Frame 말에 "한번만" Intent Merge & 적용 -> Collector 비움
-	registry.Get<InputService>().EndFrameAndApply(registry);
-	registry.Get<JumpSystem>().Priority_Update(dt);
-	// 4. 이동/물리 -> Transform -> 
-	registry.Get<MoveStateSystem>().Update(dt);
-	registry.Get<TransformSystem>().Update(dt);
-	// 5. AnimSys
-	registry.Get<FacingSystem>().Update(dt);
-	registry.Get<AnimatorSystem>().Update(dt, registry.Get<TransformSystem>());
-	// 6. 기타
-	registry.Get<SocketSystem>().Update(dt);
-	registry.Get<FaceSystem>().Update(dt);
-	registry.Get<OrbitCamSystem>().Update(dt);
-	registry.Get<CameraSystem>().Update(dt);
-	registry.Get<FreeCamSystem>().Update(dt);
-	registry.Get<LightSystem>().Update(dt);
-	//pickingSys.Update(dt);
-	//selectionSys.Update(dt);
-	registry.Get<GridSystem>().Update(dt);
-	registry.Get<CollisionSystem>().Update(dt);
-	registry.Get<SkyboxSystem>().Tick(dt);
-}
 
-HRESULT GameInstance::BeginDraw(const _float4 color)
-{
-	device->ClearBackBufferView(color);
-	device->ClearDSV();
+	input->BeginFrame(dt);
+	director->Update(dt);
 
-	return S_OK;
+	input->EndFrameAndApply(registry);
+	jumpSys->Priority_Update(dt); 
+
+	moveSys->Update(dt);      
+	tfSys->Update(dt);
+
+	facingSys->Update(dt);
+	animator->Update(dt);
+
+	socketSys->Update(dt);
+	effectSys->Tick(dt);
+	trailSys->Tick(dt);
+	particleSys->Tick(dt);
+
+	faceSys->Update(dt);
+	orbitCamSys->Update(dt);
+	camSys->Update(dt);
+	freeCamSys->Update(dt);
+	lightSys->Update(dt);
+
+	//selectSys->Update(dt);
+	//gridSys->Update(dt);
+	collisionSys->Tick(dt);
+	skySys->Tick(dt);
+	soundSys->Tick(dt);
 }
 
 HRESULT GameInstance::Draw()
 {
-	// Local Static 변수라 한번 할당되고 RenderScene 은 풀링되는중 [프레임간 메모리 풀링중]
 	static RenderScene scene;
-	registry.Get<RenderSystem>().BuildScene(scene);
-
-	registry.Get<Renderer>().Draw(scene);
+	renderSys->BuildScene(scene);
+	renderer->Draw(scene);
 	levelMgr->Render();
-	registry.Get<EntityMgr>().FlushDestroy();
+	entityMgr->FlushDestroy();
 
 	return S_OK;
 }
@@ -96,6 +128,7 @@ void GameInstance::ClearResources(_uint levelID)
 
 void GameInstance::ReleaseEngine()
 {
+	soundSys->Shutdown();
 	registry.Clear();
 	device->ReleaseDevice();
 	inited = false;
@@ -103,15 +136,14 @@ void GameInstance::ReleaseEngine()
 
 void GameInstance::BeginFrame(float dt)
 {
-	registry.Get<HighlightSystem>().ClearFrame();
+	gameTime += dt;
+	guiMgr->Update(dt);
 
-	registry.Get<GuiMgr>().Update(dt);
-	registry.Get<InputMgr>().BeginFrame();
 }
 
 void GameInstance::EndFrame()
 {
-	registry.Get<InputMgr>().EndFrame();
+
 }
 // ----------------------------Device ------------------------
 const D3D11_VIEWPORT& GameInstance::GetViewport() const
@@ -138,17 +170,6 @@ ID3D11RenderTargetView* GameInstance::GetBackBufferRTV() const
 {
 	return device->GetBackBufferRTV();
 }
-
-ID3D11DepthStencilView* GameInstance::GetDSV() const
-{
-	return device->GetDSV();
-}
-
-ID3D11ShaderResourceView* GameInstance::GetDepthSRV() const
-{
-	return device->GetDepthSRV();
-}
-
 // --------------------------- TimeMgr --------------------------
 _float GameInstance::GetDt(TIMER timerID)
 {
@@ -172,15 +193,47 @@ _uint GameInstance::GetCurLevelID()
 // ---------------------- InputMgr--------------------------------------
 void GameInstance::ProcessWinMsg(UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	registry.Get<InputMgr>().ProcessWinMsg(msg, wParam, lParam);
+	inputMgr->ProcessWinMsg(msg, wParam, lParam);
 }
 // -------------- Imgui -------------------
 LRESULT GameInstance::ImguiWndProcHandler(_uint msg, WPARAM wParam, LPARAM lParam)
 {
-	return registry.Get<GuiMgr>().ImguiWndProcHandler(msg, wParam, lParam);
+	return guiMgr->ImguiWndProcHandler(msg, wParam, lParam);
 }
 
 void GameInstance::GuiRender()
 {
-	registry.Get<GuiMgr>().Render();
+	guiMgr->Render();
+}
+
+void GameInstance::BootingSystems()
+{
+	guiMgr        = &registry.Get<GuiMgr>();
+	inputMgr      = &registry.Get<InputMgr>();
+	renderSys     = &registry.Get<RenderSystem>();
+	renderer      = &registry.Get<Renderer>();
+	soundSys      = &registry.Get<SoundSystem>();
+	entityMgr     = &registry.Get<EntityMgr>();
+	soundRegistry = &registry.Get<SoundRegistry>();
+	rtSys         = &registry.Get<RenderTargetSystem>();
+	input         = &registry.Get<InputService>();
+	director      = &registry.Get<GameModeDirectorSystem>();
+	jumpSys       = &registry.Get<JumpSystem>();
+	moveSys       = &registry.Get<MoveStateSystem>();
+	tfSys         = &registry.Get<TransformSystem>();
+	facingSys     = &registry.Get<FacingSystem>();
+	animator      = &registry.Get<AnimatorSystem>();
+	socketSys     = &registry.Get<SocketSystem>();
+	faceSys       = &registry.Get<FaceSystem>();
+	orbitCamSys   = &registry.Get<OrbitCamSystem>();
+	camSys        = &registry.Get<CameraSystem>();
+	freeCamSys    = &registry.Get<FreeCamSystem>();
+	lightSys      = &registry.Get<LightSystem>();
+	gridSys       = &registry.Get<GridSystem>();
+	collisionSys  = &registry.Get<CollisionSystem>();
+	skySys        = &registry.Get<SkyboxSystem>();
+	selectSys     = &registry.Get<SelectionSystem>();
+	particleSys   = &registry.Get<ParticleSystem>();
+	effectSys     = &registry.Get<EffectSystem>();
+	trailSys      = &registry.Get<TrailSystem>();
 }

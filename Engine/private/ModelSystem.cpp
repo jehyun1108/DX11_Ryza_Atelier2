@@ -1,54 +1,54 @@
 #include "Enginepch.h"
 
-Handle ModelSystem::Create(EntityID owner, Handle transform, const wstring& modelKey, Handle animator)
+void ModelSystem::OnBoot()
+{
+	assets   = &registry.Get<AssetSystem>();
+	animator = &registry.Get<AnimatorSystem>();
+	mcSys    = &registry.Get<MeshColliderSystem>();
+}
+
+Handle ModelSystem::Create(EntityID owner, Handle transform, const wstring& modelKey, Handle animHandle)
 {
 	Handle handle = CreateComp(owner);
 	auto& comp   = *Get(handle);
 	comp = {};
 	comp.transform = transform;
 
-	auto& assets = registry.Get<AssetSystem>();
-	comp.model = assets.GetModel(modelKey);
+	comp.model = assets->GetModel(modelKey);
 	assert(comp.model && "Model resource not found");
-	if (!comp.model) return {};
 
 	// -----------------------------------
 	if (comp.model->IsSkeletalModel())
 	{
-		if (!animator.IsValid())
+		if (!animHandle.IsValid())
 		{
 			const ClipTable* clips = comp.model->GetClipTable();
 			const bool hasClips = (clips && !clips->empty());
 
 			if (hasClips)
 			{
-				auto& animSys = registry.Get<AnimatorSystem>();
 				Skeleton* skeleton = comp.model->GetSkeletonRaw();
-				comp.animator = animSys.Create(owner, skeleton, clips, transform);
+				comp.animator = animator->Create(owner, skeleton, clips, transform);
 			}
 		}
 		else
-			comp.animator = animator;
+			comp.animator = animHandle;
 	}
 	comp.enabled = true;
-
-	auto& mcSys = registry.Get<MeshColliderSystem>();
-	mcSys.Create(owner, transform, *comp.model, 0xFFFFFFFFu, true);
-
+	mcSys->Create(owner, transform, *comp.model, 0xFFFFFFFFu, true);
 	return handle;
 }
 
 void ModelSystem::SetEnabled(Handle handle, bool on)
 {
-	if (auto comp = Get(handle))
-		comp->enabled = on;
+	auto comp = Get(handle);
+	comp->enabled = on;
 }
 
 void ModelSystem::RenderGui(EntityID id)
 {
-	auto& assets      = registry.Get<AssetSystem>();
-	auto& shaderCache = assets.GetShaderCache();
-	auto& texCache    = assets.GetTextureCache();
+	auto& shaderCache = assets->GetShaderCache();
+	auto& texCache    = assets->GetTextureCache();
 
 #ifdef USE_IMGUI
     ForEachOwned(id, [&](Handle handle, ModelData& model)

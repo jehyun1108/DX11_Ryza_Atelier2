@@ -60,7 +60,7 @@ void EntityMgr::Reserve(size_t n)
 	freeList.reserve(n);
 	aliveIndices.reserve(n);
 	sparseIndices.reserve(n);
-	deferred.reserve(128);
+	deferred.reserve(n);
 }
 
 void EntityMgr::FlushDestroy()

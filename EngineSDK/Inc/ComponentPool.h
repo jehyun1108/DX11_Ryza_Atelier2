@@ -36,7 +36,6 @@ private:
 	vector<_uint> generations;
 	vector<_uint> owners;
 	vector<_uint> freeList;
-
 	vector<_uint> aliveIndices;  // Dense: 실제 살아있는 idx
 	vector<_uint> sparseIndices; // Sparse: idx -> aliveIndices 의 Idx 매핑
 };
@@ -148,7 +147,7 @@ template<typename Func>
 inline void ComponentPool<T>::ForEachAliveEx(Func&& func)
 {
 	for (const _uint idx : aliveIndices)
-		func(Handle{ idx, generations[idx] }, owners[idx], data[idx]);
+		forward<Func>(func)(Handle{ idx, generations[idx] }, owners[idx], data[idx]);
 }
 
 template<typename T>
@@ -156,7 +155,7 @@ template<typename Func>
 inline void ComponentPool<T>::ForEachAliveEx(Func&& func) const
 {
 	for (const _uint idx : aliveIndices)
-		func(Handle{ idx, generations[idx] }, owners[idx], data[idx]);
+		forward<Func>(func)(Handle{ idx, generations[idx] }, owners[idx], data[idx]);
 }
 
 template<typename T>

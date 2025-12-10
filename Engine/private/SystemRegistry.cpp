@@ -1,5 +1,10 @@
 #include "Enginepch.h"
 
+SystemRegistry::SystemRegistry()
+{
+	table.assign(kSystemCount, nullptr);
+}
+
 void SystemRegistry::BootAll()
 {
 	for (auto* sys : allSystems)
@@ -20,7 +25,7 @@ void SystemRegistry::DestroyOwned(EntityID owner)
 
 void SystemRegistry::Clear()
 {
-	table.clear();
+	table.assign(kSystemCount, nullptr);
 	owningSystems.clear();
 	guiSystems.clear();
 	reservables.clear();

@@ -9,17 +9,15 @@ class ENGINE_DLL BattleTargetSystem : public EntitySystem<Target>, public IGuiRe
 public:
 	explicit BattleTargetSystem(SystemRegistry& registry);
 	void     OnBoot() override;
-
-	void Init();
-	void OnUnitDowned(EntityID downed);
+	void     Init();
+	void     OnUnitDowned(EntityID downed);
 
 	EntityID Get(EntityID attacker) const;
 	void     Ensure(EntityID owner);
-
 	void     RenderGui(EntityID id);
 
 private:
-	bool             Alive(EntityID id) const { return true; }
+	bool             Alive(EntityID id) const;
 	vector<EntityID> Opponents(BattleTeam team) const;
 	EntityID         Pick(const vector<EntityID>& vec);
 	void             Pair();
@@ -27,9 +25,12 @@ private:
 	void             Set(EntityID attacker, EntityID target);
 
 private:
-	BattleSessionSystem* sessionSys{};
-
 	mt19937 rng;
+
+private:
+	BattleSessionSystem*   sessionSys{};
+	BattleAttributeSystem* attrSys{};
+	EntityMgr*             entityMgr{};
 };
 
 NS_END

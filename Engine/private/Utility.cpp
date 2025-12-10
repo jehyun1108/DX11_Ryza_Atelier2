@@ -48,8 +48,8 @@ string Utility::ToString(TEXSLOT slot)
 	{
 	case TEXSLOT::ALBEDO:	  return "Albedo";
 	case TEXSLOT::NORMAL:	  return "Normal";
-	case TEXSLOT::ROUGHNESS: return "Roughness";
-	case TEXSLOT::METALIC:   return "Metalic";
+	//case TEXSLOT::ROUGHNESS: return "Roughness";
+	//case TEXSLOT::METALIC:   return "Metalic";
 	default:                      return "UnKnown_TextureSlot";
 	}
 }
@@ -61,7 +61,6 @@ string Utility::ToString(SAMPLER type)
 	case SAMPLER::POINT:        return "Point";
 	case SAMPLER::LINEAR:       return "Linear";
 	case SAMPLER::ANISOTROPIC:	return "Anisotropic";
-	case SAMPLER::SHADOW:		return "Shadow";
 	default:                    return "Unknown_SamplerType";
 	}
 }
@@ -306,12 +305,12 @@ TextureColorSpace Utility::SlotToColorSpace(TEXSLOT slot)
 	switch (slot)
 	{
 	case TEXSLOT::ALBEDO:
-	case TEXSLOT::EMISSIVE:
+	//case TEXSLOT::EMISSIVE:
 		return TextureColorSpace::sRGB;
 
 	case TEXSLOT::NORMAL:
-	case TEXSLOT::ROUGHNESS:
-	case TEXSLOT::AO:
+	//case TEXSLOT::ROUGHNESS:
+	//case TEXSLOT::AO:
 		return TextureColorSpace::Linear;
 
 	default:
@@ -398,15 +397,15 @@ pair<const wchar_t*, TextureColorSpace> Utility::GetDefaultTex(TEXSLOT slot)
 	{
 	// sRGB 
 	case TEXSLOT::ALBEDO:    return { L"builtin/white", TextureColorSpace::sRGB };
-	case TEXSLOT::EMISSIVE:  return { L"builtin/black", TextureColorSpace::sRGB };
+	//case TEXSLOT::EMISSIVE:  return { L"builtin/black", TextureColorSpace::sRGB };
 
 	// Linear
 	case TEXSLOT::NORMAL:    return { L"builtin/flat_normal", TextureColorSpace::Linear }; 
-	case TEXSLOT::ROUGHNESS: return { L"builtin/one_linear", TextureColorSpace::Linear }; 
-	case TEXSLOT::METALIC:   return { L"builtin/zero_linear", TextureColorSpace::Linear }; 
+	//case TEXSLOT::ROUGHNESS: return { L"builtin/one_linear", TextureColorSpace::Linear }; 
+	//case TEXSLOT::METALIC:   return { L"builtin/zero_linear", TextureColorSpace::Linear }; 
 	case TEXSLOT::AO:        return { L"builtin/one_linear", TextureColorSpace::Linear }; 
 
-	default:                 return { L"builtin/white", TextureColorSpace::sRGB };
+	default:                 return { L"builtin/black", TextureColorSpace::sRGB };
 	}
 }
 
@@ -664,7 +663,14 @@ _vec Utility::FromEuler(const _float3& eulerRad)
 	_vec qy = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), eulerRad.y);
 	_vec qz = XMQuaternionRotationAxis(XMVectorSet(0, 0, 1, 0), eulerRad.z);
 
-	// DirectX는 보통 Y(요) → X(피치) → Z(롤) 순으로 곱함
 	_vec q = XMQuaternionMultiply(qx, XMQuaternionMultiply(qy, qz));
 	return XMQuaternionNormalize(q);
+}
+
+_float4x4 Utility::Inverse(const _float4x4& m)
+{
+	XMMATRIX a = XMLoadFloat4x4(&m);
+	XMMATRIX inv = XMMatrixInverse(nullptr, a);
+	_float4x4 r; XMStoreFloat4x4(&r, inv);
+	return r;
 }

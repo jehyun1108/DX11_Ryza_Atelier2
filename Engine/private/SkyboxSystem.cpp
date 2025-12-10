@@ -1,5 +1,10 @@
 #include "Enginepch.h"
 
+void SkyboxSystem::OnBoot()
+{
+    tfSys = &registry.Get<TransformSystem>();
+}
+
 Handle SkyboxSystem::Create(EntityID owner, Handle tfHandle, const vector<SkySubmesh>& submeshList, SkyTextureType texType, bool attachToCam, float uniformScale, float baseYawRad, float rotSpeed)
 {
 	Handle handle      = CreateComp(owner);
@@ -66,7 +71,6 @@ void SkyboxSystem::Tick(float dt)
             if (FindById(crossFade.toId, toHandle, toState))
                 SetActive(toHandle, true);
         }
-        // from/to 둘 다 회전 지속
         AdvancePhase(crossFade.fromId, dt);
         AdvancePhase(crossFade.toId, dt);
     }
@@ -92,14 +96,11 @@ void SkyboxSystem::ExtractSkyboxProxies(SkyboxProxy& out) const
 
         if (state->attachToCam && state->tf.IsValid())
         {
-            if (auto tfSys = registry.TryGet<TransformSystem>())
-            {
-                if (const _float4x4* world = tfSys->GetWorld(state->tf))
-                {
-                    out.hasTfYaw = true;
-                    out.tfYawRad = Utility::ExtractYawFromWorld(*world);
-                }
-            }
+           if (const _float4x4* world = tfSys->GetWorld(state->tf))
+           {
+               out.hasTfYaw = true;
+               out.tfYawRad = Utility::ExtractYawFromWorld(*world);
+           }
         }
     }
 }
@@ -148,47 +149,45 @@ void SkyboxSystem::ExtractFadeProxies(optional<SkyboxProxy>& outFrom, optional<S
 
 void SkyboxSystem::SetAttachToCam(Handle handle, bool attach)
 {
-    if (auto state = Get(handle))
-        state->attachToCam = attach;
+    auto state = Get(handle);
+    state->attachToCam = attach;
 }
 
 void SkyboxSystem::SetUniformScale(Handle handle, float scale)
 {
-    if (auto state = Get(handle))
-        state->uniformScale = scale;
+    auto state = Get(handle);
+    state->uniformScale = scale;
 }
 
 void SkyboxSystem::SetBaseYaw(Handle handle, float baseYawRad)
 {
-    if (auto state = Get(handle))
-        state->baseYawRad = baseYawRad;
+    auto state = Get(handle);
+    state->baseYawRad = baseYawRad;
 }
 
 void SkyboxSystem::SetRotSpeed(Handle handle, float rotSpeed)
 {
-    if (auto state = Get(handle))
-        state->rotSpeed = rotSpeed;
+    auto state = Get(handle);
+    state->rotSpeed = rotSpeed;
 }
 
 void SkyboxSystem::SetPhase(Handle handle, float phaseRad)
 {
-    if (auto state = Get(handle))
-    {
-        state->phaseRad = phaseRad;
-        Utility::WrapToTwoPi(state->phaseRad);
-    }
+    auto state = Get(handle);
+    state->phaseRad = phaseRad;
+    Utility::WrapToTwoPi(state->phaseRad);
 }
 
 void SkyboxSystem::SetSubmeshes(Handle handle, const vector<SkySubmesh>& submeshList)
 {
-    if (auto state = Get(handle))
-        state->submeshes = submeshList;
+    auto state = Get(handle);
+    state->submeshes = submeshList;
 }
 
 void SkyboxSystem::SetTextureType(Handle handle, SkyTextureType type)
 {
-    if (auto state = Get(handle))
-        state->texType = type;
+    auto state = Get(handle);
+    state->texType = type;
 }
 
 void SkyboxSystem::StartCrossFade(Handle fromHandle, Handle toHandle, float dur)
@@ -308,8 +307,6 @@ void SkyboxSystem::RenderGui(EntityID id)
 
                 if (hasTf) 
                 {
-                    if (auto tfSys = registry.TryGet<TransformSystem>()) 
-                    {
                         if (const _float4x4* w = tfSys->GetWorld(s.tf))
                         {
                             const float tfYaw = Utility::ExtractYawFromWorld(*w);
@@ -320,9 +317,6 @@ void SkyboxSystem::RenderGui(EntityID id)
                         }
                         else
                             ImGui::Text("TF world: <null>");
-                    }
-                    else 
-                        ImGui::Text("TransformSystem not available");
                 }
             }
 

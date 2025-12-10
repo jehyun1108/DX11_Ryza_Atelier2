@@ -5,16 +5,14 @@
 HRESULT MainApp::Init()
 {
 	EngineDesc desc{};
-	desc.hWnd    = g_hWnd;
-	desc.winMode = WINMODE::WIN;
-	desc.WinX    = WinX;
-	desc.WinY    = WinY;
+	desc.hWnd       = g_hWnd;
+	desc.winMode    = WINMODE::WIN;
+	desc.WinX       = WinX;
+	desc.WinY       = WinY;
 	desc.levelCount = ENUM(LEVEL::END);
 
 	if (FAILED(game.InitEngine(desc))) return E_FAIL;
-
 	game.ChangeLevel(ENUM(LEVEL::IMPORTER), ImportLevel::Create());
-	
 	return S_OK;
 }
 
@@ -25,8 +23,6 @@ void MainApp::Update(_float dt)
 
 HRESULT MainApp::Render()
 {
-	_float4 clearColor = _float4(0.f, 0.f, 1.f, 1.f);
-	game.BeginDraw(clearColor);
 	game.Draw();
 	game.GuiRender();
 	game.EndDraw();

@@ -116,7 +116,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>../public/;../default/;../../EngineSDK/Inc/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
     </ClCompile>
@@ -150,7 +150,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>../public/;../../EngineSDK/Inc/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
       <DisableSpecificWarnings>4251</DisableSpecificWarnings>
     </ClCompile>
@@ -169,14 +169,24 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\public\CamLoader.h" />
+    <ClInclude Include="..\public\CamSpawner.h" />
+    <ClInclude Include="..\public\CharacterSpawner.h" />
     <ClInclude Include="..\public\CharacterUILoader.h" />
     <ClInclude Include="..\public\Client_Defines.h" />
     <ClInclude Include="..\public\Central.h" />
+    <ClInclude Include="..\public\EffectLoader.h" />
+    <ClInclude Include="..\public\EnemySpawner.h" />
+    <ClInclude Include="..\public\LightSpawner.h" />
     <ClInclude Include="..\public\Loader.h" />
     <ClInclude Include="..\public\LoaderData.h" />
     <ClInclude Include="..\public\Loading.h" />
     <ClInclude Include="..\public\Logo.h" />
     <ClInclude Include="..\public\MainApp.h" />
+    <ClInclude Include="..\public\MapLoader.h" />
+    <ClInclude Include="..\public\ModelLoader.h" />
+    <ClInclude Include="..\public\SkyboxSpawner.h" />
+    <ClInclude Include="..\public\SoundLoader.h" />
     <ClInclude Include="..\public\UIArchetypeLoader.h" />
     <ClInclude Include="..\public\UILoader.h" />
     <ClInclude Include="pch.h" />
@@ -184,11 +194,23 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\private\CamLoader.cpp" />
+    <ClCompile Include="..\private\CamSpawner.cpp" />
     <ClCompile Include="..\private\Central.cpp" />
+    <ClCompile Include="..\private\CharacterSpawner.cpp" />
+    <ClCompile Include="..\private\EffectLoader.cpp" />
+    <ClCompile Include="..\private\EnemySpawner.cpp" />
+    <ClCompile Include="..\private\LightSpawner.cpp" />
     <ClCompile Include="..\private\Loader.cpp" />
     <ClCompile Include="..\private\Loading.cpp" />
     <ClCompile Include="..\private\Logo.cpp" />
     <ClCompile Include="..\private\MainApp.cpp" />
+    <ClCompile Include="..\private\MapLoader.cpp" />
+    <ClCompile Include="..\private\ModelLoader.cpp" />
+    <ClCompile Include="..\private\SkyboxSpawner.cpp" />
+    <ClCompile Include="..\private\UIArchetypeLoader.cpp" />
+    <ClCompile Include="..\private\UILoader.cpp" />
+    <ClCompile Include="..\public\SoundLoader.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

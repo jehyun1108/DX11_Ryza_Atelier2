@@ -31,20 +31,20 @@ Handle FreeCamSystem::Create(EntityID owner, Handle transform, float moveSpeed, 
 
 void FreeCamSystem::SetActive(Handle handle, bool on)
 {
-    if (auto cam = Get(handle))
-        cam->isActive = on;
+    auto cam = Get(handle);
+    cam->isActive = on;
 }
 
 void FreeCamSystem::SetSpeed(Handle handle, float speed)
 {
-    if (auto cam = Get(handle))
-        cam->moveSpeed = max(0.f, speed);
+    auto cam = Get(handle);
+    cam->moveSpeed = max(0.f, speed);
 }
 
 void FreeCamSystem::SetSensitivity(Handle handle, float sens)
 {
-    if (auto cam = Get(handle))
-        cam->sensitivity = max(0.f, sens);
+    auto cam = Get(handle);
+    cam->sensitivity = max(0.f, sens);
 }
 
 void FreeCamSystem::Update(float dt)
@@ -52,8 +52,7 @@ void FreeCamSystem::Update(float dt)
     ForEachAliveEx([&](Handle handle, EntityID owner, FreeCamData& cam)
         {
             if (!cam.isActive) return;
-            if (!tfSys->Validate(cam.transform)) return;
-           
+
             float dx = 0.f, dy = 0.f, dz = 0.f;
             if (input->KeyPressing(KEY::D)) dx += 1.f;
             if (input->KeyPressing(KEY::A)) dx -= 1.f;

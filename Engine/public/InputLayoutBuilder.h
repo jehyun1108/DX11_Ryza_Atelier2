@@ -19,6 +19,10 @@ public:
 	static InputLayoutBuilder MakePC();
 	static InputLayoutBuilder MakePU();
 	static InputLayoutBuilder MakeUI(); // posUI + UV;
+	static InputLayoutBuilder MakePSkin(); // Pos + BlendIndices + BlendWeights
+	static InputLayoutBuilder MakeP();
+	static InputLayoutBuilder MakeParticle();
+	static InputLayoutBuilder MakeTrail();
 
 private:
 	static void FillElement(VtxAttribute attr, _uint semanticIdx, _uint slot, _uint stepRate, D3D11_INPUT_ELEMENT_DESC& out);

@@ -1,4 +1,18 @@
 #include "Enginepch.h"
+#include "SoundSystem.h"
+
+void FieldAnimSystem::OnBoot()
+{
+    animator    = &registry.Get<AnimatorSystem>();
+    moveSys     = &registry.Get<MoveStateSystem>();
+    intentSys   = &registry.Get<MoveIntentSystem>();
+    input       = &registry.Get<InputService>();
+    animDataSys = &registry.Get<AnimDataSystem>();
+    effectSys   = &registry.Get<EffectSystem>();
+    dataSys     = &registry.Get<CharacterDataSystem>();
+    tfSys       = &registry.Get<TransformSystem>();
+    soundSys    = &registry.Get<SoundSystem>();
+}
 
 Handle FieldAnimSystem::Create(EntityID owner, Handle animHandle)
 {
@@ -19,9 +33,14 @@ Handle FieldAnimSystem::Create(EntityID owner, Handle animHandle, const AnimProf
     data.stateElapsed = 0.f;
     data.profile      = profile;
 
-    auto& animSys = registry.Get<AnimatorSystem>();
-    animSys.SetLayerBlendWeight(animHandle, 0, 1.f);
-    animSys.SetLayerBlendType(animHandle, 0, ANIMBLEND::OVERRIDE);
+    data.footstepTimer = 0.f;
+    data.footstepToggle = false;
+
+    //data.wakeIntroActive = true; 
+    //data.wakeIndex = -1;
+
+    animator->SetLayerBlendWeight(animHandle, 0, 1.f);
+    animator->SetLayerBlendType(animHandle, 0, ANIMBLEND::OVERRIDE);
     
     PlayKey(data, AnimKey::Idle, ANIMTYPE::LOOP, 0.f);
     return handle;
@@ -29,14 +48,10 @@ Handle FieldAnimSystem::Create(EntityID owner, Handle animHandle, const AnimProf
 
 void FieldAnimSystem::Update(float dt)
 {
-    auto& moveSys      = registry.Get<MoveStateSystem>();
-    auto& intentSys    = registry.Get<MoveIntentSystem>();
-    auto& inputService = registry.Get<InputService>();
-
     ForEachAliveEx([&](Handle handle, EntityID owner, LocomotionAnim& loco)
         {
-            MoveState* move = moveSys.GetByOwner(owner);
-            const MoveIntent* intent = intentSys.GetByOwner(owner);
+            MoveState* move = moveSys->GetByOwner(owner);
+            const MoveIntent* intent = intentSys->GetByOwner(owner);
             if (!move) return;
 
             const float speedXZ    = sqrtf(move->velocityXZ.x * move->velocityXZ.x + move->velocityXZ.y * move->velocityXZ.y);
@@ -47,13 +62,20 @@ void FieldAnimSystem::Update(float dt)
 
             loco.stateElapsed += dt;
 
+            //if (loco.wakeIntroActive)
+            //{
+            //    UpdateWakeIntro(loco);
+            //    loco.wasGroundedPrev = isGrounded;
+            //    return;
+            //}
+
             const bool justLanded     = ( isGrounded && !loco.wasGroundedPrev);
             const bool justLeftGround = (!isGrounded &&  loco.wasGroundedPrev);
-
-            const bool attackEdgeNow = inputService.ConsumeAttackEdge(owner);
+            const bool attackEdgeNow = input->ConsumeAttackEdge(owner);
 
             if (justLeftGround)
             {
+                soundSys->PlaySkipDur(L"jump", 0.1f, 0.2f);
                 if (velocityY > 0.f)
                 {
                     loco.cur = LocomotionState::JumpStart;
@@ -66,6 +88,9 @@ void FieldAnimSystem::Update(float dt)
                 }
             }
 
+            if (justLanded)
+                soundSys->Play(L"land", 0.2f);
+
             switch (loco.cur)
             {
             case LocomotionState::Idle:
@@ -74,6 +99,10 @@ void FieldAnimSystem::Update(float dt)
                 {
                     loco.cur = LocomotionState::FieldSwing;
                     PlayKey(loco, AnimKey::FieldSwing, ANIMTYPE::ONCE, params.fadeShort);
+                    effectSys->PlayTrail(L"ryza_trail", dataSys->GetEntityID(CharacterID::Ryza) + 1, 0.25f, 0.3f);
+                    //effectSys->PlayTrail(L"fire_trail", dataSys->GetEntityID(CharacterID::Ryza) + 1, 0.25f, 0.3f);
+                    soundSys->Play(L"ryza_42");
+                    soundSys->Play(L"swing_wand", 0.35f);
                     break;
                 }
 
@@ -256,10 +285,24 @@ void FieldAnimSystem::Update(float dt)
             {
                 if (justLanded)
                 {
-                    loco.cur = LocomotionState::JumpEnd;
-                    PlayKey(loco, AnimKey::JumpEnd, ANIMTYPE::ONCE, params.fadeShort);
+                    if (speedXZ < params.walkStartThreshold)
+                    {
+                        loco.cur = LocomotionState::JumpEnd;
+                        PlayKey(loco, AnimKey::JumpEnd, ANIMTYPE::ONCE, params.fadeShort);
+                    }
+                    else if (runInput && speedXZ > params.runStartThreshold)
+                    {
+                        loco.cur = LocomotionState::RunLoop;
+                        PlayKey(loco, AnimKey::RunLoop, ANIMTYPE::LOOP, params.fadeShort);
+                    }
+                    else
+                    {
+                        loco.cur = LocomotionState::WalkLoop;
+                        PlayKey(loco, AnimKey::WalkLoop, ANIMTYPE::LOOP, params.fadeShort);
+                    }
                     break;
                 }
+
                 if (IsCurClipFinished(loco))
                 {
                     loco.cur = LocomotionState::JumpLoop;
@@ -272,9 +315,24 @@ void FieldAnimSystem::Update(float dt)
             {
                 if (justLanded)
                 {
-                    loco.cur = LocomotionState::JumpEnd;
-                    PlayKey(loco, AnimKey::JumpEnd, ANIMTYPE::ONCE, params.fadeShort);
+                    if (speedXZ < params.walkStartThreshold)
+                    {
+                        loco.cur = LocomotionState::JumpEnd;
+                        PlayKey(loco, AnimKey::JumpEnd, ANIMTYPE::ONCE, params.fadeShort);
+                    }
+                    else if (runInput && speedXZ > params.runStartThreshold)
+                    {
+                        loco.cur = LocomotionState::RunLoop;
+                        PlayKey(loco, AnimKey::RunLoop, ANIMTYPE::LOOP, params.fadeShort);
+                    }
+                    else
+                    {
+                        loco.cur = LocomotionState::WalkLoop;
+                        PlayKey(loco, AnimKey::WalkLoop, ANIMTYPE::LOOP, params.fadeShort);
+                    }
+                    break;
                 }
+
                 break;
             }
 
@@ -282,24 +340,8 @@ void FieldAnimSystem::Update(float dt)
             {
                 if (IsCurClipFinished(loco))
                 {
-                    const bool wantRun = (speedXZ > params.runStartThreshold) && runInput;
-                    const bool wantWalk = (speedXZ > params.walkStartThreshold) && !wantRun;
-
-                    if (wantRun)
-                    {
-                        loco.cur = LocomotionState::RunStart;
-                        PlayKey(loco, AnimKey::RunStart, ANIMTYPE::ONCE, params.fadeVeryShort);
-                    }
-                    else if (wantWalk)
-                    {
-                        loco.cur = LocomotionState::WalkStart;
-                        PlayKey(loco, AnimKey::WalkStart, ANIMTYPE::ONCE, params.fadeVeryShort);
-                    }
-                    else
-                    {
-                        loco.cur = LocomotionState::Idle;
-                        PlayKey(loco, AnimKey::Idle, ANIMTYPE::LOOP, params.fadeShort);
-                    }
+                    loco.cur = LocomotionState::Idle;
+                    PlayKey(loco, AnimKey::Idle, ANIMTYPE::LOOP, params.fadeShort);
                 }
                 break;
             }
@@ -326,40 +368,105 @@ void FieldAnimSystem::Update(float dt)
                 break;
             }
             }
-
             loco.wasGroundedPrev = isGrounded;
+
+            // --------- 발소리 루프 (walk/run loop) ----------
+            constexpr float walkStepInterval = 0.80f;
+            constexpr float runStepInterval = 0.6f;
+
+            const bool inWalkLoop = (loco.cur == LocomotionState::WalkLoop);
+            const bool inRunLoop = (loco.cur == LocomotionState::RunLoop);
+
+            if (isGrounded && (inWalkLoop || inRunLoop) && speedXZ > params.walkStartThreshold)
+            {
+                float interval = inRunLoop ? runStepInterval : walkStepInterval;
+
+                loco.footstepTimer += dt;
+                if (loco.footstepTimer >= interval)
+                {
+                    loco.footstepTimer -= interval;
+
+                    if (loco.footstepToggle)
+                        soundSys->Play(L"ground01_a");
+                    else
+                        soundSys->Play(L"ground01_b");
+
+                    loco.footstepToggle = !loco.footstepToggle;
+                }
+            }
+            else
+            {
+                loco.footstepTimer = 0.f;
+            }
         });
 }
 
 const wstring& FieldAnimSystem::ResolveClip(const AnimProfile& profile, AnimKey key) const
 {
-    const auto& animData = registry.Get<AnimDataSystem>();
-    return animData.GetClipName(profile.character, profile.context, key);
+    return animDataSys->GetClipName(profile.character, profile.context, key);
 }
 
 bool FieldAnimSystem::IsCurClipFinished(const LocomotionAnim& loco) const
 {
-    const auto& animSys = registry.Get<AnimatorSystem>();
-    const float duration = animSys.GetClipDuration(loco.animHandle, loco.curClipName);
+    const float duration = animator->GetClipDuration(loco.animHandle, loco.curClipName);
     if (duration < 0.f) return true;
     return loco.stateElapsed >= duration;
 }
 
 void FieldAnimSystem::PlayKey(LocomotionAnim& loco, AnimKey key, ANIMTYPE type, float fadeSec)
 {
-    auto& animSys = registry.Get<AnimatorSystem>();
     const wstring& clipName = ResolveClip(loco.profile, key);
-    if (clipName.empty()) return;
+    assert(!clipName.empty() && "FieldAnimSystem: missing clip for AnimKey in profile (character/context)");
 
     loco.curClipName = clipName;
     loco.stateElapsed = 0.f;
 
     const float fadeSeconds = max(0.f, fadeSec);
     if (fadeSeconds > 0.f)
-        animSys.CrossFade(loco.animHandle, 0, 1, clipName, fadeSeconds, type);
+        animator->CrossFade(loco.animHandle, 0, 1, clipName, fadeSeconds, type);
     else
-        animSys.Play(loco.animHandle, 0, clipName, type);
+        animator->Play(loco.animHandle, 0, clipName, type);
 }
+
+//void FieldAnimSystem::UpdateWakeIntro(LocomotionAnim& loco)
+//{
+//    if (loco.profile.character != CharacterID::Ryza) return;
+//    static constexpr AnimKey seq[] =
+//    {
+//       AnimKey::WakeUp_A,
+//        AnimKey::WakeUp_B,
+//        AnimKey::WakeUp_C,
+//        AnimKey::WakeUp_D,
+//        AnimKey::WakeUp_E,
+//        AnimKey::WakeUp_F,
+//        AnimKey::WakeUp_G,
+//        AnimKey::WakeUp_H,
+//        AnimKey::WakeUp_I,
+//    };
+//    static constexpr int seqCount = sizeof(seq) / sizeof(seq[0]);
+//    if (loco.wakeIndex < 0)
+//    {
+//        loco.wakeIndex = 0;
+//        loco.stateElapsed = 0.f;
+//        PlayKey(loco, seq[0], ANIMTYPE::ONCE, 0.f);  
+//        return;
+//    }
+//
+//    if (!IsCurClipFinished(loco))
+//        return;
+//
+//    loco.wakeIndex++;
+//    if (loco.wakeIndex >= seqCount)
+//    {
+//        loco.wakeIntroActive = false;
+//        loco.cur = LocomotionState::Idle;
+//        loco.stateElapsed = 0.f;
+//        PlayKey(loco, AnimKey::Idle, ANIMTYPE::LOOP, params.fadeShort);
+//        return;
+//    }
+//    loco.stateElapsed = 0.f;
+//    PlayKey(loco, seq[loco.wakeIndex], ANIMTYPE::ONCE, params.fadeShort);
+//}
 
 void FieldAnimSystem::RenderGui(EntityID id)
 {
@@ -371,8 +478,7 @@ void FieldAnimSystem::RenderGui(EntityID id)
             {
                 ImGui::PushID((int)handle.idx);
 
-                const ImGuiTreeNodeFlags flags =
-                    ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+                const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
 
                 if (ImGui::TreeNodeEx("Locomotion", flags))
                 {

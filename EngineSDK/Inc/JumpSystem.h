@@ -8,6 +8,7 @@ class ENGINE_DLL JumpSystem : public EntitySystem<JumpComponent>
 {
 public:
 	explicit JumpSystem(SystemRegistry& registry) : EntitySystem(registry) {}
+	void     OnBoot() override;
 	Handle   Create(EntityID owner);
 
 	void SetParams(const JumpParams& params) { jumpParams = params; }
@@ -17,6 +18,9 @@ public:
 	void Update(float dt);
 
 private:
+	InputService*    input{};
+	MoveStateSystem* moveSys{};
+
 	JumpParams jumpParams;
 };
 

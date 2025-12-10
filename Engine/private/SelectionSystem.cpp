@@ -35,7 +35,6 @@ void SelectionSystem::ToggleSelect(EntityID id)
 
 void SelectionSystem::Update(float dt)
 {
-	GameInstance& game   = GameInstance::GetInstance();
 	const _float2& mouse = input->GetMousePos();
 
 #ifdef USE_IMGUI
@@ -44,8 +43,8 @@ void SelectionSystem::Update(float dt)
 
 	context.fromScreen       = true;
 	context.screenPos        = { mouse.x, mouse.y };
-	context.viewport         = game.GetViewport();
-	context.cam              = registry.Get<CameraSystem>().GetMainCamHandle();
+	context.viewport         = GAME.GetViewport();
+	context.cam              = camSys->GetMainCamHandle();
 	context.rayValid         = true;
 
 	// Buttons

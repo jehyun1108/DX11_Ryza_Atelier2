@@ -21,6 +21,10 @@ public:
 	const vector<shared_ptr<AnimClip>>& GetAnimClips()        const { return animClips; }
 	const vector<shared_ptr<Material>>& GetMaterials()        const { return materials; }
 	const vector<_float4x4>&            GetBindPoseMatrices() const { return bindPoseMatrices; }
+	
+	const Mesh* GetFirstMesh() const;
+	const Mesh* GetLargestMeshByAABB() const;
+	void        GetAllMeshes(vector<const Mesh*>& out) const;
 
 	const BoundingBox& GetBoundingBox()  const { return boundingBox; }
 	bool               IsSkeletalModel() const { return skeleton != nullptr; }
@@ -39,6 +43,10 @@ private:
 	void    TryNormalFromDiffuseMap(Material& targetMaterial, const wstring& diffuseFullPath, const wstring& baseKey);
 	void    BuildBindPose(const Skeleton& skeleton, vector<_float4x4>& out);
 	void    FinalSetUp();
+
+	bool    IsSpecialCharacter(const wstring& key) { return key == L"ryza" || key == L"patricia" || key == L"klaudia"; }
+	void    ApplyDefaultSkinMapping(const wstring& baseKey, const wstring& diffuseStem, Material& material, const filesystem::path& dir);
+	void    ApplySpecialMapping(const wstring& baseKey, const wstring& diffuseStem, Material& material, const filesystem::path& dir);
 
 private:
 	GameInstance& game = GameInstance::GetInstance();

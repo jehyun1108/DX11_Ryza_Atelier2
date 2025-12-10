@@ -9,9 +9,9 @@ struct BattleStartParams
 	_float3                 centerWorld{};
 	BattleSessionConfig     sessionConfig{};
 
-	float startAngleDeg      = 0.f;
-	float ringRadius         = 800.f;
-	bool  faceCenterSnap     = true;
+	float startAngleDeg = 0.f;
+	float ringRadius = 600.f;
+	bool  faceCenterSnap = true;
 };
 
 NS_END

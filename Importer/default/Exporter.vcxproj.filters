@@ -28,6 +28,12 @@
     <ClCompile Include="..\private\ImportPanel.cpp">
       <Filter>00. Panels\00. ImportPanel</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\FontImporter.cpp">
+      <Filter>07. TrueTypeFont</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\EffectPanel.cpp">
+      <Filter>00. Panels\02. EffectPanel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\MainApp.h">
@@ -72,6 +78,27 @@
     <ClInclude Include="..\public\ImportPanel.h">
       <Filter>00. Panels\00. ImportPanel</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\stb_image_write.h">
+      <Filter>07. TrueTypeFont</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\stb_rect_pack.h">
+      <Filter>07. TrueTypeFont</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\stb_truetype.h">
+      <Filter>07. TrueTypeFont</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FontImporter.h">
+      <Filter>07. TrueTypeFont</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FontImportData.h">
+      <Filter>07. TrueTypeFont</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EffectPanel.h">
+      <Filter>00. Panels\02. EffectPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EffectPanelData.h">
+      <Filter>00. Panels\02. EffectPanel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Exporter.ico">
@@ -112,7 +139,10 @@
     <Filter Include="00. Panels\00. ImportPanel">
       <UniqueIdentifier>{59ea5808-a4ef-4bc8-bbe9-4e17ef29b929}</UniqueIdentifier>
     </Filter>
-    <Filter Include="00. Panels\01. NavMeshPanel">
+    <Filter Include="07. TrueTypeFont">
+      <UniqueIdentifier>{31d4d38e-e930-4266-89e4-f27e156f37dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00. Panels\02. EffectPanel">
       <UniqueIdentifier>{1f317edc-3e5e-414d-b118-ae6543f4b1b0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>

@@ -6,23 +6,26 @@ Loader::~Loader()
 	StopAndJoin();
 }
 
-void Loader::Start()
+void Loader::Start(Job job)
 {
+	assert(!worker.joinable());
+
 	stopRequested.store(false);
 	{
 		lock_guard<mutex> lock(mtx);
 		done = false;
 	}
-
-	worker = thread([this] 
+	worker = thread([this, job] 
 		{
-			CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+			HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+			job(stopRequested);
 
 			{
-				lock_guard<mutex> lock(mtx);
+				lock_guard lock(mtx);
 				done = true;
 			}
-			cv.notify_one();
+			cv.notify_all();
 
 			CoUninitialize();
 		});
@@ -31,7 +34,7 @@ void Loader::Start()
 void Loader::WaitUntilDone()
 {
 	unique_lock<mutex> lock(mtx);
-	cv.wait(lock, [this] {return done; });
+	cv.wait(lock, [this] { return done; });
 }
 
 void Loader::RequestStop()

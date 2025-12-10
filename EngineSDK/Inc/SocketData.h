@@ -13,6 +13,7 @@ struct ENGINE_DLL SocketData
 	_float3   offsetPos{};
 	_float3   offsetRot{};
 	bool      offsetDirty = true;
+	bool      posOnly = false;
 };
 
 NS_END

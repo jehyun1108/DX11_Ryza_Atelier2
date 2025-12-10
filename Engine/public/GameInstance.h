@@ -5,10 +5,7 @@ class Level;
 class Device;
 class LevelMgr;
 class TimeMgr;
-class Renderer;
-class AssetSystem;
 struct RenderScene;
-class InputService;
 
 class ENGINE_DLL GameInstance final : public Singleton<GameInstance>
 {
@@ -20,24 +17,25 @@ public:
 public:
 	HRESULT               InitEngine(const EngineDesc& _engineDesc);
 	void                  UpdateEngine(float dt);
-	HRESULT               BeginDraw(const _float4 color);
 	HRESULT               Draw();
+
 	HRESULT               EndDraw();
 	void                  ClearResources(_uint levelID);
 	void                  ReleaseEngine();
 	const D3D11_VIEWPORT& GetViewport() const;
-	static bool           IsInited() { return inited; }
+	static bool           IsInited()   { return inited; }
+
+	float GetGameTime() const { return gameTime; }
 
 	void BeginFrame(float dt);
 	void EndFrame();
 
 	// -------------- Device ---------------------------------------------------------------------------------
+	Device*                   GetDevicePtr() const { return device.get(); }
 	ID3D11Device*             GetDevice() const;
 	ID3D11DeviceContext*      GetContext() const;
 	void                      OnResize(_uint newX, _uint newY);
 	ID3D11RenderTargetView*   GetBackBufferRTV() const;
-	ID3D11DepthStencilView*   GetDSV() const;
-	ID3D11ShaderResourceView* GetDepthSRV() const;
 
 	// -------------- TimeMgr ---------------------------------------------------------------------------------
 	_float GetDt(TIMER timerID);
@@ -61,12 +59,46 @@ public:
 	SystemRegistry&    GetRegistry()          { return registry; }
 
 private:
-	static bool             inited;
-	SystemRegistry          registry;
+	void BootingSystems();
 
+private:
+	static bool             inited;
+	float                   gameTime = 0.f;
+
+	SystemRegistry          registry;
 	unique_ptr<Device>      device{};
 	unique_ptr<TimeMgr>     timeMgr{};
 	unique_ptr<LevelMgr>    levelMgr{};
+
+private:
+	GuiMgr*                 guiMgr{};
+	InputMgr*               inputMgr{};
+	RenderSystem*           renderSys{};
+	Renderer*               renderer{};
+	SoundSystem*            soundSys{};
+	EntityMgr*              entityMgr{};
+	SoundRegistry*          soundRegistry{};
+	RenderTargetSystem*     rtSys{};
+	InputService*           input{};
+	GameModeDirectorSystem* director{};
+	JumpSystem*             jumpSys{};
+	MoveStateSystem*        moveSys{};
+	TransformSystem*        tfSys{};
+	FacingSystem*           facingSys{};
+	AnimatorSystem*         animator{};
+	SocketSystem*           socketSys{};
+	FaceSystem*             faceSys{};
+	OrbitCamSystem*         orbitCamSys{};
+	CameraSystem*           camSys{};
+	FreeCamSystem*          freeCamSys{};
+	LightSystem*            lightSys{};
+	GridSystem*             gridSys{};
+	CollisionSystem*        collisionSys{};
+	SkyboxSystem*           skySys{};
+	SelectionSystem*        selectSys{};
+	ParticleSystem*         particleSys{};
+	EffectSystem*           effectSys{};
+	TrailSystem*            trailSys{};
 };
 
 NS_END

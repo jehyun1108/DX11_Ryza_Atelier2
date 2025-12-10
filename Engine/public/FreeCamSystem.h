@@ -9,8 +9,7 @@ class ENGINE_DLL FreeCamSystem : public EntitySystem<FreeCamData>, public IGuiRe
 public:
 	explicit FreeCamSystem(SystemRegistry& registry) : EntitySystem(registry) {}
 	void     OnBoot() override;
-
-	Handle Create(EntityID owner, Handle transform, float moveSpeed = 200.f, float sens = 0.25f);
+	Handle   Create(EntityID owner, Handle transform, float moveSpeed = 200.f, float sens = 0.25f);
 
 	void SetActive(Handle handle, bool on);
 	void SetSpeed(Handle handle, float speed);

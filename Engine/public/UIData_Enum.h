@@ -8,7 +8,7 @@ enum class UISizeMode
 };
 enum class UIContext
 {
-	Field, Battle,
+	Always, Field, Battle, Loading, Logo, None
 };
 enum class UIAnchor
 {
@@ -34,17 +34,29 @@ enum class UITextAlignVertical
 {
 	Top, Mid, Bottom
 };
-enum class UIDrawType
-{
-	Image, SolidRect, 
-};
 enum class UIEasing
 {
-	Linear, EaseOutCubic, EaseOutQuad
+	Linear, EaseOutCubic, EaseOutQuad, EaseWave, EaseInOut
 };
 enum class UIVisibility
 {
 	Always, DuringCutScene, DuringSKill, DuringUltimate, Manual
+};
+enum class UIFillMode
+{
+	Rect, RingCW 
+};
+enum class UIFlipMode
+{
+	None, FlipX, FlipY, FlipXY
+};
+enum class UIMaskType
+{
+	None, Circle
+};
+enum class UIWidgetType
+{
+	Image, Text
 };
 
 NS_END

@@ -7,11 +7,11 @@ namespace Engine
 	enum class WINMODE          { FULL, WIN, END};
 	enum class STATE            { RIGHT, UP, LOOK,  END };
 	enum class MOVE             { FORWARD, BACK, LEFT, RIGHT, UP, DOWN, END };
-    enum class CBUFFERSLOT      { CAMERA, OBJ, LIGHT, BONE, SKY, TS, UI, END};
+    enum class CBUFFERSLOT      { CAMERA, OBJ, LIGHT, SKY, UI, MATERIAL, POST, Debug, Distortion, TRAIL, END};
     enum class RASTERIZER       { CULLBACK, CULLFRONT, CULLNONE, WIREFRAME, UI_SCISSOR, END};
     enum class BLENDSTATE       { Opaque, ALPHABLEND, ADDITIVE, PM_ALPHA, END };
     enum class DEPTHSTATE       { DEFAULT, DEPTHSTENCILWRITE, DEPTHSTENCIL_NOEQUAL, NO_DEPTHTEST, NO_DEPTHWRITE, NO_DEPTHWRITE_LESSEQUAL, END};
-    enum class SAMPLER          { POINT, LINEAR, ANISOTROPIC, SHADOW, END};
+    enum class SAMPLER          { POINT, LINEAR, ANISOTROPIC, END};
     enum class LIGHT            { DIRECTIONAL, POINT, SPOT, END};
     enum class INTERPOLATION    { LINEAR, STEP, CUBICSPLINE, END };
     enum class ANIMTYPE         { ONCE, LOOP, PINGPONG, END };
@@ -19,7 +19,7 @@ namespace Engine
     enum class SkyTextureType   { CubeMap, Equirect2D };
     enum class TextureColorSpace
     {
-        sRGB, // Albedo, UI, Sky 등 "눈에 보이는 색"
+        sRGB,       // Albedo, UI, Sky 등 "눈에 보이는 색"
         Linear      // Normal, Mask, Depth 등 수치데이터
     };
     enum class VertexLayoutID  
@@ -34,10 +34,8 @@ namespace Engine
     {
         ALBEDO,     // t0 레지스터
         NORMAL,     // t1
-        ROUGHNESS,  // t2
-        METALIC,	// t3
-        AO,         // t4
-        EMISSIVE,   // t5
+        AO,
+        MATMASK, // 금속 가죽 마스크 
         END,
     };
 

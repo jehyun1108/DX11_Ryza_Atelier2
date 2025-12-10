@@ -1,4 +1,11 @@
 #include "Enginepch.h"
+#include "JumpSystem.h"
+
+void JumpSystem::OnBoot()
+{
+	input   = &registry.Get<InputService>();
+	moveSys = &registry.Get<MoveStateSystem>();
+}
 
 Handle JumpSystem::Create(EntityID owner)
 {
@@ -8,18 +15,16 @@ Handle JumpSystem::Create(EntityID owner)
 
 void JumpSystem::Priority_Update(float dt)
 {
-	auto& inputService = registry.Get<InputService>();
-	auto& moveSys      = registry.Get<MoveStateSystem>();
-
 	ForEachAliveEx([&](Handle handle, EntityID owner, JumpComponent& jump)
 		{
-			MoveState* moveState = moveSys.GetByOwner(owner);
-			if (!moveState) return;
-
-			const bool jumpEdgeNow = inputService.ConsumeJumpEdge(owner);
+			MoveState* moveState = moveSys->GetByOwner(owner);
+			const bool jumpEdgeNow = input->ConsumeJumpEdge(owner);
 
 			if (jumpEdgeNow && moveState->grounded)
+			{
 				moveState->velocityY = jumpParams.jumpSpeed;
+				moveState->grounded = false;
+			}
 
 			if (!moveState->grounded)
 			{

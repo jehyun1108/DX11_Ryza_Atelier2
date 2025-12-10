@@ -1,70 +1,96 @@
 #include "Enginepch.h"
 
+namespace
+{
+    constexpr float kIntroBackOffset = 350.f;  
+    constexpr float kArriveRadius    = 10.f;   
+    constexpr float kIntroRunSpeed   = 500.f;  
+    constexpr float kFadeShort       = 0.06f;  
+}
+static inline _float3 ComputeIntroSpawnPos(const _float3& target, const _float2& faceDirXZ, float backOffset)
+{
+    return _float3{ target.x - faceDirXZ.x * backOffset, target.y, target.z - faceDirXZ.y * backOffset };
+}
+// =================================================================================================================
+
+void BattleIntroSystem::OnBoot()
+{
+    animator     = &registry.Get<AnimatorSystem>();
+    tfSys        = &registry.Get<TransformSystem>();
+    faceSrv      = &registry.Get<FacingForceService>();
+    sessionSys   = &registry.Get<BattleSessionSystem>();
+    formationSys = &registry.Get<BattleFormationSystem>();
+    animDataSys  = &registry.Get<AnimDataSystem>();
+    actionReg    = &registry.Get<ActionAnimRegistry>();
+}
+
 Handle BattleIntroSystem::Create(EntityID owner, Handle animHandle, Handle tfHandle, const AnimProfile& profile)
 {
-    Handle handle      = CreateComp(owner);
-    auto& state        = *Get(handle);
-    state.entity       = owner;
-    state.animHandle   = animHandle;
-    state.tfHandle     = tfHandle;
-    state.profile      = profile;
-    state.stage        = BattleIntroStage::IntroStart;
-   
-    const auto& actionReg = registry.Get<ActionAnimRegistry>();
-    state.introChain = actionReg.TryGetSpecial(profile.character, SpecialAnimTag::Intro);
-    state.chainStageIdx = (state.introChain && !state.introChain->stages.empty()) ? 0 : -1;
+    Handle handle = CreateComp(owner);
+    auto& state = *Get(handle);
+    state.entity = owner;
+    state.animHandle = animHandle;
+    state.tfHandle = tfHandle;
+    state.profile = profile;
+    state.stage = BattleIntroStage::IntroStart;
 
-    if (state.chainStageIdx >= 0)
+    auto [team, slot] = GetTeamSlot(owner);
+    _float3 targetWorld = GetFormationTarget(owner);
+    _float2 faceDirXZ = GetFormationFace(owner);
+
+    const _float3 spawnPos = ComputeIntroSpawnPos(targetWorld, faceDirXZ, kIntroBackOffset);
+    tfSys->SetPos(state.tfHandle, spawnPos);
+    faceSrv->PushSnapXZ(owner, faceDirXZ);
+
+    const ActionAnimSpec& spec = actionReg->Get(profile.character);
+    const bool hasIntro = spec.specials.contains(SpecialAnimTag::Intro);
+
+    if (hasIntro)
     {
-        const AnimStageSpec& first = state.introChain->stages[0];
-        PlayKey(state, first.clipKey, ANIMTYPE::ONCE, max(0.f, first.fadeDur));
+        const AnimChainSpec& chain = actionReg->GetSpecial(profile.character, SpecialAnimTag::Intro);
+        state.introChain = &chain;
+        state.chainStageIdx = !chain.stages.empty() ? 0 : -1;
+
+        if (state.chainStageIdx >= 0)
+        {
+            const AnimStageSpec& first = chain.stages[0];
+            PlayKey(state, first.clipKey, ANIMTYPE::ONCE, max(0.f, first.fadeDur));
+        }
+        else
+        {
+            PlayKey(state, AnimKey::Battle_RunStart, ANIMTYPE::ONCE, kFadeShort);
+            state.stage = BattleIntroStage::RunStart;
+        }
     }
     else
     {
-        PlayKey(state, AnimKey::Battle_RunStart, ANIMTYPE::ONCE, 0.06f);
+        // 인트로 미정의: 기존 fallback
+        PlayKey(state, AnimKey::Battle_RunStart, ANIMTYPE::ONCE, kFadeShort);
         state.stage = BattleIntroStage::RunStart;
     }
+
     return handle;
 }
 
 void BattleIntroSystem::Update(float dt)
 {
-    auto& animSys   = registry.Get<AnimatorSystem>();
-    auto& tfSys     = registry.Get<TransformSystem>();
-    auto& faceSrv   = registry.Get<FacingForceService>();
-    auto* session   = registry.TryGet<BattleSessionSystem>();
-    auto* formation = registry.TryGet<BattleFormationSystem>();
-
-    if (!session || !session->HasActiveSession() || !formation) return;
-
     ForEachAliveEx([&](Handle handle, EntityID owner, BattleIntroState& state)
         {
             state.elapsed += dt;
-            
-            _float3 targetWorld{};
-            _float2 faceDirXZ{};
-            const bool hasTarget = TryQueryFormationTarget(owner, targetWorld);
-            const bool hasFace   = TryQueryFormationFace(owner, faceDirXZ);
+
+            auto [team, slot]   = GetTeamSlot(owner);
+            _float3 targetWorld = GetFormationTarget(owner);
+            _float2 faceDirXZ   = GetFormationFace(owner);
 
             switch (state.stage)
             {
             case BattleIntroStage::IntroStart:
             {
-                if (hasFace) 
-                    faceSrv.PushSnapXZ(owner, _float2{0.f, -1.f});
-                else
-                {
-                    const _float3 cur = tfSys.GetPos(state.tfHandle);
-                    const _float3 cen = QueryCenterWorld();
-                    const float   dx  = cen.x - cur.x, dz = cen.z - cur.z;
-                    const float   len = sqrtf(dx * dx + dz * dz);
-                    if (len > 1e-6f) 
-                        faceSrv.PushSnapXZ(owner, _float2{ dx / len, dz / len });
-                }
+                faceSrv->PushSnapXZ(owner, faceDirXZ);
 
                 if (IsCurClipFinished(state))
                 {
-                    const bool advanced = TryPlayNextIntroChain(state);
+                    const bool advanced = state.introChain ? PlayNextIntroChain(state) : false;
                     if (!advanced)
                         NextStage(state, AnimKey::Battle_RunStart, BattleIntroStage::RunStart, ANIMTYPE::ONCE, 0.06f);
                 }
@@ -74,15 +100,10 @@ void BattleIntroSystem::Update(float dt)
             
             case BattleIntroStage::RunStart:
             {
-                if (hasTarget)
-                {
-                    const _float3 curPos = tfSys.GetPos(state.tfHandle);
-                    const float dx = targetWorld.x - curPos.x;
-                    const float dz = targetWorld.z - curPos.z;
-                    const float len = sqrtf(dx * dx + dz * dz);
-                    if (len > 1e-6f)
-                        faceSrv.PushSmoothXZ(owner, _float2{ dx / len, dz / len });
-                }
+                const _float3 cur = tfSys->GetPos(state.tfHandle);
+                const float dx = targetWorld.x - cur.x, dz = targetWorld.z - cur.z;
+                const float len = sqrtf(dx * dx + dz * dz);
+                if (len > 1e-6f) faceSrv->PushSmoothXZ(owner, _float2{ dx / len, dz / len });
 
                 if (IsCurClipFinished(state))
                 {
@@ -94,53 +115,42 @@ void BattleIntroSystem::Update(float dt)
 
             case BattleIntroStage::RunLoop:
             {
-                if (hasTarget)
-                {
-                    const _float3 curPos = tfSys.GetPos(state.tfHandle);
-                    const float dx = targetWorld.x - curPos.x;
-                    const float dz = targetWorld.z - curPos.z;
-                    const float distSq = dx * dx + dz * dz;
-                    const bool arrived = (distSq < 10.f * 10.f);
+                const _float3 cur = tfSys->GetPos(state.tfHandle);
+                const float dx = targetWorld.x - cur.x, dz = targetWorld.z - cur.z;
+                const float distSq = dx * dx + dz * dz;
+                const bool  arrived = (distSq < kArriveRadius * kArriveRadius);
 
-                    if (!arrived)
+                if (!arrived)
+                {
+                    const float len = sqrtf(distSq);
+                    if (len > 1e-3f)
                     {
-                        const float len = sqrtf(distSq);
-                        if (len > 1e-3f)
-                        {
-                            const float nx = dx / len;
-                            const float nz = dz / len;
-                            const float moveSpeed = 500.f; 
-                            _float3 newPos{ curPos.x + nx * moveSpeed * dt, curPos.y, curPos.z + nz * moveSpeed * dt };
-                            tfSys.SetPos(state.tfHandle, newPos);
-                            faceSrv.PushSmoothXZ(owner, _float2{ nx, nz });
-                        }
+                        const float nx = dx / len, nz = dz / len;
+                        _float3 next{ cur.x + nx * kIntroRunSpeed * dt, cur.y, cur.z + nz * kIntroRunSpeed * dt };
+                        tfSys->SetPos(state.tfHandle, next);
+                        faceSrv->PushSmoothXZ(owner, _float2{ nx, nz });
                     }
-                    else
+                }
+                else
+                {
+                    if (!state.readyIdle)
                     {
-                        if (!state.readyIdle)
-                        {
-                            state.readyIdle = true;
-                            session->ReportIntroReady(owner);
-                        }
-                        PlayKey(state, AnimKey::Battle_RunEnd, ANIMTYPE::ONCE, 0.06f);
-                        state.stage = BattleIntroStage::RunEnd;
+                        state.readyIdle = true;
+
+                        const auto [team, slot] = GetTeamSlot(owner);
+                        if (team == BattleTeam::Ally)         
+                            sessionSys->ReportIntroReady(owner);
                     }
+
+                    PlayKey(state, AnimKey::Battle_RunEnd, ANIMTYPE::ONCE, kFadeShort);
+                    state.stage = BattleIntroStage::RunEnd;
                 }
                 break;
             }
 
             case BattleIntroStage::RunEnd:
             {
-                if (hasFace) 
-                    faceSrv.PushSnapXZ(owner, faceDirXZ);
-                else
-                {
-                    const _float3 curPos = tfSys.GetPos(state.tfHandle);
-                    const _float3 center = QueryCenterWorld();
-                    const float   dx     = center.x - curPos.x, dz = center.z - curPos.z;
-                    const float   len    = sqrtf(dx * dx + dz * dz);
-                    if (len > 1e-6f) faceSrv.PushSnapXZ(owner, _float2{ dx / len, dz / len });
-                }
+                faceSrv->PushSnapXZ(owner, faceDirXZ);
 
                 if (IsCurClipFinished(state))
                 {
@@ -150,6 +160,22 @@ void BattleIntroSystem::Update(float dt)
                 break;
             }
 
+            case BattleIntroStage::BattleIdle:
+            {
+                //if (!state.engagedToBattle && sessionSys->GetPhase() == BattlePhase::Active)
+                //{
+                //    auto [battleTeam, battleSlot] = GetTeamSlot(owner);
+                //    _float3 battleTarget = formationSys->GetTargetPos(battleTeam, battleSlot);
+                //    _float2 battleFace = formationSys->GetFaceDir(battleTeam, battleSlot);
+
+                //    tfSys->SetPos(state.tfHandle, battleTarget);
+                //    faceSrv->PushSnapXZ(owner, battleFace);
+
+                //    state.engagedToBattle = true;
+                //}
+                //break;
+            }
+
             default: break;
             }
         });
@@ -157,40 +183,38 @@ void BattleIntroSystem::Update(float dt)
 
 const wstring& BattleIntroSystem::ResolveClip(const AnimProfile& profile, AnimKey key) const
 {
-    return registry.Get<AnimDataSystem>().GetClipName(profile.character, profile.context, key);
+    return animDataSys->GetClipName(profile.character, profile.context, key);
 }
 
 bool BattleIntroSystem::IsCurClipFinished(const BattleIntroState& state) const
 {
-    auto& animSys = registry.Get<AnimatorSystem>();
     const Handle handle = state.animHandle;
 
-    if (animSys.IsCrossFading(handle))
+    if (animator->IsCrossFading(handle))
         return false;
 
     const _uint activeLayer = 0;
 
-    if (!animSys.IsPlaying(handle, activeLayer))
+    if (!animator->IsPlaying(handle, activeLayer))
         return true;
 
-    if (!state.curClipName.empty() && !animSys.IsPlayingClip(handle, activeLayer, state.curClipName)) return false;
+    if (!state.curClipName.empty() && !animator->IsPlayingClip(handle, activeLayer, state.curClipName)) return false;
 
-    const float remainSec = animSys.GetRemainingTime(handle, activeLayer);
+    const float remainSec = animator->GetRemainingTime(handle, activeLayer);
     return (remainSec <= 0.01f);
 }
 
 void BattleIntroSystem::PlayKey(BattleIntroState& state, AnimKey key, ANIMTYPE type, float fadeDur)
 {
-    auto& animSys       = registry.Get<AnimatorSystem>();
     const wstring& clip = ResolveClip(state.profile, key);
     state.curClipName   = clip;
     state.elapsed       = 0.f;
 
     const float fadeSeconds = max(0.f, fadeDur);
     if (fadeSeconds > 0.f)
-        animSys.CrossFade(state.animHandle, 0, 1, clip, fadeSeconds, type);
+        animator->CrossFade(state.animHandle, 0, 1, clip, fadeSeconds, type);
     else
-        animSys.Play(state.animHandle, 0, clip, type);
+        animator->Play(state.animHandle, 0, clip, type);
 }
 
 void BattleIntroSystem::NextStage(BattleIntroState& state, AnimKey nextKey, BattleIntroStage nextStage, ANIMTYPE type, float fadeDur)
@@ -199,13 +223,9 @@ void BattleIntroSystem::NextStage(BattleIntroState& state, AnimKey nextKey, Batt
     state.stage = nextStage;
 }
 
-bool BattleIntroSystem::TryPlayNextIntroChain(BattleIntroState& state)
+bool BattleIntroSystem::PlayNextIntroChain(BattleIntroState& state)
 {
-    if (!state.introChain) return false;
-
     const auto& stages = state.introChain->stages;
-    if (state.chainStageIdx < 0 || state.chainStageIdx >= static_cast<int>(stages.size())) return false;
-
     ++state.chainStageIdx;
     if (state.chainStageIdx < static_cast<int>(stages.size()))
     {
@@ -218,36 +238,26 @@ bool BattleIntroSystem::TryPlayNextIntroChain(BattleIntroState& state)
     return false;
 }
 
-bool BattleIntroSystem::ResolveTeamSlot(EntityID entity, BattleTeam& outTeam, int& outSlot) const
+pair<BattleTeam, int> BattleIntroSystem::GetTeamSlot(EntityID entity) const
 {
-    auto* session = registry.TryGet<BattleSessionSystem>();
-    if (!session || !session->HasActiveSession()) return false;
-    if (!session->TryGetTeam(entity, outTeam))    return false;
-    if (!session->TryGetSlotIdx(entity, outSlot)) return false;
-    return true;
+    BattleTeam team = sessionSys->GetTeam(entity);
+    int slot = sessionSys->GetSlotIdx(entity);
+    return { team, slot };
 }
 
-bool BattleIntroSystem::TryQueryFormationTarget(EntityID entity, _float3& outPos) const
+_float3 BattleIntroSystem::GetFormationTarget(EntityID entity) const
 {
-    BattleTeam team; int slot;
-    if (!ResolveTeamSlot(entity, team, slot)) return false;
-    auto* formation = registry.TryGet<BattleFormationSystem>();
-    if (!formation) return false;
-    return formation->TryGetTargetPos(team, slot, outPos);
+    auto [team, slot] = GetTeamSlot(entity);
+    return formationSys->GetTargetPos(team, slot);
 }
 
-bool BattleIntroSystem::TryQueryFormationFace(EntityID entity, _float2& outDirXZ) const
+_float2 BattleIntroSystem::GetFormationFace(EntityID entity) const
 {
-    BattleTeam team; int slot;
-    if (!ResolveTeamSlot(entity, team, slot)) return false;
-    auto* formation = registry.TryGet<BattleFormationSystem>();
-    if (!formation) return false;
-    return formation->TryGetFaceDir(team, slot, outDirXZ);
+    auto [team, slot] = GetTeamSlot(entity);
+    return formationSys->GetFaceDir(team, slot);
 }
 
-_float3 BattleIntroSystem::QueryCenterWorld() const
+_float3 BattleIntroSystem::GetCenterWorld() const
 {
-    auto* formation = registry.TryGet<BattleFormationSystem>();
-    if (formation) return formation->GetCenter();
-    return _float3{ 0.f, 0.f, 0.f };
+    return formationSys->GetCenter();
 }

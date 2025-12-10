@@ -18,6 +18,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_CLIENT, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
+#ifdef _DEBUG
+    //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //_CrtSetBreakAlloc(238);
+#endif
 
     if (!InitInstance(hInstance, nCmdShow)) return FALSE;
 
@@ -31,19 +35,27 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
     float acc = 0.f;
 
     GameInstance& game = GameInstance::GetInstance();
+    bool running = true;
 
-    while (true)
+    auto& registry = game.GetRegistry();
+    auto& input = registry.Get<InputMgr>();
+
+    while (running)
     {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
-            if (msg.message == WM_QUIT) break;
-
+            if (msg.message == WM_QUIT)
+            {
+                running = false;
+                break;
+            }
             if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
         }
+        if (!running) break;
 
         game.UpdateDt(TIMER::DEFAULT);
         float dt = game.GetDt(TIMER::DEFAULT);
@@ -55,14 +67,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 
         while (acc >= fps)
         {
+            input.BeginFrame();
             mainApp->Update(fps);
+            input.EndFrame();
             acc -= fps;
         }
 
         game.EndFrame();
         mainApp->Render();
     }
-
     game.ReleaseEngine();
     return (int)msg.wParam;
 }
@@ -70,9 +83,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR,
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEXW wcex;
-
     wcex.cbSize = sizeof(WNDCLASSEX);
-
     wcex.style          = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
@@ -141,7 +152,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_DESTROY:
         PostQuitMessage(0);
-        exit(0);
         break;
 
     default:

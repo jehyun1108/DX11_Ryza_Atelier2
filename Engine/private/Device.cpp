@@ -11,7 +11,6 @@ unique_ptr<Device> Device::Create(WINMODE isWindowed, const DeviceOptions& optio
 HRESULT Device::Init(WINMODE isWindowed, const DeviceOptions& options)
 {
 	opts = options;
-
 	HR(CreateDeviceAndContext());
 
 	RECT rc{};
@@ -23,10 +22,6 @@ HRESULT Device::Init(WINMODE isWindowed, const DeviceOptions& options)
 
 	HR(ReadySwapChain(isWindowed, width, height));
 	HR(ReadyBackBufferRTV());
-	HR(ReadyDepthTargets(width, height));
-
-	ID3D11RenderTargetView* rtvs[] = { backBufferRTV.Get() };
-	context->OMSetRenderTargets(1, rtvs, dsv.Get());
 
 	ZeroMemory(&viewport, sizeof(viewport));
 	viewport.TopLeftX = 0;
@@ -38,6 +33,7 @@ HRESULT Device::Init(WINMODE isWindowed, const DeviceOptions& options)
 	context->RSSetViewports(1, &viewport);
 
 	lastPresentTime = chrono::high_resolution_clock::now();
+
 	return S_OK;
 }
 
@@ -45,7 +41,7 @@ HRESULT Device::CreateDeviceAndContext()
 {
 	_uint flags = 0;
 #ifdef _DEBUG
-	//flags |= D3D11_CREATE_DEVICE_DEBUG;
+	flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 	static const D3D_FEATURE_LEVEL levels[] = 
@@ -111,7 +107,7 @@ HRESULT Device::ReadySwapChain(WINMODE isWindowed, _uint winX, _uint winY)
 	desc1.BufferCount = max<_uint>(2, opts.backbufferCount);
 	desc1.SampleDesc  = { 1, 0 };
 	desc1.Scaling     = DXGI_SCALING_STRETCH;     // 일반 창 크기 변경 시 보편적
-	desc1.SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	desc1.SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD; 
 	desc1.AlphaMode   = DXGI_ALPHA_MODE_IGNORE;
 	desc1.Flags = ((int)isWindowed && allowTearing) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
@@ -143,65 +139,15 @@ HRESULT Device::ReadyBackBufferRTV()
 	return S_OK;
 }
 
-HRESULT Device::ReadyDepthTargets(_uint winX, _uint winY)
-{
-	if (!device) return E_FAIL;
-
-	ComPtr<ID3D11Texture2D> depthTex;
-	D3D11_TEXTURE2D_DESC texDesc{};
-	texDesc.Width              = winX;
-	texDesc.Height             = winY;
-	texDesc.MipLevels          = 1;
-	texDesc.ArraySize          = 1;
-	texDesc.Format             = DXGI_FORMAT_R24G8_TYPELESS; // Typeless
-	texDesc.SampleDesc.Count   = 1;
-	texDesc.SampleDesc.Quality = 0;
-	texDesc.Usage              = D3D11_USAGE_DEFAULT;
-	texDesc.BindFlags          = D3D11_BIND_DEPTH_STENCIL | (opts.createDepthSRV ? D3D11_BIND_SHADER_RESOURCE : 0);
-	HR(device->CreateTexture2D(&texDesc, nullptr, depthTex.GetAddressOf()));
-
-	// 2) DSV = D24_UNORM_S8_UINT
-	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	dsvDesc.Texture2D.MipSlice = 0;
-	HR(device->CreateDepthStencilView(depthTex.Get(), &dsvDesc, dsv.GetAddressOf()));
-
-	// 3) (옵션) SRV = R24_UNORM_X8_TYPELESS (후처리에서 깊이 읽기)
-	depthSRV.Reset();
-	if (opts.createDepthSRV)
-	{
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Format                    = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-		srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels       = 1;
-		HR(device->CreateShaderResourceView(depthTex.Get(), &srvDesc, depthSRV.GetAddressOf()));
-	}
-	return S_OK;
-}
-
 HRESULT Device::ClearBackBufferView(const _float4 color)
 {
 	if (!context || !backBufferRTV) return E_FAIL;
-
-	// FLIP_DISCARD 라서 매프레임 새로 렌더타겟 설정해줘야함
-	ID3D11RenderTargetView* rtvs[] = { backBufferRTV.Get() };
-	context->OMSetRenderTargets(1, rtvs, dsv.Get());
 	
 	const float _color[4] = { color.x, color.y, color.z, color.w };
 	context->ClearRenderTargetView(backBufferRTV.Get(), _color);
 
 	return S_OK;
 }
-
-HRESULT Device::ClearDSV()
-{
-	if (!context || !dsv) return E_FAIL;
-
-	context->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
-	return S_OK;
-} 
 
 void Device::ApplyFrameLimiter()
 {
@@ -249,6 +195,62 @@ HRESULT Device::Present()
 	return swapChain->Present(sync, flags);
 }
 
+ComPtr<ID3D11Texture2D> Device::CreateTex2D(_uint width, _uint height, DXGI_FORMAT fmt, _uint bindFlags, _uint mipLevels)
+{
+	D3D11_TEXTURE2D_DESC desc{};
+	desc.Width      = width;
+	desc.Height     = height;
+	desc.MipLevels  = mipLevels;
+	desc.ArraySize  = 1;
+	desc.Format     = fmt;
+	desc.SampleDesc = { 1, 0 };
+	desc.Usage      = D3D11_USAGE_DEFAULT;
+	desc.BindFlags  = bindFlags;
+	ComPtr<ID3D11Texture2D> tex;
+	device->CreateTexture2D(&desc, nullptr, tex.GetAddressOf());
+	return tex;
+}
+
+ComPtr<ID3D11RenderTargetView> Device::CreateRTV(ID3D11Texture2D* tex, DXGI_FORMAT fmt)
+{
+	D3D11_TEXTURE2D_DESC texDesc{};
+	tex->GetDesc(&texDesc);
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc{};
+	rtvDesc.Format             = (fmt == DXGI_FORMAT_UNKNOWN) ? texDesc.Format : fmt;
+	rtvDesc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice = 0;
+	ComPtr<ID3D11RenderTargetView> rtv;
+	device->CreateRenderTargetView(tex, &rtvDesc, rtv.GetAddressOf());
+	return rtv;
+}
+
+ComPtr<ID3D11ShaderResourceView> Device::CreateSRV(ID3D11Texture2D* tex, DXGI_FORMAT fmt)
+{
+	D3D11_TEXTURE2D_DESC texDesc{};
+	tex->GetDesc(&texDesc);
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = (fmt == DXGI_FORMAT_UNKNOWN) ? texDesc.Format : fmt;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = texDesc.MipLevels;
+	ComPtr<ID3D11ShaderResourceView> srv;
+	device->CreateShaderResourceView(tex, &srvDesc, srv.GetAddressOf());
+	return srv;
+}
+
+ComPtr<ID3D11UnorderedAccessView> Device::CreateUAV(ID3D11Texture2D* tex, DXGI_FORMAT fmt)
+{
+	D3D11_TEXTURE2D_DESC texDesc{}; 
+	tex->GetDesc(&texDesc);
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
+	uavDesc.Format = (fmt == DXGI_FORMAT_UNKNOWN) ? texDesc.Format : fmt;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 0;
+	ComPtr<ID3D11UnorderedAccessView> uav;
+	device->CreateUnorderedAccessView(tex, &uavDesc, uav.GetAddressOf());
+	return uav;
+}
+
 void Device::OnResize(_uint newX, _uint newY)
 {
 	if (!swapChain || !context || !device) return;
@@ -258,16 +260,10 @@ void Device::OnResize(_uint newX, _uint newY)
 	context->PSSetShaderResources(0, 1, nullSRV);
 
 	backBufferRTV.Reset();
-	dsv.Reset();
-	depthSRV.Reset();
 
 	HR(swapChain->ResizeBuffers(max<_uint>(2, opts.backbufferCount), newX, newY, opts.backbufferFormat, allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0));
 
 	ReadyBackBufferRTV();
-	ReadyDepthTargets(newX, newY);
-
-	ID3D11RenderTargetView* rtvs[] = { backBufferRTV.Get() };
-	context->OMSetRenderTargets(1, rtvs, dsv.Get());
 
 	viewport.Width  = static_cast<float>(newX);
 	viewport.Height = static_cast<float>(newY);
@@ -276,8 +272,6 @@ void Device::OnResize(_uint newX, _uint newY)
 
 void Device::ReleaseDevice()
 {
-	depthSRV.Reset();
-	dsv.Reset();
 	backBufferRTV.Reset();
 	swapChain.Reset();
 	context.Reset();

@@ -3,13 +3,33 @@
 void BattleSessionSystem::OnBoot()
 {
     formationSys = &registry.Get<BattleFormationSystem>();
-    assert(formationSys);
 }
 
 void BattleSessionSystem::BeginSession(const BattleParty& allies, const BattleEnemies& enemies, const _float3& centerWorld, const BattleSessionConfig& cfg)
 {
-	sessionState              = BattleSessionState{};
-	auto& state               = *sessionState;
+    FormationParams intro{};
+    FormationParams battle{};
+
+    intro.ringRadius       = 300.f;
+    intro.allyStartDeg     = 0.f;
+    intro.enemyStartDeg    = 180.f;
+    intro.allySpanDeg      = 120.f;
+    intro.enemySpanDeg     = 120.f;
+    intro.charRadiusMeters = 150.f;
+    intro.padDeg           = 4.f;
+    intro.backMeters       = 200.f;   
+
+    battle = intro;
+    battle.ringRadius = 200.f;      
+    battle.backMeters = 400.f;      
+
+    BeginSession(allies, enemies, centerWorld, intro, battle, cfg);
+}
+
+void BattleSessionSystem::BeginSession(const BattleParty& allies, const BattleEnemies& enemies, const _float3& centerWorld, const FormationParams& introParams, const FormationParams& battleParams, const BattleSessionConfig& cfg)
+{
+    sessionState              = BattleSessionState{};
+    auto& state               = *sessionState;
     state.phase               = BattlePhase::Intro;
     state.elapsed             = 0.f;
     state.allies              = allies;
@@ -22,32 +42,10 @@ void BattleSessionSystem::BeginSession(const BattleParty& allies, const BattleEn
     state.alliesReadyCount    = 0;
     state.introReadyEventSent = false;
     state.alliesReadyEntities.clear();
+    state.centerWorld         = centerWorld;
 
     AssignSlots();
-    FormationParams formationParams{};
-    formationSys->Init(centerWorld, allies.memberCount, enemies.memberCount, formationParams);
-    PushEvent({ BattleSessionEventType::SessionBegan });
-}
-
-void BattleSessionSystem::BeginSession(const BattleParty& allies, const BattleEnemies& enemies, const _float3& centerWorld, const FormationParams& formationParams, const BattleSessionConfig& cfg)
-{
-    sessionState               = BattleSessionState{};
-    auto& state                = *sessionState;
-    state.phase                = BattlePhase::Intro;
-    state.elapsed              = 0.f;
-    state.allies               = allies;
-    state.enemies              = enemies;
-    state.config               = cfg;
-    state.victoryCondition     = BattleVictoryCondition{};
-    state.isIntroFinished      = false;
-    state.isResultFinished     = false;
-    state.leaderEntity         = (allies.memberCount > 0) ? allies.members[0] : invalidEntity;
-    state.alliesReadyCount     = 0;
-    state.introReadyEventSent  = false;
-    state.alliesReadyEntities.clear();
-
-    AssignSlots();
-    formationSys->Init(centerWorld, allies.memberCount, enemies.memberCount, formationParams);
+    formationSys->Init(centerWorld, allies.memberCount, enemies.memberCount, introParams, battleParams);
     PushEvent({ BattleSessionEventType::SessionBegan });
 }
 
@@ -65,6 +63,7 @@ void BattleSessionSystem::Update(float dt)
         if (state.isIntroFinished)
         {
             state.phase = BattlePhase::Active;
+            formationSys->SetPhase(FormationPhase::Battle);
             PushEvent({ BattleSessionEventType::SessionActivated });
         }
         break;
@@ -93,66 +92,59 @@ void BattleSessionSystem::EndSession()
     eventQueue.clear();
 }
 
-bool BattleSessionSystem::TryGetTeam(EntityID entity, BattleTeam& out) const
+BattleTeam BattleSessionSystem::GetTeam(EntityID entity) const
 {
-    if (!sessionState) return false;
-    const auto& state = *sessionState;
-    auto it = state.slots.teamByEntity.find(entity);
-    if (it == state.slots.teamByEntity.end()) return false;
-    out = it->second;
-    return true;
+    const auto& s = *sessionState;
+    auto it = s.slots.teamByEntity.find(entity);
+    return it->second;
 }
 
-bool BattleSessionSystem::TryGetSlotIdx(EntityID e, int& out) const
+int BattleSessionSystem::GetSlotIdx(EntityID e) const
 {
-    if (!sessionState) return false;
-    const auto& state = *sessionState;
+    const auto& s = *sessionState;
 
-    auto itTeam = state.slots.teamByEntity.find(e);
-    if (itTeam == state.slots.teamByEntity.end()) return false;
-
+    auto itTeam = s.slots.teamByEntity.find(e);
     if (itTeam->second == BattleTeam::Ally)
     {
-        auto it = state.slots.allySlotIdxByEntity.find(e);
-        if (it == state.slots.allySlotIdxByEntity.end()) return false;
-        out = it->second; return true;
+        auto it = s.slots.allySlotIdxByEntity.find(e);
+        return it->second;
     }
-    else if (itTeam->second == BattleTeam::Enemy)
+    else
     {
-        auto it = state.slots.enemySlotIdxByEntity.find(e);
-        if (it == state.slots.enemySlotIdxByEntity.end()) return false;
-        out = it->second; return true;
+        auto it = s.slots.enemySlotIdxByEntity.find(e);
+        return it->second;
     }
-    return false;
+}
+
+pair<BattleTeam, int> BattleSessionSystem::GetTeamSlot(EntityID entity) const
+{
+    const BattleTeam team = GetTeam(entity);
+    const int        slot = GetSlotIdx(entity);
+    return { team, slot };
 }
 
 void BattleSessionSystem::ReportIntroReady(EntityID entity)
 {
-    if (!sessionState || entity == invalidEntity) return;
     auto& state = *sessionState;
+    const BattleTeam team = GetTeam(entity);
 
-    BattleTeam team;
-    if (!TryGetTeam(entity, team)) return;
-
-    if (team == BattleTeam::Ally)
+    const bool already = (state.alliesReadyEntities.find(entity) != state.alliesReadyEntities.end());
+    if (!already)
     {
-        if (state.alliesReadyEntities.find(entity) != state.alliesReadyEntities.end()) return;
-
         state.alliesReadyEntities.insert(entity);
         state.alliesReadyCount = min(state.alliesReadyCount + 1, state.allies.memberCount);
+    }
 
-        if (!state.introReadyEventSent && state.alliesReadyCount >= state.allies.memberCount)
-        {
-            state.isIntroFinished     = true;
-            state.introReadyEventSent = true;
-            PushEvent({ BattleSessionEventType::IntroReady });
-        }
+    if (!state.introReadyEventSent && state.alliesReadyCount >= state.allies.memberCount)
+    {
+        state.isIntroFinished = true;
+        state.introReadyEventSent = true;
+        PushEvent({ BattleSessionEventType::IntroReady });
     }
 }
 
 void BattleSessionSystem::ReportResultDecided()
 {
-    if (!sessionState) return;
     sessionState->isResultFinished = true;
 }
 
@@ -161,27 +153,52 @@ void BattleSessionSystem::AssignSlots()
     if (!sessionState) return;
     auto& state = *sessionState;
 
-    state.slots.allySlotIdxByEntity.clear();
-    state.slots.enemySlotIdxByEntity.clear();
-    state.slots.teamByEntity.clear();
+    auto mapAllies = [&](int count)
+        {
+            int order3[3] = { 1, 0, 2 };
+            int order2[2] = { 0, 1 };
+            int order1[1] = { 0 };
 
-    int allyUsed = 0;
-    for (int i = 0; i < state.allies.memberCount && allyUsed < 3; ++i)
-    {
-        EntityID entity = state.allies.members[i];
-        if (entity == invalidEntity) continue;
-        state.slots.allySlotIdxByEntity[entity] = allyUsed;
-        state.slots.teamByEntity[entity] = BattleTeam::Ally;
-        ++allyUsed;
-    }
+            int used = 0;
+            for (int i = 0; i < count && used < 3; ++i)
+            {
+                const EntityID e = state.allies.members[i];
+                if (e == invalidEntity) continue;
 
-    int enemyUsed = 0;
-    for (int i = 0; i < state.enemies.memberCount && enemyUsed < 3; ++i)
-    {
-        EntityID entity = state.enemies.members[i];
-        if (entity == invalidEntity) continue;
-        state.slots.enemySlotIdxByEntity[entity] = enemyUsed;
-        state.slots.teamByEntity[entity] = BattleTeam::Enemy;
-        ++enemyUsed;
-    }
+                int slot = 0;
+                if (count >= 3) slot = order3[used];
+                else if (count == 2) slot = order2[used];
+                else slot = order1[used];
+
+                state.slots.allySlotIdxByEntity[e] = slot;
+                state.slots.teamByEntity[e] = BattleTeam::Ally;
+                ++used;
+            }
+        };
+
+    auto mapEnemies = [&](int count)
+        {
+            int order3[3] = { 1, 0, 2 };
+            int order2[2] = { 0, 1 };
+            int order1[1] = { 0 };
+
+            int used = 0;
+            for (int i = 0; i < count && used < 3; ++i)
+            {
+                const EntityID e = state.enemies.members[i];
+                if (e == invalidEntity) continue;
+
+                int slot = 0;
+                if (count >= 3) slot = order3[used];
+                else if (count == 2) slot = order2[used];
+                else slot = order1[used];
+
+                state.slots.enemySlotIdxByEntity[e] = slot;
+                state.slots.teamByEntity[e] = BattleTeam::Enemy;
+                ++used;
+            }
+        };
+
+    mapAllies(state.allies.memberCount);
+    mapEnemies(state.enemies.memberCount);
 }

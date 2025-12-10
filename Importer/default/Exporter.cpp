@@ -1,6 +1,5 @@
 ﻿#include "pch.h"
 #include "Exporter.h"
-
 #include "MainApp.h"
 
 #define MAX_LOADSTRING 100
@@ -22,33 +21,39 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 #ifdef _DEBUG
     //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-
     if (!InitInstance(hInstance, nCmdShow)) return FALSE;
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_EXPORTER));
     
     auto mainApp = MainApp::Create();
-
-    constexpr float fps    = 1.f / 144.f;
+    constexpr float fps = 1.f / 144.f;
     constexpr float maxAcc = 0.25f;
 
     MSG msg{};
     float acc = 0.f;
 
     GameInstance& game = GameInstance::GetInstance();
+    bool running = true;
 
-    while(true)
+    auto& registry = game.GetRegistry();
+    auto& input = registry.Get<InputMgr>();
+
+    while (running)
     {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
-            if (msg.message == WM_QUIT) break;
-
+            if (msg.message == WM_QUIT)
+            {
+                running = false;
+                break;
+            }
             if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
         }
+        if (!running) break;
 
         game.UpdateDt(TIMER::DEFAULT);
         float dt = game.GetDt(TIMER::DEFAULT);
@@ -60,16 +65,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
         while (acc >= fps)
         {
+            input.BeginFrame();
             mainApp->Update(fps);
+            input.EndFrame();
             acc -= fps;
         }
 
         game.EndFrame();
         mainApp->Render();
     }
-
     game.ReleaseEngine();
-    return (int) msg.wParam;
+    return (int)msg.wParam;
 }
 
 ATOM MyRegisterClass(HINSTANCE hInstance)

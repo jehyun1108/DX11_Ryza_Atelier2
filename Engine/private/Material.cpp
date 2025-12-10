@@ -5,11 +5,7 @@ static constexpr SHADER IdxToStage(_uint stageIdx)
 	switch (static_cast<ShaderStageIdx>(stageIdx))
 	{
 	case ShaderStageIdx::VS: return SHADER::VS;
-	case ShaderStageIdx::HS: return SHADER::HS;
-	case ShaderStageIdx::DS: return SHADER::DS;
 	case ShaderStageIdx::PS: return SHADER::PS;
-	case ShaderStageIdx::GS: return SHADER::GS;
-	case ShaderStageIdx::CS: return SHADER::CS;
 	}
 	return SHADER::NONE;
 }
@@ -64,20 +60,17 @@ void Material::SetSampler(TEXSLOT slot, SAMPLER sampler)
 
 void Material::Resolve(ShaderCache& shaderCache, TextureCache& texCache)
 {
-	// Shader
 	{
 		auto newShader = meta.shaderKey.empty() ? nullptr : shaderCache.Ensure(meta.shaderKey);
 		if (newShader != shader)
 			shader     = move(newShader);
 	}
-	// 이전 Mask 보존
 	prevUsedMasks = usedMasks;
 	usedMasks.fill(0);
 	dirtyMasks.fill(0);
 
 	for (_uint i = 0; i < NUM_TEXSLOTS; ++i)
 	{
-		// Shader
 		SHADER stage = meta.stageMask[i];
 		if (stage == SHADER::NONE)
 			stage = SHADER::PS;
@@ -88,14 +81,12 @@ void Material::Resolve(ShaderCache& shaderCache, TextureCache& texCache)
 			dirtyTexture[i] = true;
 		}
 
-		// Sampler
 		if (samplers[i] != meta.samplerType[i])
 		{
 			samplers[i] = meta.samplerType[i];
 			dirtySampler[i] = true;
 		}
 
-		// Texture
 		shared_ptr<Texture> newTexture = meta.texKey[i].empty() ? nullptr : texCache.Ensure(meta.texKey[i]);
 		if (textures[i] != newTexture)
 		{
@@ -103,7 +94,6 @@ void Material::Resolve(ShaderCache& shaderCache, TextureCache& texCache)
 			dirtyTexture[i] = true;
 		}
 
-		// Mask / DirtyMask
 		if (textures[i])
 		{
 			for (_uint stageIdx = 0; stageIdx < NUM_SHADERSTAGES; ++stageIdx)
@@ -137,11 +127,7 @@ void Material::Bind(ID3D11DeviceContext* context)
 					switch (stageIdx)
 					{
 					case ShaderStageIdx::VS: context->VSSetShaderResources(begin, count, nullSRVs + begin); break;
-					case ShaderStageIdx::HS: context->HSSetShaderResources(begin, count, nullSRVs + begin); break;
-					case ShaderStageIdx::DS: context->DSSetShaderResources(begin, count, nullSRVs + begin); break;
 					case ShaderStageIdx::PS: context->PSSetShaderResources(begin, count, nullSRVs + begin); break;
-					case ShaderStageIdx::GS: context->GSSetShaderResources(begin, count, nullSRVs + begin); break;
-					case ShaderStageIdx::CS: context->CSSetShaderResources(begin, count, nullSRVs + begin); break;
 					}
 				});
 		};
@@ -152,7 +138,6 @@ void Material::Bind(ID3D11DeviceContext* context)
 		clearRanges(static_cast<ShaderStageIdx>(i), toClear);
 	}
 
-	// 이번 프레임에 필요한 슬롯 / 변경된 슬롯
 	static thread_local array<ID3D11ShaderResourceView*, NUM_TEXSLOTS> srvs{};
 
 	auto bindDirtyRange = [&](ShaderStageIdx stageIdx, _uint dirtyMask, _uint usedMask)
@@ -171,14 +156,9 @@ void Material::Bind(ID3D11DeviceContext* context)
 					switch (stageIdx)
 					{
 					case ShaderStageIdx::VS: context->VSSetShaderResources(begin, count, srvs.data() + begin); break;
-					case ShaderStageIdx::HS: context->HSSetShaderResources(begin, count, srvs.data() + begin); break;
-					case ShaderStageIdx::DS: context->DSSetShaderResources(begin, count, srvs.data() + begin); break;
 					case ShaderStageIdx::PS: context->PSSetShaderResources(begin, count, srvs.data() + begin); break;
-					case ShaderStageIdx::GS: context->GSSetShaderResources(begin, count, srvs.data() + begin); break;
-					case ShaderStageIdx::CS: context->CSSetShaderResources(begin, count, srvs.data() + begin); break;
 					}
 
-					// dirty 플래그 클리어
 					for (_uint j = begin; j < end; ++j)
 						if (stages[j] & stageBit) dirtyTexture[j] = false;
 				});
@@ -187,7 +167,6 @@ void Material::Bind(ID3D11DeviceContext* context)
 	for (_uint i = 0; i < NUM_SHADERSTAGES; ++i)
 		bindDirtyRange(static_cast<ShaderStageIdx>(i), dirtyMasks[i], usedMasks[i]);
 
-	// Sampler
 	for (_uint i = 0; i < NUM_TEXSLOTS; ++i)
 	{
 		if (!dirtySampler[i]) continue;
@@ -196,11 +175,6 @@ void Material::Bind(ID3D11DeviceContext* context)
 		dirtySampler[i] = false;
 	}
 	prevUsedMasks = usedMasks;
-}
-
-void Material::UnBind(ID3D11DeviceContext* context)
-{
-	prevUsedMasks.fill(0);
 }
 
 void Material::ComputeBeginEnd(_uint mask, _uint& begin, _uint& end)
@@ -235,5 +209,3 @@ void Material::ForEachRange(_uint mask, const function<void(_uint begin, _uint e
 		func(begin, end);
 	}
 }
-
-

@@ -14,6 +14,8 @@ enum class VtxAttribute : _uint
 	BlendIndices = 1 << 6,
 	BlendWeights = 1 << 7,
 	PosUI        = 1 << 8,
+
+	TexCoord1    = 1 << 9,
 };
 
 inline bool Has(VtxAttribute mask, VtxAttribute bit)

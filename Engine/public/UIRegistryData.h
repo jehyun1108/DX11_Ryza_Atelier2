@@ -27,10 +27,25 @@ struct UIArchetypeSpec
 	optional<float> initPosX;
 	optional<float> initPosY;
 
+	UIFillMode   fillMode   = UIFillMode::Rect;
+	UIFlipMode   flipMode   = UIFlipMode::None;
+	UIMaskType   maskType   = UIMaskType::None;
+	UIWidgetType widgetType = UIWidgetType::Image;
+
+	wstring               fontKey;
+	wstring               defaultText;
+	UITextAlignHorizontal alignH = UITextAlignHorizontal::Center;
+	UITextAlignVertical   alignV = UITextAlignVertical::Mid;
+
+	_float4 textColor    = _float4(1.f, 1.f, 1.f, 1.f);
+	_float4 outlineColor = _float4(0.f, 0.f, 0.f, 1.f);
+	bool    useOutline   = true;
+	float   outlinePx    = 1.f;
+
+	_float4 imageColor = _float4(1.f, 1.f, 1.f, 1.f);
+
 	bool startEnabled = true;
 };
-
-// Runtime Instance
 struct UIInstance
 {
 	wstring archetypeKey;
@@ -51,9 +66,17 @@ struct UIInstance
 	float    animOffsetY = 0.f;
 	float    animScaleX  = 1.f;
 	float    animScaleY  = 1.f;
-	float    animOpacity = 1.f;
+	float    animAlpha   = 1.f;
+	float    animRotDeg  = 0.f;
+
+	float    fillRatioX = 1.f;
+	float    fillRatioY = 1.f;
 
 	int      zOrder = 0;
+	UIFlipMode flipMode = UIFlipMode::None;
+
+	wstring text;
+	wstring fontKey;
 };
 
 NS_END

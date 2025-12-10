@@ -10,7 +10,7 @@ public:
     HRESULT Create(ID3D11Device* device, size_t maxQuads = 2048);
     void    Destroy();
 
-    void Bind(ID3D11DeviceContext* context, Shader& uiShader, CBuffer& uiCBuffer, const UICB& uiCB);
+    void Bind(ID3D11DeviceContext* context, CBuffer& uiCBuffer, const UICB& uiCB);
     void Draw(ID3D11DeviceContext* context, const vector<UIDrawItem>& items, ResolveTexture resolveTexture);
 
 private:

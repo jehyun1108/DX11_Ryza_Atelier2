@@ -1,4 +1,5 @@
 #include "Enginepch.h"
+#include "BattleAttributeSystem.h"
 
 BattleTargetSystem::BattleTargetSystem(SystemRegistry& registry) : EntitySystem<Target>(registry)
 {
@@ -9,25 +10,23 @@ BattleTargetSystem::BattleTargetSystem(SystemRegistry& registry) : EntitySystem<
 void BattleTargetSystem::OnBoot()
 {
     sessionSys = &registry.Get<BattleSessionSystem>();
-    
-    assert(sessionSys);
+    attrSys    = &registry.Get<BattleAttributeSystem>();
+    entityMgr  = &registry.Get<EntityMgr>();
 }
 
 void BattleTargetSystem::Init()
 {
-    const auto* state = sessionSys->TryGetState();
-    if (!state) return;
+    auto state = sessionSys->GetState();
 
-    for (int i = 0; i < state->allies.memberCount; ++i)  if (state->allies.members[i]  != invalidEntity) Ensure(state->allies.members[i]);
-    for (int i = 0; i < state->enemies.memberCount; ++i) if (state->enemies.members[i] != invalidEntity) Ensure(state->enemies.members[i]);
+    for (int i = 0; i < state.allies.memberCount; ++i)  if (state.allies.members[i]  != 0u) Ensure(state.allies.members[i]);
+    for (int i = 0; i < state.enemies.memberCount; ++i) if (state.enemies.members[i] != 0u) Ensure(state.enemies.members[i]);
     Pair();
 }
 
 void BattleTargetSystem::OnUnitDowned(EntityID downed)
 {
-    if (downed == invalidEntity) return;
-    const auto* state = sessionSys->TryGetState();
-    if (!state) return;
+    if (downed == 0u) return;
+    auto state = sessionSys->GetState();
 
     auto retargetSide = [&](const BattleSide& side, BattleTeam team) 
         {
@@ -35,26 +34,26 @@ void BattleTargetSystem::OnUnitDowned(EntityID downed)
             for (int i = 0; i < side.memberCount; ++i)
             {
                 EntityID ally = side.members[i];
-                if (ally == invalidEntity) continue;
+                if (ally == 0u) continue;
                 Target* target = GetByOwner(ally);
                 if (!target) continue;
                 if (target->curTarget == downed)
                     target->curTarget = Pick(pool);
             }
         };
-    retargetSide(state->allies,  BattleTeam::Ally);
-    retargetSide(state->enemies, BattleTeam::Enemy);
+    retargetSide(state.allies,  BattleTeam::Ally);
+    retargetSide(state.enemies, BattleTeam::Enemy);
 }
 
 EntityID BattleTargetSystem::Get(EntityID attacker) const
 {
     const Target* target = const_cast<BattleTargetSystem*>(this)->GetByOwner(attacker);
-    return target ? target->curTarget : invalidEntity;
+    return target ? target->curTarget : 0u;
 }
 
 void BattleTargetSystem::Ensure(EntityID owner)
 {
-    if (owner == invalidEntity) return;
+    if (owner == 0u) return;
     if (!GetByOwner(owner)) CreateComp(owner);
 }
 
@@ -62,16 +61,15 @@ vector<EntityID> BattleTargetSystem::Opponents(BattleTeam team) const
 {
     vector<EntityID> out;
     out.reserve(3);
-    const BattleParty* allies    = sessionSys->GetAllies();
-    const BattleEnemies* enemies = sessionSys->GetEnemies();
-    if (!allies || !enemies) return out;
+    const BattleParty&   allies  = sessionSys->GetAllies();
+    const BattleEnemies& enemies = sessionSys->GetEnemies();
 
-    auto push = [&](EntityID entity) { if (entity != invalidEntity && Alive(entity)) out.push_back(entity); };
+    auto push = [&](EntityID entity) { if (entity != 0u && Alive(entity)) out.push_back(entity); };
 
     if (team == BattleTeam::Ally)
-        for (int i = 0; i < enemies->memberCount; ++i) push(enemies->members[i]);
+        for (int i = 0; i < enemies.memberCount; ++i) push(enemies.members[i]);
     else
-        for (int i = 0; i < allies->memberCount; ++i)  push(allies->members[i]);
+        for (int i = 0; i < allies.memberCount; ++i)  push(allies.members[i]);
     return out;
 }
 
@@ -84,12 +82,11 @@ EntityID BattleTargetSystem::Pick(const vector<EntityID>& vec)
 
 void BattleTargetSystem::Pair()
 {
-    const auto* state = sessionSys->TryGetState();
-    if (!state) return;
+    auto state = sessionSys->GetState();
 
-    vector<int> allyOrder(state->allies.memberCount);
+    vector<int> allyOrder(state.allies.memberCount);
     iota(allyOrder.begin(),  allyOrder.end(),  0);
-    vector<int> enemyOrder(state->enemies.memberCount);
+    vector<int> enemyOrder(state.enemies.memberCount);
     iota(enemyOrder.begin(), enemyOrder.end(), 0);
 
     shuffle(allyOrder.begin(),  allyOrder.end(), rng);
@@ -98,8 +95,8 @@ void BattleTargetSystem::Pair()
     const int pairCount = static_cast<int>(min(allyOrder.size(), enemyOrder.size()));
     for (int i = 0; i < pairCount; ++i)
     {
-        EntityID ally  = state->allies.members[allyOrder[i]];
-        EntityID enemy = state->enemies.members[enemyOrder[i]];
+        EntityID ally  = state.allies.members[allyOrder[i]];
+        EntityID enemy = state.enemies.members[enemyOrder[i]];
         if (ally  != invalidEntity) Set(ally, enemy);
         if (enemy != invalidEntity) Set(enemy, ally);
     }
@@ -118,14 +115,13 @@ void BattleTargetSystem::Pair()
 
 void BattleTargetSystem::FillRest(const vector<int>& order, BattleTeam team)
 {
-    const auto* state = sessionSys->TryGetState();
-    if (!state) return;
+    auto state = sessionSys->GetState();
 
     vector<EntityID> pool = Opponents(team);
     for (int idx : order)
     {
-        EntityID self = (team == BattleTeam::Ally) ? ((idx < state->allies.memberCount)  ? state->allies.members[idx]  : invalidEntity)
-                                                   : ((idx < state->enemies.memberCount) ? state->enemies.members[idx] : invalidEntity);
+        EntityID self = (team == BattleTeam::Ally) ? ((idx < state.allies.memberCount)  ? state.allies.members[idx]  : invalidEntity)
+                                                   : ((idx < state.enemies.memberCount) ? state.enemies.members[idx] : invalidEntity);
         if (self == invalidEntity) continue;
         Ensure(self);
         Set(self, Pick(pool));
@@ -134,7 +130,7 @@ void BattleTargetSystem::FillRest(const vector<int>& order, BattleTeam team)
 
 void BattleTargetSystem::Set(EntityID attacker, EntityID target)
 {
-    if (attacker == invalidEntity) return;
+    if (attacker == 0u) return;
     Target* pTarget = GetByOwner(attacker);
     if (!pTarget)
     { 
@@ -143,6 +139,15 @@ void BattleTargetSystem::Set(EntityID attacker, EntityID target)
     }
     if (pTarget)
         pTarget->curTarget = target;
+}
+
+bool BattleTargetSystem::Alive(EntityID id) const
+{
+    if (!entityMgr->IsAlive(id))
+        return false;
+
+    float hpRatio = attrSys->GetHpRatio01(id);
+    return hpRatio > 0.f;
 }
 
 void BattleTargetSystem::RenderGui(EntityID owner)
@@ -159,11 +164,10 @@ void BattleTargetSystem::RenderGui(EntityID owner)
             if (ImGui::TreeNodeEx("Target", flags))
             {
                 auto& session = registry.Get<BattleSessionSystem>();
-                BattleTeam myTeam{};
-                const bool hasTeam = session.TryGetTeam(owner, myTeam);
+                BattleTeam myTeam = session.GetTeam(owner);
 
                 vector<EntityID> candidates;
-                if (hasTeam) candidates = Opponents(myTeam);
+                candidates = Opponents(myTeam);
 
                 ImGui::Text("Owner: %u", owner);
                 ImGui::Text("Current Target: %u", tgt.curTarget);
@@ -193,11 +197,6 @@ void BattleTargetSystem::RenderGui(EntityID owner)
                 ImGui::SameLine();
                 if (ImGui::Button("Ensure Component"))
                     Ensure(owner);
-
-                if (!hasTeam)
-                    ImGui::TextDisabled("Team: Unknown (opponents list unavailable)");
-                else
-                    ImGui::Text("Opponents: %zu", candidates.size());
 
                 ImGui::TreePop();
             }

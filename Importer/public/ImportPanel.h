@@ -27,20 +27,27 @@ private:
 	bool IsFBXFile(const filesystem::path& filePath);
 	void ImportAll(const filesystem::path& rootFolder, OverWritePolicy overWritePolicy, bool useRecursive);
 
-private:
-	AssetSystem*     assets{};
-	EntitySpawner*   spawner{};
-	WorldSerializer* serializer{};
+	void ImportFontFromTTF(const filesystem::path& fontPath);
 
+private:
 	filesystem::path baseModelPath;
 	vector<filesystem::path> modelFiles;
 
 	vector<EntityID> previewEntities;
 	_uint previewCounter = 0;
 
-	// UI 상태 메시지
 	string statusMsg;
 	bool   clearBeforeLoad = false;
+
+private:
+	AssetSystem*     assets{};
+	EntitySpawner*   spawner{};
+	WorldSerializer* serializer{};
+	NavMeshSystem*   nav{};
+	PickingSystem*   pickSys{};
+	TransformSystem* tfSys{};
+	CameraSystem*    camSys{};
+	InputService*    input{};
 };
 
 NS_END

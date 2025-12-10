@@ -8,6 +8,7 @@ class ENGINE_DLL SkyboxSystem : public EntitySystem<SkyboxState>, public IGuiRen
 {
 public:
 	explicit SkyboxSystem(SystemRegistry& registry) : EntitySystem(registry) {}
+	void     OnBoot() override;
 
 	Handle Create(EntityID owner, Handle tfHandle, const vector<SkySubmesh>& submeshList, SkyTextureType texType = SkyTextureType::Equirect2D, bool attachToCam = true, float uniformScale = 1000.f, float baseYawRad = 0.f, float rotSpeed = 0.02f);
 
@@ -40,6 +41,8 @@ private:
 	void AdvancePhase(EntityID owner, float dt);
 
 private:
+	TransformSystem* tfSys{};
+
 	Handle activeHandle{};
 	SkyboxCrossFade crossFade{};
 };

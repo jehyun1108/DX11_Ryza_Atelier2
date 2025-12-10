@@ -1,5 +1,11 @@
 #include "Enginepch.h"
 
+void MouthSystem::OnBoot()
+{
+    tfSys    = &registry.Get<TransformSystem>();
+    animator = &registry.Get<AnimatorSystem>();
+}
+
 Handle MouthSystem::Create(EntityID owner, Handle anim, wstring clip, _uint layer, float weight, float speed)
 {
 	Handle handle   = pool.CreateComp(owner);
@@ -11,55 +17,46 @@ Handle MouthSystem::Create(EntityID owner, Handle anim, wstring clip, _uint laye
 	mouth.weight    = weight;
 	mouth.speed     = speed;
 
-	auto& animSys = registry.Get<AnimatorSystem>();
-	while (layer >= animSys.GetLayerCount(anim))
-		animSys.AddLayer(anim, {});
-	animSys.SetLayerEnabled(anim, layer, true);
+	while (layer >= animator->GetLayerCount(anim))
+        animator->AddLayer(anim, {});
+    animator->SetLayerEnabled(anim, layer, true);
 
-	auto mask = animSys.BuildMaskFromClip(anim, mouth.clip, true);
-	animSys.SetLayerMask(anim, layer, mask);
-	animSys.SetLayerBlendType(anim, layer, ANIMBLEND::ADDITIVE);
-	animSys.SetLayerBlendWeight(anim, layer, mouth.weight);
-	animSys.Play(anim, layer, mouth.clip, ANIMTYPE::LOOP);
-	animSys.SetPlaybackSpeed(anim, layer, mouth.speed);
+	auto mask = animator->BuildMaskFromClip(anim, mouth.clip, true);
+	animator->SetLayerMask(anim, layer, mask);
+	animator->SetLayerBlendType(anim, layer, ANIMBLEND::ADDITIVE);
+	animator->SetLayerBlendWeight(anim, layer, mouth.weight);
+	animator->Play(anim, layer, mouth.clip, ANIMTYPE::LOOP);
+	animator->SetPlaybackSpeed(anim, layer, mouth.speed);
 
 	return handle;
 }
 
 void MouthSystem::SetWeight(Handle handle, float weight)
 {
-	if (auto mouth = Get(handle))
-	{
-		mouth->weight = Utility::Saturate(weight);
-		registry.Get<AnimatorSystem>().SetLayerBlendWeight(mouth->animator, mouth->layer, mouth->weight);
-	}
+    auto mouth = Get(handle);
+	mouth->weight = Utility::Saturate(weight);
+    animator->SetLayerBlendWeight(mouth->animator, mouth->layer, mouth->weight);
 }
 
 void MouthSystem::SetSpeed(Handle handle, float speed)
 {
-	if (auto mouth = Get(handle))
-	{
-		mouth->speed = (speed < 0.f ? 0.f : speed);
-		registry.Get<AnimatorSystem>().SetPlaybackSpeed(mouth->animator, mouth->layer, mouth->speed);
-	}
+    auto mouth = Get(handle);
+	mouth->speed = (speed < 0.f ? 0.f : speed);
+    animator->SetPlaybackSpeed(mouth->animator, mouth->layer, mouth->speed);
 }
 
 void MouthSystem::SetClip(Handle handle, const wstring& clip)
 {
-	if (auto mouth = Get(handle))
-	{
-		mouth->clip   = clip;
-		auto& animSys = registry.Get<AnimatorSystem>();
-		auto mask     = animSys.BuildMaskFromClip(mouth->animator, mouth->clip, true);
-		animSys.SetLayerMask(mouth->animator, mouth->layer, mask);
-		animSys.Play(mouth->animator, mouth->layer, mouth->clip, ANIMTYPE::LOOP);
-	}
+    auto mouth = Get(handle);
+	mouth->clip   = clip;
+	auto mask     = animator->BuildMaskFromClip(mouth->animator, mouth->clip, true);
+    animator->SetLayerMask(mouth->animator, mouth->layer, mask);
+    animator->Play(mouth->animator, mouth->layer, mouth->clip, ANIMTYPE::LOOP);
 }
 
 void MouthSystem::RenderGui(EntityID id)
 {
 #ifdef USE_IMGUI
-    auto& animSys = registry.Get<AnimatorSystem>();
     ForEachOwned(id, [&](Handle handle, MouthData& mouth)
         {
             ImGui::PushID((int)handle.idx);
@@ -71,7 +68,7 @@ void MouthSystem::RenderGui(EntityID id)
 
                 // Clip select
                 {
-                    auto names = animSys.GetClipNames(mouth.animator); // vector<wstring>
+                    auto names = animator->GetClipNames(mouth.animator); // vector<wstring>
                     int selected = -1;
                     for (int i = 0; i < (int)names.size(); ++i)
                     {

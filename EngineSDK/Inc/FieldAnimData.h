@@ -23,6 +23,9 @@ struct LocomotionAnim
     bool  wasGroundedPrev   = true;
 
     AnimProfile profile{ CharacterID::Ryza, AnimContext::Field };
+
+    float footstepTimer = 0.f;
+    bool  footstepToggle = false;
 };
 
 struct LocoParams

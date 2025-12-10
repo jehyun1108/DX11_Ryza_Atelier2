@@ -4,11 +4,9 @@ NS_BEGIN(Engine)
 
 struct PickingRequest
 {
-	// WorldRay
 	_float3 rayOrigin{};
 	_float3 rayDir{};
 
-	// ScreenRay
 	bool           fromScreen = false;
 	_float2        screenpos{};
 	D3D11_VIEWPORT viewport{};
@@ -24,8 +22,7 @@ struct PickingHit
 	EntityID entity = 0;
 	_float3  point{};
 
-	// NavMesh 
-	_uint triangleIdx = UINT32_MAX;
+	_uint   triangleIdx = UINT32_MAX;
 	_float2 uv{};
 	_float3 normal{};
 };
@@ -39,6 +36,9 @@ struct PickingData
 	bool        lastHit   = false;
 	float       lastDist = FLT_MAX;
 	_float4x4   cacheWorld{};
+
+	_float3   lastHitPos{};   
+	_float3   lastHitNormal{}; 
 };
 
 NS_END

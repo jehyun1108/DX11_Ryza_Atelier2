@@ -8,34 +8,34 @@ struct UISnapShot
 	vector<UIDrawItem> drawItems;
 	void Clear() { drawItems.clear(); }
 };
-
 struct RenderScene
 {
-	// ºÒº¯ SnapShot
-	CameraProxy        cam{};
-	vector<LightProxy> lights{};
-
-	// DrawQueue
 	RenderQueues queues{};
-
-	// Debug
-	bool drawColliders = false;
+	
+	CameraProxy           cam{};
+	vector<LightProxy>    lights{};
 	vector<ColliderProxy> colliders;
+	SkyboxProxy           skybox{};
+	UISnapShot            ui{};
+	CameraProxy           minimapCam{};
+	ParticleSnapshot      particles;
+	TrailSnapshot         trails;
 
-	// Skybox
-	SkyboxProxy skybox{};
-
-	// UI
-	UISnapShot ui{};
+	bool drawColliders = false;
+	bool minimapEnabled = false;
 
 	void Clear()
 	{
+		skybox     = {};
+		minimapCam = {};
 		lights.clear();
-		queues.Clear();
-		drawColliders = false;
 		colliders.clear();
-		skybox        = {};
+		queues.Clear();
 		ui.Clear();
+		particles.Clear();
+		trails.Clear();
+		drawColliders = false;
+		minimapEnabled = false;
 	}
 };
 

@@ -163,6 +163,8 @@ public:
 	static _float2 Normalize(const _float3& v);
 	static _float3 Normalize3(const _float2& xz);
 	static _vec    FromEuler(const _float3& eulerRad);
+	
+	static _float4x4 Inverse(const _float4x4& m);
 };
 
 NS_END

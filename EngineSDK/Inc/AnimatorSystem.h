@@ -8,10 +8,11 @@ class ENGINE_DLL AnimatorSystem : public EntitySystem<AnimData>, public IGuiRend
 {
 public:
     explicit AnimatorSystem(SystemRegistry& registry) : EntitySystem(registry) {}
+    void     OnBoot() override;
 
     Handle Create(EntityID owner, Skeleton* skeleton, const ClipTable* clips,
         Handle transform, const vector<string>& baseMaskBones = {});
-    void   Update(float dt, TransformSystem& transformSys);
+    void   Update(float dt);
     void   PlaySection(Handle handle, _uint layerIdx, const wstring& clipName, ANIMTYPE type = ANIMTYPE::LOOP, float startNormalized = 0.f, float endNormalized = 1.f);
     void   Play(Handle handle, _uint layerIdx, const wstring& clipName, ANIMTYPE type = ANIMTYPE::LOOP);
     void   CrossFade(Handle handle, _uint fromLayerIndex, _uint toLayerIndex,  const wstring& toClipName, float fadeDur, ANIMTYPE type = ANIMTYPE::ONCE, float startNormalized = 0.f, float endNormalized = 1.f);
@@ -59,6 +60,9 @@ private:
     void TickCrossFade(AnimData& anim, float dt);    
     void NormalizeFullBodyPair(AnimData& anim, _uint a, _uint b);
     void PromoteToBaseAndClear(AnimData& anim, _uint fromIdx, _uint toIdx);
+
+private:
+    TransformSystem* tfSys{};
 };
 
 NS_END

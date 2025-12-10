@@ -1,5 +1,10 @@
 #include "Enginepch.h"
 
+void LightSystem::OnBoot()
+{
+	tfSys = &registry.Get<TransformSystem>();
+}
+
 Handle LightSystem::Create(EntityID owner, Handle transform, const LightProxy& proxy)
 {
 	Handle handle   = CreateComp(owner);
@@ -13,88 +18,79 @@ Handle LightSystem::Create(EntityID owner, Handle transform, const LightProxy& p
 
 void LightSystem::Update(float dt)
 {
-	auto& tfSys = registry.Get<TransformSystem>();
-
 	ForEachAliveEx([&](Handle handle, EntityID owner, LightData& light) 
 		{
 			if (!light.enabled) return;
 
-			const auto* tf = tfSys.Get(light.transform);
-			if (!tf) return;
-
+			const auto* tf = tfSys->Get(light.transform);
 			XMStoreFloat4(&light.proxy.lightPos, _vec{ tf->pos.x, tf->pos.y, tf->pos.z , 1.f});
-
-			const _vec look = tfSys.GetLook(light.transform);
+			const _vec look = tfSys->GetLook(light.transform);
 			XMStoreFloat4(&light.proxy.lightDir, XMVector3Normalize(look));
 		});
 }
 
 void LightSystem::ExtractLightProxies(vector<LightProxy>& out) const
 {
-	auto& tfSys = registry.Get<TransformSystem>();
 	out.clear();
-
 	ForEachAliveEx([&](Handle handle, EntityID id, const LightData& data)
 		{
 			if (!data.enabled) return;
 			
 			LightProxy proxy = data.proxy;
-			if (const TransformData* tf = tfSys.Get(data.transform))
-			{
-				XMStoreFloat4(&proxy.lightPos, XMVectorSet(tf->pos.x, tf->pos.y, tf->pos.z, 1.f));
-				_vec look = tfSys.GetLook(data.transform);
-				XMStoreFloat4(&proxy.lightDir, XMVector3Normalize(look));
-			}
+			const TransformData* tf = tfSys->Get(data.transform);
+		    XMStoreFloat4(&proxy.lightPos, XMVectorSet(tf->pos.x, tf->pos.y, tf->pos.z, 1.f));
+		    _vec look = tfSys->GetLook(data.transform);
+		    XMStoreFloat4(&proxy.lightDir, XMVector3Normalize(look));
 			out.emplace_back(proxy);
 		});
 }
 
 void LightSystem::SetEnabled(Handle handle, bool on)
 {
-	if (auto light = Get(handle))
-		light->enabled = on;
+	auto light = Get(handle);
+	light->enabled = on;
 }
 
 void LightSystem::SetLightType(Handle handle, LIGHT type)
 {
-	if (auto light = Get(handle))
-		light->proxy.type = ENUM(type);
+	auto light = Get(handle);
+	light->proxy.type = ENUM(type);
 }
 
 void LightSystem::SetAmbient(Handle handle, _fvec color)
 {
-	if (auto light = Get(handle))
-		XMStoreFloat4(&light->proxy.ambient, color);
+	auto light = Get(handle);
+	XMStoreFloat4(&light->proxy.ambient, color);
 }
 
 void LightSystem::SetDiffuse(Handle handle, _fvec color)
 {
-	if (auto light = Get(handle))
-		XMStoreFloat4(&light->proxy.diffuse, color);
+	auto light = Get(handle);
+	XMStoreFloat4(&light->proxy.diffuse, color);
 }
 
 void LightSystem::SetSpecular(Handle handle, _fvec color)
 {
-	if (auto light = Get(handle))
-		XMStoreFloat4(&light->proxy.specular, color);
+	auto light = Get(handle);
+	XMStoreFloat4(&light->proxy.specular, color);
 }
 
 void LightSystem::SetRange(Handle handle, float range)
 {
-	if (auto light = Get(handle)) 
-		light->proxy.range = max(0.f, range);
+	auto light = Get(handle);
+	light->proxy.range = max(0.f, range);
 }
 
 void LightSystem::SetSpotAngle(Handle handle, float angle)
 {
-	if (auto light = Get(handle))
-		light->proxy.spotAngle = clamp(angle, 1e-4f, XM_PI - 1e-4f);
+	auto light = Get(handle);
+	light->proxy.spotAngle = clamp(angle, 1e-4f, XM_PI - 1e-4f);
 }
 
 void LightSystem::SetDir(Handle handle, _fvec dir)
 {
-	if (auto light = Get(handle))
-		XMStoreFloat4(&light->proxy.lightDir, XMVector3Normalize(dir));
+	auto light = Get(handle);
+	XMStoreFloat4(&light->proxy.lightDir, XMVector3Normalize(dir));
 }
 
 const LightProxy* LightSystem::GetProxy(Handle handle) const
@@ -105,7 +101,6 @@ const LightProxy* LightSystem::GetProxy(Handle handle) const
 void LightSystem::RenderGui(EntityID id)
 {
 #ifdef USE_IMGUI
-	auto& tfSys = registry.Get<TransformSystem>();
 	ForEachOwned(id, [&](Handle handle, LightData& light)
 		{
 			ImGui::PushID((int)handle.idx);
@@ -177,7 +172,7 @@ void LightSystem::RenderGui(EntityID id)
 
 					if (ImGui::SmallButton("Use Transform Look"))
 					{
-						_vec look = tfSys.GetLook(light.transform);
+						_vec look = tfSys->GetLook(light.transform);
 						SetDir(handle, look);
 					}
 					ImGui::SameLine();

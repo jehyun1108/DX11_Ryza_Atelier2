@@ -1,61 +1,65 @@
 #include "Enginepch.h"
 
-void CharacterDataSystem::BindEntity(EntityID entity, CharacterID character)
+void CharacterDataSystem::OnBoot()
 {
-	characterByEntity[entity] = character;
+	animRegistry = &registry.Get<ActionAnimRegistry>();
+	animDataSys  = &registry.Get<AnimDataSystem>();
+}
 
-	auto& buckets = entitiesByCharacters[character];
-	buckets.push_back(entity);
-
-	if (entityByCharacter.find(character) == entityByCharacter.end())
-		entityByCharacter[character] = entity;
+void CharacterDataSystem::BindEntity(EntityID entity, CharacterID id)
+{
+	assert(entity != invalidEntity);
+	characterByEntity[entity] = id;
+	auto& bucket = entitiesByCharacters[id];
+	bucket.push_back(entity);
+	if (!entityByCharacter.contains(id))
+		entityByCharacter[id] = entity;
 }
 
 void CharacterDataSystem::UnBindEntity(EntityID entity)
 {
 	auto it = characterByEntity.find(entity);
-	if (it != characterByEntity.end())
-	{
-		const CharacterID character = it->second;
+	if (it == characterByEntity.end()) return;
 
-		auto itBucket = entitiesByCharacters.find(character);
-		if (itBucket != entitiesByCharacters.end())
+	const CharacterID cid = it->second;
+	auto bit = entitiesByCharacters.find(cid);
+	if (bit != entitiesByCharacters.end())
+	{
+		auto& v = bit->second;
+		v.erase(remove(v.begin(), v.end(), entity), v.end());
+		if (v.empty())
 		{
-			auto& vec = itBucket->second;
-			vec.erase(remove(vec.begin(), vec.end(), entity), vec.end());
-			if (vec.empty())
-			{
-				entitiesByCharacters.erase(itBucket);
-				entityByCharacter.erase(character);
-			}
-			else
-			{
-				if (entityByCharacter[character] == entity)
-					entityByCharacter[character] = vec.front();
-			}
+			entitiesByCharacters.erase(bit);
+			entityByCharacter.erase(cid);
 		}
-		characterByEntity.erase(it);
+		else
+		{
+			if (entityByCharacter[cid] == entity)
+				entityByCharacter[cid] = v.front();
+		}
 	}
-	paramsByEntity.erase(entity);
+	characterByEntity.erase(it);
 }
 
 CharacterID CharacterDataSystem::GetCharacterID(EntityID entity) const
 {
 	auto it = characterByEntity.find(entity);
-	return (it != characterByEntity.end()) ? it->second : CharacterID::Unknown;
+	assert(it != characterByEntity.end());
+	return it->second;
 }
 
-EntityID CharacterDataSystem::GetEntityID(CharacterID characterId) const
+EntityID CharacterDataSystem::GetEntityID(CharacterID id) const
 {
-	auto it = entityByCharacter.find(characterId);
-	return (it != entityByCharacter.end()) ? it->second : invalidEntity;
+	auto it = entityByCharacter.find(id);
+	assert(it != entityByCharacter.end());
+	return it->second;
 }
 
-const vector<EntityID>& CharacterDataSystem::GetEntities(CharacterID character) const
+const vector<EntityID>& CharacterDataSystem::GetEntities(CharacterID id) const
 {
-	static const vector<EntityID> empty{};
-	auto it = entitiesByCharacters.find(character);
-	return (it != entitiesByCharacters.end()) ? it->second : empty;
+	auto it = entitiesByCharacters.find(id);
+	assert(it != entitiesByCharacters.end());
+	return it->second;
 }
 
 AnimProfile CharacterDataSystem::ResolveProfile(EntityID entity, AnimContext context) const
@@ -68,65 +72,80 @@ AnimProfile CharacterDataSystem::ResolveProfile(EntityID entity, AnimContext con
 
 const wstring& CharacterDataSystem::GetClipName(EntityID entity, AnimContext context, AnimKey key) const
 {
-	const CharacterID characterId = GetCharacterID(entity);
-	if (characterId == CharacterID::Unknown) return L"";
-
-	const auto& animData = registry.Get<AnimDataSystem>();
-	return animData.GetClipName(characterId, context, key);
+	const CharacterID id = GetCharacterID(entity);
+	return animDataSys->GetClipName(id, context, key);
 }
 
-const ActionAnimSpec* CharacterDataSystem::GetActionSpec(EntityID entity) const
+const ActionAnimSpec& CharacterDataSystem::GetActionSpec(EntityID entity) const
 {
-	const CharacterID characterId = GetCharacterID(entity);
-	if (characterId == CharacterID::Unknown)
-		return nullptr;
-
-	const auto& actionRegistry = registry.Get<ActionAnimRegistry>();
-	return actionRegistry.TryGet(characterId);
+	const CharacterID id = GetCharacterID(entity);
+	return animRegistry->Get(id);
 }
 
-bool CharacterDataSystem::TryGetParams(EntityID entity, CharacterParams& outParams) const
+void CharacterDataSystem::RegisterSpec(CharacterID id, const CharacterSpec& spec)
 {
-	auto it = paramsByEntity.find(entity);
-	if (it == paramsByEntity.end()) return false;
-	
-	outParams = it->second;
-	return true;
+	specByCharacter[id] = spec;
+	if (!spec.ui.slotToTexKey.empty())
+		uiTexturesByCharacter.erase(id);
 }
 
-CharacterParams CharacterDataSystem::GetParams(EntityID entity) const
+const CharacterSpec& CharacterDataSystem::GetSpec(CharacterID id) const
 {
-	auto it = paramsByEntity.find(entity);
-	if (it == paramsByEntity.end())
-		return CharacterParams{};
+	auto it = specByCharacter.find(id);
+	assert(it != specByCharacter.end());
 	return it->second;
 }
 
-void CharacterDataSystem::RegisterUITextures(CharacterID characterId, const CharacterUITextures& textures)
+BattleTeam CharacterDataSystem::GetTeam(EntityID entity) const
 {
-	uiTexturesByCharacter[characterId] = textures;
+	const CharacterID id = GetCharacterID(entity);
+	auto it = specByCharacter.find(id);
+	assert(it != specByCharacter.end());
+	return it->second.team;
 }
 
-const CharacterUITextures* CharacterDataSystem::FindUITexturesByCharacter(CharacterID characterId) const
+const CharacterUITextures& CharacterDataSystem::GetUITexturesByCharacter(CharacterID id) const
 {
-	auto it = uiTexturesByCharacter.find(characterId);
-	return (it == uiTexturesByCharacter.end()) ? nullptr : &it->second;
+	if (auto sit = specByCharacter.find(id); sit != specByCharacter.end())
+	{
+		if (!sit->second.ui.slotToTexKey.empty())
+			return sit->second.ui;
+	}
+	auto it = uiTexturesByCharacter.find(id);
+	assert(it != uiTexturesByCharacter.end());
+	return it->second;
 }
 
-const wstring* CharacterDataSystem::TryGetTextureKey(EntityID entity, UITextureSlot texSlot) const
+const wstring& CharacterDataSystem::GetTextureKey(EntityID entity, UITextureSlot slot) const
 {
-	const CharacterID characterId = GetCharacterID(entity);
-	if (characterId == CharacterID::Unknown) return nullptr;
+	const CharacterID id = GetCharacterID(entity);
 
-	const CharacterUITextures* textures = FindUITexturesByCharacter(characterId);
-	if (!textures) return nullptr;
-
-	return textures->TryGet(texSlot);
+	if (auto sit = specByCharacter.find(id); sit != specByCharacter.end())
+	{
+		if (auto it = sit->second.ui.slotToTexKey.find(slot);
+			it != sit->second.ui.slotToTexKey.end())
+			return it->second;
+	}
+	const auto& tex = GetUITexturesByCharacter(id);
+	auto jt = tex.slotToTexKey.find(slot);
+	assert(jt != tex.slotToTexKey.end());
+	return jt->second;
 }
 
-const CharacterUITextures* CharacterDataSystem::FindUITexturesByEntity(EntityID entity) const
+void CharacterDataSystem::SetCamAnchor(CharacterID id, EntityID anchor)
 {
-	const CharacterID characterId = GetCharacterID(entity);
-	if (characterId == CharacterID::Unknown) return nullptr;
-	return FindUITexturesByCharacter(characterId);
+	auto it = specByCharacter.find(id);
+	assert(it != specByCharacter.end()); 
+	it->second.camAnchorEntity = anchor;
+}
+
+EntityID CharacterDataSystem::GetCamAnchor(CharacterID id) const
+{
+	return GetSpec(id).camAnchorEntity;
+}
+
+EntityID CharacterDataSystem::GetCamAnchor(EntityID entity) const
+{
+	const CharacterID ch = GetCharacterID(entity);
+	return GetCamAnchor(ch);
 }

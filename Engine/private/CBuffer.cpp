@@ -28,7 +28,6 @@ void CBuffer::SetData(const void* data, size_t byteSize)
 {
 	assert(data);
 	assert(byteSize <= cpuData.size());
-	memset(cpuData.data(), 0, cpuData.size());
 	memcpy(cpuData.data(), data, byteSize);
 	isdirty = true;
 }
@@ -54,10 +53,8 @@ void CBuffer::Bind(SHADER stage, CBUFFERSLOT slot)
 
 	if (stage & SHADER::VS) DC->VSSetConstantBuffers(idx, 1, &cb);
 	if (stage & SHADER::PS) DC->PSSetConstantBuffers(idx, 1, &cb);
-	if (stage & SHADER::GS) DC->GSSetConstantBuffers(idx, 1, &cb);
 	if (stage & SHADER::HS) DC->HSSetConstantBuffers(idx, 1, &cb);
 	if (stage & SHADER::DS) DC->DSSetConstantBuffers(idx, 1, &cb);
-	if (stage & SHADER::CS) DC->CSSetConstantBuffers(idx, 1, &cb);
 }
 
 void CBuffer::Resize(size_t byteSize)

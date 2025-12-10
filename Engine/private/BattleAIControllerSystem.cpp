@@ -9,15 +9,12 @@ namespace
 		return 1.0 / static_cast<double>(evalHz);
 	}
 }
-
 // ---------------------------------------------------------------------------------
 void BattleAIControllerSystem::OnBoot()
 {
 	timelineSys = &registry.Get<BattleTimelineSystem>();
 	targetSys   = &registry.Get<BattleTargetSystem>();
 	sessionSys  = &registry.Get<BattleSessionSystem>();
-
-	assert(timelineSys && targetSys && sessionSys);
 }
 
 void BattleAIControllerSystem::Update(float dt)
@@ -29,16 +26,30 @@ void BattleAIControllerSystem::Update(float dt)
 
 	for (EntityID entity : controllable)
 	{
-		if (!ShouldEval(entity, elapsedTime)) continue;
-		if (!timelineSys->IsUnitReadyToAct(entity)) continue;
+		if (!IsInTimeline(entity))
+			continue;
+
+		if (!ShouldEval(entity, elapsedTime))
+			continue;
+
+		if (!timelineSys->IsUnitReadyToAct(entity))
+			continue;
 
 		EntityID targetEntity = targetSys->Get(entity);
-		if (targetEntity == invalidEntity) continue;
 
-		TimelineActionIntent intent{};
-		if (!BuildBasicIntent(entity, targetEntity, intent)) continue;
+		if (targetEntity == 0u)
+			continue;
+		if (!IsInTimeline(targetEntity))
+			continue;
 
-		timelineSys->TryCommitIntent(entity, intent);
+		TimelineActionIntent intent = {
+			.battleCmd = BattleCommand::AttackBasic,
+			.targetEntity = targetEntity,
+			.apCost = 0,
+			.specialTag = SpecialAnimTag::BasicAttack
+		};
+
+		timelineSys->CommitIntent(entity, intent);
 	}
 }
 
@@ -47,24 +58,22 @@ vector<EntityID> BattleAIControllerSystem::CollectEntities() const
 	vector<EntityID> result;
 	result.reserve(6);
 
-	const BattleParty*   allies  = sessionSys->GetAllies();
-	const BattleEnemies* enemies = sessionSys->GetEnemies();
-	const EntityID       leader  = timelineSys->GetLeader();
+	const BattleEnemies& enemies = sessionSys->GetEnemies();
+	const BattleParty&   allies = sessionSys->GetAllies();
+	const EntityID       leader = timelineSys->GetLeader();
 
-	if (enemies)
-		for (int i = 0; i < enemies->memberCount; ++i)
-		{
-			const EntityID enemy = enemies->members[i];
-			if (enemy != invalidEntity)
-				result.push_back(enemy);
-		}
-	if (allies)
-		for (int i = 0; i < allies->memberCount; ++i)
-		{
-			const EntityID ally = allies->members[i];
-			if (ally != invalidEntity && ally != leader)
-				result.push_back(ally);
-		}
+	for (int i = 0; i < enemies.memberCount; ++i)
+	{
+		const EntityID enemy = enemies.members[i];
+		if (enemy != 0u)
+			result.push_back(enemy);
+	}
+	for (int i = 0; i < allies.memberCount; ++i)
+	{
+		const EntityID ally = allies.members[i];
+		if (ally != 0u && ally != leader)
+			result.push_back(ally);
+	}
 	return result;
 }
 
@@ -80,40 +89,42 @@ bool BattleAIControllerSystem::ShouldEval(EntityID id, double now)
 
 EntityID BattleAIControllerSystem::ResolveTargetFirstEnemy(EntityID self) const
 {
-	BattleTeam selfTeam{};
-	if (!sessionSys->TryGetTeam(self, selfTeam))
-		return invalidEntity;
-
-	const BattleParty*   allies  = sessionSys->GetAllies();
-	const BattleEnemies* enemies = sessionSys->GetEnemies();
+	const BattleTeam     selfTeam = sessionSys->GetTeam(self);
+	const BattleParty&   allies   = sessionSys->GetAllies();
+	const BattleEnemies& enemies  = sessionSys->GetEnemies();
 
 	if (selfTeam == BattleTeam::Ally)
 	{
-		if (enemies && enemies->memberCount > 0 && enemies->members[0] != invalidEntity)
-			return enemies->members[0];
+		if (enemies.memberCount > 0 && enemies.members[0] != invalidEntity)
+			return enemies.members[0];
 	}
-	else if (selfTeam == BattleTeam::Enemy)
+	else // Enemy
 	{
-		if (allies && allies->memberCount > 0 && allies->members[0] != invalidEntity)
-			return allies->members[0];
+		if (allies.memberCount > 0 && allies.members[0] != invalidEntity)
+			return allies.members[0];
 	}
 	return invalidEntity;
 }
 
-bool BattleAIControllerSystem::BuildBasicIntent(EntityID self, EntityID target, TimelineActionIntent& out) const
-{
-	if (self == invalidEntity || target == invalidEntity) return false;
-
-	out              = {};
-	out.battleCmd    = BattleCommand::AttackBasic;
-	out.targetEntity = target;
-	out.apCost       = 0;
-	out.specialTag   = SpecialAnimTag::BasicAttack;
-	return true;
-}
 
 EntityID BattleAIControllerSystem::ResolveTargetViaSystem(EntityID self) const
 {
-	EntityID target = targetSys->Get(self);
-	return target;
+	return targetSys->Get(self);
+}
+
+bool BattleAIControllerSystem::IsInTimeline(EntityID id) const
+{
+	if (id == 0u) return false;
+
+	const auto& state = timelineSys->GetState();
+
+	for (int i = 0; i < state.alliesUsed; ++i)
+		if (state.allies[i].entity == id)
+			return true;
+
+	for (int i = 0; i < state.enemiesUsed; ++i)
+		if (state.enemies[i].entity == id)
+			return true;
+
+	return false;
 }

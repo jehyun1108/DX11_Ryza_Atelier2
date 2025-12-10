@@ -16,20 +16,17 @@ enum class BattleTimelineEventType
 	ApChanged,
 	LeaderChanged,
 };
-
 struct TimelineRole
 {
 	TimelineControlType control = TimelineControlType::Player;
 	bool allowCombo  = false;
 };
-
-struct TimelineAP
+struct TimelineTeamAP
 {
 	int tacticLv = 1;
 	int curAp    = 0;
 	int maxAp    = 10;
 };
-
 struct TimelineGauge
 {
 	float curValue  = 0.f;
@@ -37,13 +34,11 @@ struct TimelineGauge
 	float fillSpeed = 100.f;
 	bool  isFrozen  = false;
 };
-
 struct TimelineSkillInfo
 {
 	SpecialAnimTag tag = SpecialAnimTag::BasicAttack;
 	int apCost = 0;
 };
-
 struct TimelineActionIntent
 {
 	BattleCommand battleCmd       = BattleCommand::None;
@@ -51,40 +46,33 @@ struct TimelineActionIntent
 	int           apCost          = 0;
 	optional<SpecialAnimTag> specialTag;
 };
-
-// Player 전용
 struct TimelineInputQueue
 {
 	vector<TimelineActionIntent> pendingCombos;
 	bool Empty() const { return pendingCombos.empty(); }
 };
-
 struct TimelineUnitPolicy
 {
 	int  apGainBasicAttack      = 1;
 	int  apGainSkillAttack      = 1;
 	bool aiPreferSkillAtMaxAp   = true;
-	bool aiRandomAmongAfforable = true; // 가능한 후보중랜덤
+	bool aiRandomAmongAfforable = true; 
 };
-
 struct TimelineUnitState
 {
 	EntityID   entity = invalidEntity;
 	BattleTeam team   = BattleTeam::Ally;
 
-	TimelineAP           ap{};
 	TimelineGauge        ATB{};
 	TimelineUnitGate     gateState   = TimelineUnitGate::Open;
 	TimelineMotionState  motionState = TimelineMotionState::Queued;
 
-	// 현재/대기 액션
 	TimelineActionIntent pendingIntent{};
 	TimelineActionIntent activeIntent{};
 
 	bool defendAllowed = true;
 	bool canAction     = true;
 };
-
 struct TimelineUnitRunTime
 {
 	TimelineRole              role{};
@@ -92,20 +80,20 @@ struct TimelineUnitRunTime
 	TimelineInputQueue        inputQueue{};
 	TimelineUnitPolicy        policy{};
 };
-
 struct BattleTimelineConfig
 {
 	float gaugeMaxValue = 100.f;
 	float gaugeFillSpeed = 50.f;
 	bool  canAction = true;
-};
 
+	float onHitBackPercent = 0.2f;
+	float onHitBackSec = 0.f;
+};
 struct LeaderState
 {
-	EntityID curLeader  = invalidEntity;
-	EntityID comboOwner = invalidEntity;
+	EntityID curLeader  = 0u;
+	EntityID comboOwner = 0u;
 };
-
 struct BattleTimelineState
 {
 	TimelineClockState clockState = TimelineClockState::Running;
@@ -113,6 +101,9 @@ struct BattleTimelineState
 
 	BattleTimelineConfig config{};
 	LeaderState          leader{};
+
+	TimelineTeamAP alliesAp{};
+	TimelineTeamAP enemiesAp{};
 
 	array<TimelineUnitState,   3> allies{};
 	array<TimelineUnitState,   3> enemies{};
@@ -125,10 +116,9 @@ struct BattleTimelineState
 struct BattleTimelineEvent
 {
 	BattleTimelineEventType eventType     = BattleTimelineEventType::FullGauge;
-	EntityID                subjectEntity = invalidEntity;
+	EntityID                subjectEntity = 0u;
 	BattleTeam              subjectTeam   = BattleTeam::Ally;
-	int                     deltaAp       = 0; // 상승 차감 알림
-	wstring                 note; // 디버그용
+	int                     deltaAp       = 0; 
 };
 
 NS_END

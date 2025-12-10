@@ -15,12 +15,18 @@ public:
 	void Exit();
 
 private:
-	SystemRegistry&            registry;
-	BattleEventBus*            eventBus{};
-	UIRegistry*                uiRegistry{};
-	UISystem*                  uiSys{};
-	UIAnimSystem*              uiAnimSys{};
-	BattleTimelinePresenter*   presenter{};
+	SystemRegistry&              registry;
+	BattleEventBus*              eventBus{};
+	UIRegistry*                  uiRegistry{};
+	UISystem*                    uiSys{};
+	UIAnimSystem*                uiAnimSys{};
+	BattleTimelinePresenter*     timelinePresenter{};
+	PlayerInputPresenter*        inputPresenter{};
+	BattleHUDPresenter*          HUDPresenter{};
+	BattleFatalDrivePresenter*   fatalPresenter{};
+	BattleDamagePresenter*       dmgPresenter{};
+	BattleTargetHUDPresenter*    targetHUDPresenter{};
+	BattleBoardPresenter*        boardPresenter{};
 };
 
 NS_END

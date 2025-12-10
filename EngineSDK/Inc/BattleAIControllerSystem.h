@@ -12,25 +12,22 @@ public:
 	void     Update(float dt);
 	void     SetConfig(const AIConfig& config) { this->config = config; }
 
-	const AIConfig& GetConfig() const          { return config; }
+	const AIConfig& GetConfig() const { return config; }
 
 private:
 	vector<EntityID> CollectEntities() const;
 	bool             ShouldEval(EntityID id, double now);
-	bool             IsGaugeFull(EntityID id) const               { return timelineSys->IsGaugeFull(id); }
 	EntityID         ResolveTargetFirstEnemy(EntityID self) const;
-	bool             BuildBasicIntent(EntityID self, EntityID target, TimelineActionIntent& out) const;
-
-	EntityID         ResolveTargetViaSystem(EntityID self) const;
+	EntityID         ResolveTargetViaSystem(EntityID self)  const;
+	bool             IsGaugeFull(EntityID id)               const { return timelineSys->IsGaugeFull(id); }
+	bool             IsInTimeline(EntityID id) const;
 
 private:
-	SystemRegistry& registry;
+	SystemRegistry&       registry;
 	BattleTimelineSystem* timelineSys{};
 	BattleTargetSystem*   targetSys{};
 	BattleSessionSystem*  sessionSys{};
-
-
-	AIConfig        config{};
+	AIConfig              config{};
 	unordered_map<EntityID, AIBlackboard> blackboard;
 };
 

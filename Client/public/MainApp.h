@@ -11,6 +11,8 @@ public:
 	void Update(_float dt);
 	HRESULT Render();
 
+	void LoadLoadingResources();
+
 private:
 	GameInstance& game = GameInstance::GetInstance();
 

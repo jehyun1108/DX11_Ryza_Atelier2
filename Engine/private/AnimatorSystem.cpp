@@ -1,6 +1,6 @@
 #include "Enginepch.h"
 
-template<typename T>
+template<typename T> // 지금 time 이 몇 번째 키프레임 사이에 껴 있는지 찾아주는 함수(이전에 찾았던 인덱스를 힌트로 써서 더 빨리 찾으려고하는것)
 static inline pair<uint16_t, uint16_t> FindInterval(const vector<Keyframe<T>>& keys, float time, uint16_t hint)
 {
     const uint16_t n = (uint16_t)keys.size();
@@ -48,7 +48,13 @@ static inline float ClampInSection(float curTicks, const SectionInfo& sec)
 {
     return clamp(curTicks, sec.startTicks, sec.endTicks);
 }
+
 // --------------------------------------------------------------------------------------------------------------------------------------
+void AnimatorSystem::OnBoot()
+{
+    tfSys = &registry.Get<TransformSystem>();
+}
+
 Handle AnimatorSystem::Create(EntityID owner, Skeleton* skeleton, const ClipTable* clips, Handle transform, const vector<string>& baseMaskBones)
 {
     Handle   handle = CreateComp(owner);
@@ -91,11 +97,13 @@ Handle AnimatorSystem::Create(EntityID owner, Skeleton* skeleton, const ClipTabl
 void AnimatorSystem::CrossFade(Handle handle, _uint fromLayerIndex, _uint toLayerIndex, const wstring& toClipName, float fadeDur, ANIMTYPE type, float startNormalized, float endNormalized)
 {
     auto* anim = Get(handle);
-    if (!anim) return;
-    if (fromLayerIndex >= anim->layers.size() || toLayerIndex >= anim->layers.size()) return;
-
     const AnimClip* toClip = FindClip(*anim, toClipName);
-    if (!toClip) return;
+
+    if (!toClip)
+    {
+        wstring msg = L"CrossFade: clipName not found in ClipTable: " + toClipName;
+        _wassert(msg.c_str(), _CRT_WIDE(__FILE__), __LINE__);
+    }
 
     auto& fromLayer = anim->layers[fromLayerIndex];
     auto& toLayer = anim->layers[toLayerIndex];
@@ -128,7 +136,8 @@ void AnimatorSystem::CrossFade(Handle handle, _uint fromLayerIndex, _uint toLaye
     anim->cross.toClipName      = toClipName;
     anim->cross.toAnimType      = type;
 }
-
+// 레이어 가중치 애니메이션 + 스왑
+// 현재 진행중인 CrossFade 가 있다면 fromLayer의 weight를 1->0으로 줄이고, toLayer의 weight를 0->1로 늘려줌.
 void AnimatorSystem::TickCrossFade(AnimData& anim, float dt)
 {
     if (!anim.cross.isActive && !anim.cross.pendingSwap) return;
@@ -163,7 +172,7 @@ void AnimatorSystem::TickCrossFade(AnimData& anim, float dt)
     }
 }
 
-void AnimatorSystem::Update(float dt, TransformSystem& transformSys)
+void AnimatorSystem::Update(float dt)
 {
     ForEachAliveEx([&](Handle handle, EntityID owner, AnimData& anim)
         {
@@ -178,18 +187,18 @@ void AnimatorSystem::Update(float dt, TransformSystem& transformSys)
                 if (layer.playType == ANIMTYPE::ONCE)  layer.curTime = ClampInSection(layer.curTime, sec);
                 else                                   layer.curTime = WrapInSection(layer.curTime, sec);
             }
+            
+            TickCrossFade(anim, dt);             
 
-            TickCrossFade(anim, dt);
-
-            BaseSRT(anim);
+            BaseSRT(anim);                       
             anim.blendScale = anim.baseScale;
             anim.blendRot   = anim.baseRot;
             anim.blendTrans = anim.baseTrans;
 
-            BlendSRT(anim);
-            BuildLocalSRT(anim);
+            BlendSRT(anim);                    
+            BuildLocalSRT(anim);              
 
-            if (const auto world = transformSys.GetWorld(anim.transform))
+            if (const auto world = tfSys->GetWorld(anim.transform))
                 SetFinalMatrices(anim, *world);
         });
 }
@@ -241,10 +250,7 @@ void AnimatorSystem::PromoteToBaseAndClear(AnimData& anim, _uint fromIdx, _uint 
 void AnimatorSystem::PlaySection(Handle handle, _uint layerIdx, const wstring& clipName, ANIMTYPE type, float startNormalized, float endNormalized)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return;
-
     const AnimClip* clip = FindClip(*anim, clipName);
-    if (!clip) return;
 
     auto& layer    = anim->layers[layerIdx];
     layer.clip     = clip;
@@ -268,9 +274,7 @@ void AnimatorSystem::PlaySection(Handle handle, _uint layerIdx, const wstring& c
 void AnimatorSystem::Play(Handle handle, _uint layerIdx, const wstring& clipName, ANIMTYPE type)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return;
     const AnimClip* clip = FindClip(*anim, clipName);
-    if (!clip) return;
 
     auto& Layer    = anim->layers[layerIdx];
     Layer.clip     = clip;
@@ -284,11 +288,11 @@ void AnimatorSystem::Play(Handle handle, _uint layerIdx, const wstring& clipName
 
 const AnimClip* AnimatorSystem::FindClip(const AnimData& anim, const wstring& clipName) const
 {
-    if (!anim.clips) return nullptr;
     auto it = anim.clips->find(clipName);
     return (it == anim.clips->end()) ? nullptr : it->second;
 }
-
+// 스켈레톤의 각 본마다 베이스 레이어의 애니메이션 SRT를 샘플해서 anim.baseScale, baseRot, baseTrans 에 채움.
+// 이 프레임에서 베이스 애니메이션이 만들어내는 순수 포즈를 담고있음
 void AnimatorSystem::BaseSRT(AnimData& anim)
 {
     if (anim.layers.empty() || !anim.layers[0].clip)
@@ -306,7 +310,8 @@ void AnimatorSystem::BaseSRT(AnimData& anim)
     for (_uint i = 0; i < anim.boneCount; ++i)
         SampleSRT(anim, i, baseLayer, anim.baseScale[i], anim.baseRot[i], anim.baseTrans[i]);
 }
-
+// 다른 레이어를 섞어서 최종 SRT만들기
+// 베이스 포즈 위에 여러 레이어를 OVERRIDE/ADDITIVE + mask + weight 조합으로 섞어서 진짜 쓸 최종 SRT를 만드는단계
 void AnimatorSystem::BlendSRT(AnimData& anim)
 {
     for (size_t layerIndex = 1; layerIndex < anim.layers.size(); ++layerIndex)
@@ -341,7 +346,7 @@ void AnimatorSystem::BlendSRT(AnimData& anim)
         }
     }
 }
-
+// 최종 animatedLocalTransform 만들기
 void AnimatorSystem::BuildLocalSRT(AnimData& anim)
 {
     for (_uint i = 0; i < anim.boneCount; ++i)
@@ -450,10 +455,8 @@ void AnimatorSystem::SampleAddDelta(const AnimData& anim, _uint boneIdx, const A
 
 float AnimatorSystem::GetNormalizedTime(Handle handle, _uint layerIdx) const
 {
-    const AnimData* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return 0.f;
+    const AnimData*      anim  = Get(handle);
     const AnimLayerData& layer = anim->layers[layerIdx];
-    if (!layer.clip) return 0.f;
 
     const SectionInfo sec = ResolveSection(layer);
     const float clamped   = clamp(layer.curTime, sec.startTicks, sec.endTicks);
@@ -463,17 +466,13 @@ float AnimatorSystem::GetNormalizedTime(Handle handle, _uint layerIdx) const
 
 float AnimatorSystem::GetRemainingTime(Handle handle, _uint layerIdx) const
 {
-    const AnimData* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return 0.f;
-
+    const AnimData*      anim  = Get(handle);
     const AnimLayerData& layer = anim->layers[layerIdx];
-    if (!layer.clip) return 0.f;
 
     const float       tps = max(1.f, layer.clip->tickPerSec);
     const SectionInfo sec = ResolveSection(layer);
 
     const float cur = clamp(layer.curTime, sec.startTicks, sec.endTicks);
-
     const float remainingTicks = (layer.playType == ANIMTYPE::LOOP) ? (sec.length - fmod(max(0.f, cur - sec.startTicks), sec.length))
                                                                     : (max(0.f, sec.endTicks - cur));
     return remainingTicks / tps;
@@ -481,11 +480,8 @@ float AnimatorSystem::GetRemainingTime(Handle handle, _uint layerIdx) const
 
 float AnimatorSystem::GetRemainingNormalized(Handle handle, _uint layerIdx) const
 {
-    const AnimData* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return 0.f;
-
+    const AnimData*      anim  = Get(handle);
     const AnimLayerData& layer = anim->layers[layerIdx];
-    if (!layer.clip) return 0.f;
 
     const SectionInfo sec = ResolveSection(layer);
     const float       cur = clamp(layer.curTime, sec.startTicks, sec.endTicks);
@@ -496,45 +492,35 @@ float AnimatorSystem::GetRemainingNormalized(Handle handle, _uint layerIdx) cons
 
 bool AnimatorSystem::IsPlaying(Handle handle, _uint layerIdx) const
 {
-    const AnimData* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return false;
+    const AnimData*      anim  = Get(handle);
     const AnimLayerData& layer = anim->layers[layerIdx];
     return (layer.isEnabled && !layer.isPaused && layer.clip != nullptr);
 }
 
 bool AnimatorSystem::IsPlayingClip(Handle handle, _uint layerIdx, const wstring& clipName) const
 {
-    const AnimData* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return false;
-
-    const AnimLayerData& layer = anim->layers[layerIdx];
-    if (!layer.clip) return false;
-
-    const AnimClip* target = FindClip(*anim, clipName);
+    const AnimData*      anim   = Get(handle);
+    const AnimLayerData& layer  = anim->layers[layerIdx];
+    const AnimClip*      target = FindClip(*anim, clipName);
     return (target && target == layer.clip);
 }
 
 bool AnimatorSystem::IsCrossFading(Handle handle) const
 {
     const auto anim = Get(handle);
-    if (!anim) return false;
     return anim->cross.isActive;
 }
 
 void AnimatorSystem::Pause(Handle handle, _uint layerIdx, bool toggle)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return;
-
     auto& layer = anim->layers[layerIdx];
-    if (!layer.clip) return;
     layer.isPaused = toggle ? !layer.isPaused : true;
 }
 
 void AnimatorSystem::Reset(Handle handle, _uint layerIdx)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return;
 
     auto& layer     = anim->layers[layerIdx];
     layer.clip      = nullptr;
@@ -549,8 +535,6 @@ void AnimatorSystem::Reset(Handle handle, _uint layerIdx)
 void AnimatorSystem::AddLayer(Handle handle, const vector<string>& maskedBoneNames)
 {
     auto* anim = Get(handle);
-    if (!anim) return;
-
     anim->layers.emplace_back();
     auto& layer = anim->layers.back();
 
@@ -572,8 +556,6 @@ void AnimatorSystem::AddLayer(Handle handle, const vector<string>& maskedBoneNam
 void AnimatorSystem::SetLayerBlendWeight(Handle handle, _uint layerIdx, float weight)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) { assert(false); return; }
-
     if (layerIdx == 0) { anim->layers[0].blendWeight = 1.f; return; }
     anim->layers[layerIdx].blendWeight = Utility::Saturate(weight);
 }
@@ -581,7 +563,6 @@ void AnimatorSystem::SetLayerBlendWeight(Handle handle, _uint layerIdx, float we
 void AnimatorSystem::SetLayerBlendType(Handle handle, _uint layerIdx, ANIMBLEND type)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) { assert(false); return; }
     if (layerIdx == 0) return;
     anim->layers[layerIdx].blendType = type;
 }
@@ -589,25 +570,19 @@ void AnimatorSystem::SetLayerBlendType(Handle handle, _uint layerIdx, ANIMBLEND 
 void AnimatorSystem::SetPlaybackSpeed(Handle handle, _uint layerIdx, float speed)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) { assert(false); return; }
     anim->layers[layerIdx].playbackSpeed = speed;
 }
 
 void AnimatorSystem::SetLayerEnabled(Handle handle, _uint layerIdx, bool enabled)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) { assert(false); return; }
     anim->layers[layerIdx].isEnabled = enabled;
 }
 
 void AnimatorSystem::SetLayerTime(Handle handle, _uint layerIdx, float tick)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return;
-
     auto& layer = anim->layers[layerIdx];
-    if (!layer.clip) return;
-
     const float dur = max(0.f, (float)layer.clip->duration);
     layer.curTime = clamp(tick, 0.f, dur);
 }
@@ -615,8 +590,6 @@ void AnimatorSystem::SetLayerTime(Handle handle, _uint layerIdx, float tick)
 void AnimatorSystem::SetLayerMask(Handle handle, _uint layerIdx, const vector<uint8_t>& mask)
 {
     auto* anim = Get(handle);
-    if (!anim || layerIdx >= anim->layers.size()) return;
-
     auto& layer = anim->layers[layerIdx];
     layer.mask.assign(anim->boneCount, 0);
     for (_uint i = 0; i < anim->boneCount && i < mask.size(); ++i)
@@ -626,17 +599,14 @@ void AnimatorSystem::SetLayerMask(Handle handle, _uint layerIdx, const vector<ui
 float AnimatorSystem::GetClipDuration(Handle handle, const wstring& clipName) const
 {
     const auto* anim = Get(handle);
-    if (!anim) return 0.f;
-    if (const AnimClip* clip = FindClip(*anim, clipName)) return (float)clip->duration;
-    return 0.f;
+    const AnimClip* clip = FindClip(*anim, clipName);
+    return (float)clip->duration;
 }
 
 vector<wstring> AnimatorSystem::GetClipNames(Handle handle) const
 {
     vector<wstring> names;
     const auto* anim = Get(handle);
-    if (!anim || !anim->clips) return names;
-
     names.reserve(anim->clips->size());
     for (auto& p : *anim->clips) names.push_back(p.first);
     sort(names.begin(), names.end());
@@ -652,15 +622,12 @@ _uint AnimatorSystem::GetLayerCount(Handle handle) const
 const _float4x4* AnimatorSystem::GetBoneWorld(Handle handle, _uint boneIdx) const
 {
     const auto* anim = Get(handle);
-    if (!anim || !anim->skeleton) return nullptr;
-    if (boneIdx >= anim->boneCount) return nullptr;
     return &anim->skeleton->bonesByIdx[boneIdx]->combinedTransform;
 }
 
 _uint AnimatorSystem::GetBoneIdxByName(Handle handle, const string& boneName) const
 {
     const auto* anim = Get(handle);
-    if (!anim) return (_uint)-1;
     auto it = anim->skeleton->boneNameToIdx.find(boneName);
     return (it == anim->skeleton->boneNameToIdx.end()) ? (_uint)-1 : it->second;
 }
@@ -675,11 +642,8 @@ vector<uint8_t> AnimatorSystem::BuildMaskFromClip(Handle handle, const wstring& 
 {
     vector<uint8_t> mask;
     const auto* anim = Get(handle);
-    if (!anim || !anim->clips || !anim->skeleton) return mask;
-
     mask.assign(anim->boneCount, 0);
     const AnimClip* clip = FindClip(*anim, clipName);
-    if (!clip) return mask;
 
     for (const auto& pair : clip->boneAnims)
     {

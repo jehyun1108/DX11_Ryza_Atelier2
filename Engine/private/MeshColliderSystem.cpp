@@ -33,7 +33,6 @@ void MeshColliderSystem::ExtractCPUFromModel(const Model& model, vector<_float3>
 	for (const ModelParts& part : model.GetParts())
 	{
 		const shared_ptr<Mesh>& mesh = part.mesh;
-		if (!mesh) continue;
 
 		vector<_float3> partPos;
 		vector<_uint> partIndices;
@@ -49,7 +48,6 @@ void MeshColliderSystem::ExtractCPUFromModel(const Model& model, vector<_float3>
 
 bool MeshColliderSystem::CopyPosAndIndicesFromMesh(const Mesh& mesh, vector<_float3>& outPos, vector<_uint>& outIndices)
 {
-	// Mesh가 CPU 복사본을 제공
 	const uint8_t* cpuVB = mesh.GetCPUVertexBytes();
 	const uint8_t* cpuIB = mesh.GetCPUIndexBytes();
 	if (!cpuVB || !cpuIB) return false;

@@ -33,6 +33,7 @@ private:
 	ModelSystem*     modelSys{};
 	AssetSystem*     assets{};
 	EntitySpawner*   spawner{};
+	CollisionSystem* collisionSys{};
 };
 
 NS_END

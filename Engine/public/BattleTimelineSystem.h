@@ -1,9 +1,10 @@
 #pragma once
 
-#include "BattleTimelineData.h"
+#include "BattleEventBusData.h"
 
 NS_BEGIN(Engine)
 class BattleEventBus;
+struct BattleSessionState;
 
 class ENGINE_DLL BattleTimelineSystem : public ISystem
 {
@@ -15,22 +16,24 @@ public:
     void Tick(float dt);
     void EndSession();
 
-    bool     TryCommitIntent(EntityID entity, const TimelineActionIntent& intent);
-    bool     TrySetLeader(EntityID newLeader);
+    void CommitIntent(EntityID entity, const TimelineActionIntent& inIntent);
+    void CommitComboIntent(EntityID entity, const TimelineActionIntent& inIntent);
+
+    void     SetLeader(EntityID newLeader);
     EntityID GetLeader() const;
 
     void NotifyActionFinished(EntityID entity, const TimelineActionIntent& finishedIntent);
 
-    const BattleTimelineState* TryGetState()   const { return timelineState ? &(*timelineState) : nullptr; }
+    const BattleTimelineState& GetState()      const { return *timelineState; }
     TimelineClockState         GetClockState() const { return timelineState ? timelineState->clockState : TimelineClockState::Stopped; }
-
-    bool TryGetUnitState(BattleTeam team, int slotIdx, const TimelineUnitState*& outState) const;
-    bool TryGetUnitStateByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx, const TimelineUnitState*& outState) const;
+    const TimelineUnitState&   GetUnitState(BattleTeam team, int slotIdx) const;
+    const TimelineUnitState&   GetUnitStateByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx) const;
 
     bool IsGaugeFull(EntityID entity) const;
     bool IsDefendAllowed(EntityID entity) const;
     bool IsUnitReadyToAct(EntityID entity) const;
     int  ResolveSkillApCost(EntityID entity, const optional<SpecialAnimTag>& specialTag) const;
+    void GetApSnapshot(EntityID entity, int& outCurAp, int& outMaxAp) const;
 
     void SetClock(TimelineClockState newState);
     void SetUnitGate(EntityID entity, TimelineUnitGate gate);
@@ -41,30 +44,32 @@ public:
 
     void FreezeATB(EntityID entity, bool freeze);
     void PublishLeaderChanged(EntityID newLeader);
+    void OnDamageApplied(const EventPayload_Damage& dmg);
+    void OnUnitRemoved(EntityID entity);
+    void ApplyResolveReward(TimelineUnitState& unitState, const TimelineUnitRunTime& unitRuntime, const TimelineActionIntent& resolvedIntent, EntityID entity, BattleTeam team);
 
 private:
-    bool ResolveIdxByEntity(EntityID entity, BattleTeam& outTeam, int& outSlotIdx) const;
+    pair<BattleTeam, int> RequireIdxByEntity(EntityID entity) const;
     void PushEvent(BattleTimelineEventType type, EntityID subject, BattleTeam team, int deltaAp = 0);
-
     void AdvanceGauge(TimelineUnitState& unit, float dt, EntityID entity, BattleTeam team);
-    bool CommitInternal(TimelineUnitState& unitState, TimelineUnitRunTime& unitRunTime, TimelineActionIntent intent, EntityID entity, BattleTeam team);
-
-    void ApplyApDelta(TimelineUnitState& unit, EntityID entity, BattleTeam team, int deltaAp);
-    void ApplyResolveReward(TimelineUnitState& unitState, const TimelineUnitRunTime& unitRuntime,  const TimelineActionIntent& resolvedIntent, EntityID entity, BattleTeam team);
-
+    void CommitInternal(TimelineUnitState& unitState, TimelineUnitRunTime& unitRunTime, TimelineActionIntent intent, EntityID entity, BattleTeam team);
+    void ApplyApDelta(BattleTeam team, EntityID entity, int deltaAp);
     void FillSkillCatalog(EntityID entity, vector<TimelineSkillInfo>& outCatalog) const;
 
 private:
-    SystemRegistry&        registry;
-    BattleEventBus*        eventBus{};
-    CharacterDataSystem*   dataSys{};
-    BattleExecutionSystem* execSys{};
-    BattleTargetSystem*    targetSys{};
-    ActionAnimRegistry*    actionReg{};
-
-    optional<BattleTimelineState>                   timelineState; // Ω∫≥¿º¶(ΩΩ∑‘/∑±≈∏¿”/∏Æ¥ı/º≥¡§)
-    unordered_map<EntityID, pair<BattleTeam, int>>  idxByEntity;  // entity °Ê (team, slot)
+    optional<BattleTimelineState>                   timelineState; 
+    unordered_map<EntityID, pair<BattleTeam, int>>  idxByEntity; 
     vector<BattleTimelineEvent>                     eventQueue;
+
+private:
+    SystemRegistry&         registry;
+    BattleEventBus*         eventBus{};
+    CharacterDataSystem*    dataSys{};
+    BattleExecutionSystem*  execSys{};
+    BattleTargetSystem*     targetSys{};
+    ActionAnimRegistry*     actionReg{};
+    BattleControllerSystem* ctrlSys{};
+    SoundSystem*            soundSys{};
 };
 
 NS_END

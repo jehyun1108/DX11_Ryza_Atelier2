@@ -6,14 +6,13 @@ static constexpr _uint worldVersion = 1;
 
 void WorldSerializer::OnBoot()
 {
-	entities = &registry.Get<EntityMgr>();
-	tfSys    = &registry.Get<TransformSystem>();
-	layerSys = &registry.Get<LayerSystem>();
-	modelSys = &registry.Get<ModelSystem>();
-	assets   = &registry.Get<AssetSystem>();
-	spawner  = &registry.Get<EntitySpawner>();
-
-	assert(entities && tfSys && layerSys && modelSys && assets);
+	entities     = &registry.Get<EntityMgr>();
+	tfSys        = &registry.Get<TransformSystem>();
+	layerSys     = &registry.Get<LayerSystem>();
+	modelSys     = &registry.Get<ModelSystem>();
+	assets       = &registry.Get<AssetSystem>();
+	spawner      = &registry.Get<EntitySpawner>();
+	collisionSys = &registry.Get<CollisionSystem>();
 }
 
 bool WorldSerializer::SaveWorldToFile(const filesystem::path& outPath, const vector<EntityID>& entityList, string& outErrorMsg)
@@ -290,11 +289,10 @@ EntityID WorldSerializer::SpawnFromDto(const WorldInstanceDto& dto)
 
 	auto handles = spawner->NewEntity()
 		.WithTf(tfDesc)
-		.WithLayer(dto.layerMask)
+		.WithLayer(LayerUtil::LayerBit(LAYER::MAPOBJ))
 		.WithModel(normalizedKey)
-		.WithColliderFromModel(ColliderType::AABB)
 		.WithMeshCollider()
-		//.WithPickable()
+		.WithPickable()
 		//.WithSelectable()
 		.Build();
 

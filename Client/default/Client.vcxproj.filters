@@ -31,6 +31,42 @@
     <Filter Include="AssetData">
       <UniqueIdentifier>{faae5fa2-c809-41ef-a829-80d7891cfb02}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AssetData\00. UILoader">
+      <UniqueIdentifier>{e5467e56-491b-40ff-a382-27b1302ea28c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetData\01. UIArchetypeLoader">
+      <UniqueIdentifier>{c35d56cb-92ec-45a3-8dc7-b22fab153eb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. SkyboxSpawner">
+      <UniqueIdentifier>{3b104640-ae25-41ee-a3fb-dc6b1c5e77a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05. EnemySpawner">
+      <UniqueIdentifier>{ee18d9e6-2113-4923-9d50-cd760efe7083}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06. LightSpawner">
+      <UniqueIdentifier>{b8101284-44e3-45a2-8b75-53d3922bd758}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetData\02. ModelLoader">
+      <UniqueIdentifier>{d51c88e3-9722-43ad-b96e-6e56393445b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetData\03. MapLoader">
+      <UniqueIdentifier>{0410465f-3538-4020-9c91-2e4772cf8591}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetData\04. EffectLoader">
+      <UniqueIdentifier>{d3ba5962-f78d-4a5a-a8ef-49440d5854d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. CharacterSpawner">
+      <UniqueIdentifier>{c84960a5-2be5-4eb1-8b61-fd3fb2aa7a0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetData\05. CamLoader">
+      <UniqueIdentifier>{b0ee04d8-cbbf-416c-b7d0-bad084d49f54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetData\03. CamSpawner">
+      <UniqueIdentifier>{72537480-d835-496a-8a48-08507b282203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AssetData\06. SoundLoader">
+      <UniqueIdentifier>{ee3721b8-8e76-4135-b8a5-4fac5874d94e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -60,17 +96,47 @@
     <ClInclude Include="..\public\Loader.h">
       <Filter>01. Levels\Loading\Loader</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\UILoader.h">
-      <Filter>AssetData</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\UIArchetypeLoader.h">
-      <Filter>AssetData</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\CharacterUILoader.h">
       <Filter>AssetData</Filter>
     </ClInclude>
     <ClInclude Include="..\public\LoaderData.h">
       <Filter>01. Levels\Loading\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UILoader.h">
+      <Filter>AssetData\00. UILoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIArchetypeLoader.h">
+      <Filter>AssetData\01. UIArchetypeLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CharacterSpawner.h">
+      <Filter>02. CharacterSpawner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SkyboxSpawner.h">
+      <Filter>04. SkyboxSpawner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LightSpawner.h">
+      <Filter>06. LightSpawner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EnemySpawner.h">
+      <Filter>05. EnemySpawner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ModelLoader.h">
+      <Filter>AssetData\02. ModelLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MapLoader.h">
+      <Filter>AssetData\03. MapLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EffectLoader.h">
+      <Filter>AssetData\04. EffectLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CamLoader.h">
+      <Filter>AssetData\05. CamLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CamSpawner.h">
+      <Filter>AssetData\03. CamSpawner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SoundLoader.h">
+      <Filter>AssetData\06. SoundLoader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -94,14 +160,50 @@
     <ClCompile Include="..\private\Logo.cpp">
       <Filter>01. Levels\Logo</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\Central.cpp">
-      <Filter>01. Levels\GamePlay</Filter>
+    <ClCompile Include="..\private\Loader.cpp">
+      <Filter>01. Levels\Loading\Loader</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Loading.cpp">
       <Filter>01. Levels\Loading</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\Loader.cpp">
-      <Filter>01. Levels\Loading\Loader</Filter>
+    <ClCompile Include="..\private\UILoader.cpp">
+      <Filter>AssetData\00. UILoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIArchetypeLoader.cpp">
+      <Filter>AssetData\01. UIArchetypeLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CharacterSpawner.cpp">
+      <Filter>02. CharacterSpawner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\SkyboxSpawner.cpp">
+      <Filter>04. SkyboxSpawner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\LightSpawner.cpp">
+      <Filter>06. LightSpawner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\EnemySpawner.cpp">
+      <Filter>05. EnemySpawner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ModelLoader.cpp">
+      <Filter>AssetData\02. ModelLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MapLoader.cpp">
+      <Filter>AssetData\03. MapLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\EffectLoader.cpp">
+      <Filter>AssetData\04. EffectLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Central.cpp">
+      <Filter>01. Levels\GamePlay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CamLoader.cpp">
+      <Filter>AssetData\05. CamLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CamSpawner.cpp">
+      <Filter>AssetData\03. CamSpawner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\SoundLoader.cpp">
+      <Filter>AssetData\06. SoundLoader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

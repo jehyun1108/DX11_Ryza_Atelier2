@@ -8,11 +8,16 @@ class ENGINE_DLL ModelSystem : public EntitySystem<ModelData>, public IGuiRender
 {
 public:
 	explicit ModelSystem(SystemRegistry& registry) : EntitySystem(registry) {}
-
-	Handle Create(EntityID owner, Handle transform, const wstring& modelKey, Handle animator = {});
+	void     OnBoot() override;
+	Handle   Create(EntityID owner, Handle transform, const wstring& modelKey, Handle animHandle = {});
 	void SetEnabled(Handle handle, bool on);
 
 	void RenderGui(EntityID id) override;
+
+private:
+	AssetSystem*        assets{};
+	AnimatorSystem*     animator{};
+	MeshColliderSystem* mcSys{};
 };
 
 NS_END

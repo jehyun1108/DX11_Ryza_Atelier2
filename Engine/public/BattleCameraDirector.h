@@ -1,8 +1,5 @@
 #pragma once
 
-#include "BattleCamera_Enum.h"
-#include "BattleCamera_Struct.h"
-
 NS_BEGIN(Engine)
 
 class ENGINE_DLL BattleCameraDirector : public ISystem
@@ -13,34 +10,41 @@ public:
 	explicit BattleCameraDirector(SystemRegistry& registry);
 	void     OnBoot() override;
 
-	void     BindCam(Handle camHandle)                { cam = camHandle; }
+	void     BindCam(Handle camHandle);
 	void     SetSequenceSampler(SeqSampleFunc func)    { seqSampler = move(func); }
-	void     SetSmoothing(const SmoothingConfig& cfg) { smooth = cfg; }
+	void     SetSmoothing(const SmoothingConfig& cfg)  { smooth = cfg; }
 	void     SetFixedLens(const Lens& lens);
+	Lens     GetFixedLens() const { return state.fixedLens; }
 
 	TrackID Spawn(const TrackSpawnRequest& req);
-	bool    Kill(const TrackKillRequest& req);
+	void    Kill(const TrackKillRequest& req);
 
-	bool    SetAnchor(TrackID id, const AnchorBinding& anchor);
-	bool    SetPriority(TrackID id, CamPriority priority);
-	bool    SetLayer(TrackID id, CamLayer layer);
-	bool    SetGoal(TrackID id, const CamPose& goal);
-	bool    SetSeqClips(TrackID id, const vector<ShotClip>& clips);
+	void    SetAnchor(TrackID id, const AnchorBinding& anchor);
+	void    SetPriority(TrackID id, CamPriority priority);
+	void    SetLayer(TrackID id, CamLayer layer);
+	void    SetGoal(TrackID id, const CamPose& goal);
+	void    SetSeqClips(TrackID id, const vector<ShotClip>& clips);
+	void    SnapTrackToPose(TrackID id, const CamPose& pose);
+	void    SetSeqDesc(TrackID id, const SequenceTrackDesc& desc);
+
+	void    SetDebugCam(Handle tf);
+	void    ClearDebugCam();
 	
 	void    Tick(float dt);
 	CamPose GetOutput() const { return state.output; }
+
+	FollowTrackDesc& GetFollowDesc(TrackID id);
+	bool HasActiveSequenceTrack() const;
+	bool GetTopSequenceLens(Lens& outLens) const;
+	void SnapTrackToOutput(TrackID id);
 
 private:
 	void     RebuildGroups();
 	void     AdvanceTracks(float dt);
 	void     AdvanceFollow(TrackState& track, float dt);
 	void     AdvanceSequence(TrackState& track, float dt);
-	void     ApplyAnchors(TrackState& track, const CamPose* localOpt = nullptr);
+	void     ApplyAnchors(TrackState& track, const CamPose* localOpt = nullptr);                
 
-	void     ApplyTrackSmoothing(TrackState& track, float dt);     
-	void     SnapIfClose(TrackState& track);                    
-	CamPose  ClampStep(const CamPose& prev, const CamPose& next, float dt) const;
-	
 	CamPose  MixByGroups(const CamPose& prev) const;
 	CamPose  MixGroup(const MixerGroup& group) const;
 	CamPose  MixLayered(const vector<const TrackState*>& base, const vector<const TrackState*>& action, const vector<const TrackState*>& overlay) const;
@@ -51,6 +55,17 @@ private:
 	EntityID          ResolveAnchorEntity(const AnchorBinding& anchor) const;
 	bool              GetEntityWorldPos(EntityID entity, _vec& outPos, _vec& outRot) const;
 	bool              ComputeFollowTarget(const TrackState& track, _vec& outTargetPos) const;
+	TrackState&       RequireTrack(TrackID id);
+
+private:
+	DirectorState               state;
+	SmoothingConfig             smooth{};
+	Handle                      cam{};
+	_uint                       nextIdx = 1;
+	unordered_map<_uint, _uint> gen;
+	SeqSampleFunc               seqSampler;
+	bool                        debugCamActive = false;
+	Handle                      debugCamTf{};
 
 private:
 	SystemRegistry&             registry;
@@ -58,13 +73,6 @@ private:
 	BattleTargetSystem*         targetSys{};
 	TransformSystem*            tfSys{};
 	CameraSystem*               camSys{};
-
-	DirectorState               state;
-	SmoothingConfig             smooth{};
-	Handle                      cam{};
-	_uint                       nextIdx = 1;
-	unordered_map<_uint, _uint> gen;
-	SeqSampleFunc               seqSampler;
 };
 
 NS_END

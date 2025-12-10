@@ -8,10 +8,8 @@ class ENGINE_DLL FaceSystem : public EntitySystem<FaceData>, public IGuiRenderab
 {
 public:
     explicit FaceSystem(SystemRegistry& registry) : EntitySystem(registry) {}
-
-    Handle Create(EntityID owner, Handle anim, wstring openClip, wstring closeClip,
-        float openDur = 2.5f, float openJitter = 1.2f,
-        float holdClose = 0.12f, float fadeClose = 0.08f, float fadeOpen = 0.08f);
+    void     OnBoot() override;
+    Handle   Create(EntityID owner, Handle anim, wstring openClip, wstring closeClip,  float openDur = 2.5f, float openJitter = 1.2f, float holdClose = 0.12f, float fadeClose = 0.08f, float fadeOpen = 0.08f);
 
     void SetSpeed(Handle handle, float speed);
     void Update(float dt);
@@ -20,6 +18,9 @@ public:
 
 private:
     static float nextOpenHold(const FaceData& face);
+
+private:
+    AnimatorSystem* animator{};
 };
 
 NS_END

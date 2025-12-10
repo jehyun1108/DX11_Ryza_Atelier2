@@ -18,7 +18,6 @@ struct PartyMember
 		}
 	}
 };
-
 struct FieldControllerState
 {
 	EntityID leader{};
@@ -27,15 +26,12 @@ struct FieldControllerState
 	bool prevJumpDown   = false;
 	bool prevAttackDown = false;
 };
-
-// 전투요청
 struct BattleFormationParams
 {
 	float ringRadius     = 100.f;
 	float startAngleDeg  = 0.f;
 	bool  faceCenterSnap = true;
 };
-
 struct BattleRequest
 {
 	EntityID              leader{};
